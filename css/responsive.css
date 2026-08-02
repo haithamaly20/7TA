@@ -1,0 +1,16 @@
+@media (max-width:960px){
+  :root{ --sidebar-w:230px; }
+  .stats-grid{ grid-template-columns:repeat(2,1fr); }
+  .topbar-search{ width:180px; }
+  .topbar-clock{ display:none; }
+}
+
+@media (max-width:720px){
+  .sidebar{ position:fixed; inset-inline-start:0; top:0; height:100vh; }
+  .sidebar:not(.mobile-open){ transform:translateX(105%); }
+  body[dir="rtl"] .sidebar:not(.mobile-open){ transform:translateX(105%); }
+  .page-content{ padding:16px; }
+  .stats-grid{ grid-template-columns:1fr 1fr; }
+  .form-row{ grid-template-columns:1fr; }
+  .topbar-search{ display:none; }
+}
