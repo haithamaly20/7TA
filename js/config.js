@@ -18,17 +18,16 @@ const CONFIG = {
 
   APP_NAME: "خطة موجهي الضبعة",
 
-  APP_VERSION: "1.0.2",
+  APP_VERSION: "1.0.3",
 
-  CACHE_VERSION: "1.0.2",
-
+  CACHE_VERSION: "1.0.3",
 
   /* ========================================================
      Google Sheets
   ======================================================== */
 
   // رابط Google Apps Script Web App
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbw1mMGuWQ8KCSh20ekTmFtGYRtfuM7LP7k2Ic4wvPHsbNXfLNrYpcGntqtQcGmKdiwa/exec",
+  SCRIPT_URL:  "https://script.google.com/macros/s/AKfycby0GR1JlVs3OKje_vADEG3BQP3oKBGYIhWadJUWtsVjO622Hh2e3wff7ut2-SH2bdp9/exec",
 
   // اسم ورقة العمل
   SHEET_NAME: "",
