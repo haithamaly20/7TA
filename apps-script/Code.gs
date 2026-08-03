@@ -30,7 +30,7 @@ function doGet(e) {
     let result;
     switch (action) {
       case 'read':
-        result = rows;
+        result = e.parameter.since ? filterRowsSince_(rows, e.parameter.since) : rows;
         break;
       case 'search':
         result = searchRows_(rows, e.parameter.q || '');
@@ -151,6 +151,15 @@ function bulkSync_(sheet, type, records) {
     sheet.appendRow([r.id, type, JSON.stringify(r.data || r), now]);
   });
   return { type: type, count: records.length, updatedAt: now };
+}
+
+function filterRowsSince_(rows, sinceIso) {
+  const sinceDate = new Date(sinceIso);
+  if (isNaN(sinceDate.getTime())) return rows; // تاريخ غير صالح: تجاهل الفلترة بأمان
+  return rows.filter(r => {
+    const updated = new Date(r.updatedAt);
+    return !isNaN(updated.getTime()) && updated > sinceDate;
+  });
 }
 
 function searchRows_(rows, query) {

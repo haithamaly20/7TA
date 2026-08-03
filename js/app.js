@@ -11,6 +11,7 @@ APP.app = (function(){
   async function boot(){
     storage.load();
     await APP.cloudRestore.restoreIfNeeded();
+    await APP.cloudRestore.syncFromCloud();
     APP.theme.init();
     applySettingsToUI();
     APP.router.init();

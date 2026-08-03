@@ -12,6 +12,29 @@ window.APP = window.APP || {};
 
 APP.cloudRestore = (function () {
 
+  const LAST_SYNC_KEY = 'dabaa_last_cloud_sync_at';
+
+  // آخر وقت مزامنة ناجحة معروف (يُستخدم لطلب الصفوف الأحدث فقط من الخادم)
+  function getLastSyncAt() {
+    try { return localStorage.getItem(LAST_SYNC_KEY) || null; }
+    catch (e) { return null; }
+  }
+  function setLastSyncAt(iso) {
+    try { localStorage.setItem(LAST_SYNC_KEY, iso); }
+    catch (e) { /* تجاهل بأمان إن فشل التخزين */ }
+  }
+
+  // أحدث updatedAt من بين مجموعة صفوف قادمة من Sheets (يُستخدم كمرجع زمني دقيق
+  // بدل الاعتماد على ساعة الجهاز المحلي، لتقليل أثر فروق التوقيت بين الأجهزة)
+  function maxUpdatedAt(rows) {
+    let max = null;
+    (rows || []).forEach(r => {
+      if (!r || !r.updatedAt) return;
+      if (!max || new Date(r.updatedAt) > new Date(max)) max = r.updatedAt;
+    });
+    return max;
+  }
+
   // هل قاعدة البيانات المحلية فارغة فعليًا (بدون أي بيانات حقيقية)؟
   function isLocalDBEmpty(db) {
     if (!db) return true;
@@ -113,6 +136,9 @@ APP.cloudRestore = (function () {
     // 5) استبدال قاعدة البيانات المحلية بالكامل، ثم الحفظ محليًا
     APP.storage.replaceDB(newDB);
 
+    // تسجيل مرجع زمني دقيق لآخر مزامنة، لاستخدامه لاحقًا في المزامنة التدريجية
+    setLastSyncAt(maxUpdatedAt(rows) || new Date().toISOString());
+
     if (window.APP.ui) {
       try { APP.ui.success && APP.ui.success('تم الاسترجاع', 'تم استرجاع بياناتك من Google Sheets بنجاح'); } catch (e) {}
     }
@@ -120,5 +146,66 @@ APP.cloudRestore = (function () {
     return true;
   }
 
-  return { restoreIfNeeded, isLocalDBEmpty, buildDBFromRows };
+  // ---------- المزامنة الذكية التدريجية (بعد الإقلاع، بغض النظر هل القاعدة فارغة أم لا) ----------
+  // تسحب فقط الصفوف الأحدث من آخر مزامنة (Timestamp Comparison)، ثم تدمجها محليًا
+  // عبر APP.storage.mergeDB (دمج بالـ id، وليس استبدالاً كاملاً) — بحيث لا تُفقد
+  // أي تعديلات محلية حديثة لم تُدفع بعد إلى Sheets.
+  async function syncFromCloud() {
+    if (!APP.sheetsSync || !APP.sheetsSync.isEnabled()) return false;
+
+    const since = getLastSyncAt();
+    const res = since
+      ? await APP.sheetsSync.readSince(since)
+      : await APP.sheetsSync.read();
+
+    if (!res || !res.ok) {
+      console.warn('cloudRestore.syncFromCloud: تعذّر جلب التحديثات من Google Sheets', res && res.error);
+      return false;
+    }
+
+    const rows = Array.isArray(res.data) ? res.data : [];
+    if (!rows.length) {
+      // لا يوجد جديد منذ آخر مزامنة — هذا طبيعي وليس خطأ
+      return false;
+    }
+
+    const incoming = { supervisors: [], institutes: [], plans: {}, settings: {} };
+    let foundAny = false;
+
+    rows.forEach(row => {
+      const type = row && row.type;
+      const parsed = parseRowData(row && row.data);
+      if (!type || parsed == null) return;
+
+      switch (type) {
+        case 'supervisors':
+          incoming.supervisors.push(parsed);
+          foundAny = true;
+          break;
+        case 'institutes':
+          incoming.institutes.push(parsed);
+          foundAny = true;
+          break;
+        case 'plans':
+          Object.assign(incoming.plans, parsed);
+          foundAny = true;
+          break;
+        case 'settings':
+          Object.assign(incoming.settings, parsed);
+          foundAny = true;
+          break;
+        default:
+          break;
+      }
+    });
+
+    if (foundAny) {
+      APP.storage.mergeDB(incoming);
+    }
+
+    setLastSyncAt(maxUpdatedAt(rows) || new Date().toISOString());
+    return foundAny;
+  }
+
+  return { restoreIfNeeded, syncFromCloud, isLocalDBEmpty, buildDBFromRows };
 })();

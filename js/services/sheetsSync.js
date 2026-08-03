@@ -58,6 +58,7 @@ APP.sheetsSync = (function () {
 
   // ---------- عمليات CRUD ----------
   const read = () => request('GET', { action: 'read' });
+  const readSince = (since) => request('GET', { action: 'read', since });
   const search = (q) => request('GET', { action: 'search', q });
   const sort = (field, dir) => request('GET', { action: 'sort', field, dir });
 
@@ -79,5 +80,5 @@ APP.sheetsSync = (function () {
     });
   }
 
-  return { isEnabled, read, search, sort, add, update, remove, bulkSync, syncInBackground };
+  return { isEnabled, read, readSince, search, sort, add, update, remove, bulkSync, syncInBackground };
 })();
