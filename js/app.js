@@ -12,6 +12,7 @@ APP.app = (function(){
     storage.load();
     await APP.cloudRestore.restoreIfNeeded();
     await APP.cloudRestore.syncFromCloud();
+    APP.backgroundSync.init();
     APP.theme.init();
     applySettingsToUI();
     APP.router.init();

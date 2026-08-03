@@ -183,7 +183,7 @@ APP.storage = (function(){
   }
 
   return {
-    load, getDB, replaceDB, mergeDB, persist, defaultDB,
+    load, getDB, replaceDB, mergeDB, persist, defaultDB, syncToSheetsIfEnabled,
     listSupervisors, getSupervisor, saveSupervisor, deleteSupervisor,
     listInstitutes, getInstitute, saveInstitute, deleteInstitute,
     getMonthPlan, setCell, clearDay, clearWeek, clearSupervisorMonth, copyMonth,
