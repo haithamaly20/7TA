@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>خطة موجهي الضبعة</title>
+
+<!-- PWA: Manifest + Theme + أيقونات -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F172A">
+<meta name="background-color" content="#0F172A">
+<!-- تطبيق مبكر للوضع الداكن/الفاتح قبل رسم الصفحة، لتفادي وميض المحتوى (FOUC) -->
+<script>
+  (function(){
+    try{
+      var t = localStorage.getItem('dabaa_theme_pref') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    }catch(e){ document.documentElement.setAttribute('data-theme','dark'); }
+  })();
+</script>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="خطة الضبعة">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+<!-- خطوط Cairo / Tajawal — عبر شبكة Google Fonts (تحتاج اتصال إنترنت فقط لتحميل الخط،
+     ولا تؤثر على عمل النظام نفسه دون اتصال، حيث تتوفر خطوط بديلة كاحتياط) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/navbar.css">
+<link rel="stylesheet" href="css/cards.css">
+<link rel="stylesheet" href="css/buttons.css">
+<link rel="stylesheet" href="css/tables.css">
+<link rel="stylesheet" href="css/forms.css">
+<link rel="stylesheet" href="css/dialogs.css">
+<link rel="stylesheet" href="css/notifications.css">
+<link rel="stylesheet" href="css/print.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+<div class="loading-screen" id="bootLoading"><div class="spinner"></div><span>جارِ تحميل خطة موجهي الضبعة...</span></div>
+
+<div class="app-shell">
+
+  <!-- ============ Sidebar ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo-mark">ض</div>
+      <div class="brand-text">
+        <strong data-bind="systemTitle">خطة موجهي الضبعة</strong>
+        <small data-bind="orgName">إدارة الضبعة التعليمية</small>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" title="طي/فتح القائمة">☰</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">الرئيسية</div>
+      <div class="nav-item" data-page="dashboard"><span class="nav-ico">🏠</span><span class="nav-label">لوحة التحكم</span></div>
+
+      <div class="nav-section-label">الإدارة</div>
+      <div class="nav-item" data-page="supervisors"><span class="nav-ico">🧑‍🏫</span><span class="nav-label">الموجهون</span></div>
+      <div class="nav-item" data-page="institutes"><span class="nav-ico">🏫</span><span class="nav-label">المعاهد</span></div>
+
+      <div class="nav-section-label">التخطيط</div>
+      <div class="nav-item" data-page="planner"><span class="nav-ico">🗓️</span><span class="nav-label">إنشاء الخطة</span></div>
+      <div class="nav-item" data-page="reports"><span class="nav-ico">📊</span><span class="nav-label">التقارير</span></div>
+
+      <div class="nav-section-label">النظام</div>
+      <div class="nav-item" data-page="backup"><span class="nav-ico">💾</span><span class="nav-label">النسخ الاحتياطي</span></div>
+      <div class="nav-item" data-page="settings"><span class="nav-ico">⚙️</span><span class="nav-label">الإعدادات</span></div>
+    </nav>
+    <div class="sidebar-footer">يعمل بالكامل دون إنترنت — الإصدار 1.0</div>
+  </aside>
+
+  <div class="main-area">
+    <!-- ============ Top Bar ============ -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn" id="mobileMenuBtn" style="display:none">☰</button>
+        <div class="topbar-search">
+          <input type="text" id="globalSearch" placeholder="بحث سريع عن موجه أو معهد...">
+          <span class="ico">🔍</span>
+          <div class="table-wrap hidden" id="globalSearchResults" style="position:absolute; top:calc(100% + 8px); right:0; left:0; z-index:80; padding:6px;"></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn" id="themeToggleBtn" title="التبديل بين الوضع الداكن والفاتح">☀️</button>
+        <button class="icon-btn" id="pwaInstallBtn" title="تثبيت التطبيق" style="display:none">⬇️ تثبيت التطبيق</button>
+        <div class="topbar-chip">📅 <span id="dashCurrentMonth">-</span></div>
+        <div class="topbar-clock">
+          <div class="time" id="topClock">--:--:--</div>
+          <div class="date" id="topDate">-</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- ============ Dashboard ============ -->
+      <section class="page" id="page-dashboard">
+        <div class="page-header">
+          <div>
+            <h1>👋 مرحبًا بك في <span data-bind="systemTitle">خطة موجهي الضبعة</span></h1>
+            <div class="sub" id="dashToday">-</div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="icon-box blue">🧑‍🏫</div>
+            <div><div class="stat-num" id="statTotalSupervisors">0</div><div class="stat-label" id="statTotalSupervisorsSub">الموجهون النشطون</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="icon-box green">🏫</div>
+            <div><div class="stat-num" id="statTotalInstitutes">0</div><div class="stat-label" id="statTotalInstitutesSub">إجمالي المعاهد</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="icon-box amber">🗓️</div>
+            <div><div class="stat-num" id="statPlannedVisits">0</div><div class="stat-label" id="statPlannedVisitsSub">زيارات مخططة هذا الشهر</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="icon-box red">📈</div>
+            <div><div class="stat-num" id="statCompletion">0%</div><div class="stat-label" id="statCompletionSub">نسبة اكتمال الخطة</div></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="panel-title"><h3>إجراءات سريعة</h3></div>
+            <div class="quick-actions">
+              <div class="quick-action" id="qaAddSupervisor">➕ إضافة موجه</div>
+              <div class="quick-action" id="qaAddInstitute">➕ إضافة معهد</div>
+              <div class="quick-action" id="qaOpenPlanner">🗓️ فتح الخطة الشهرية</div>
+              <div class="quick-action" id="qaOpenBackup">💾 نسخة احتياطية</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="panel-title"><h3>آخر الموجهين المضافين</h3></div>
+            <div class="mini-list" id="dashRecentList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Supervisors ============ -->
+      <section class="page" id="page-supervisors">
+        <div class="page-header">
+          <div><h1>🧑‍🏫 الموجهون</h1><div class="sub">إدارة بيانات الموجهين وتكليفاتهم بالمعاهد</div></div>
+          <div class="page-actions"><button class="btn btn-primary" id="btnAddSupervisor">➕ إضافة موجه</button></div>
+        </div>
+        <div class="table-wrap" id="supervisorsTable">
+          <div class="table-toolbar">
+            <div class="search-box" style="width:280px;">
+              <input type="text" id="supervisorSearch" placeholder="ابحث بالاسم أو الوظيفة...">
+              <span class="ico">🔍</span>
+            </div>
+            <div class="flex items-center gap-12">
+              <select id="supervisorStatusFilter" style="width:150px;">
+                <option value="all">كل الحالات</option>
+                <option value="active">نشط فقط</option>
+                <option value="disabled">معطل فقط</option>
+              </select>
+              <span class="text-faint" id="supervisorCount" style="font-size:12.5px;"></span>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:36px;">#</th>
+                  <th style="width:40px;">اللون</th>
+                  <th data-sort="name">الاسم <span class="sort-arrow">↕</span></th>
+                  <th data-sort="role">الوظيفة <span class="sort-arrow">↕</span></th>
+                  <th>الإدارة/الإدارات</th>
+                  <th>المعاهد المكلف بها</th>
+                  <th>الحالة</th>
+                  <th>إجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="supervisorsTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Institutes ============ -->
+      <section class="page" id="page-institutes">
+        <div class="page-header">
+          <div><h1>🏫 المعاهد</h1><div class="sub">إدارة بيانات المعاهد التابعة للإدارة</div></div>
+          <div class="page-actions"><button class="btn btn-primary" id="btnAddInstitute">➕ إضافة معهد</button></div>
+        </div>
+        <div class="table-wrap" id="institutesTable">
+          <div class="table-toolbar">
+            <div class="search-box" style="width:280px;">
+              <input type="text" id="instituteSearch" placeholder="ابحث بالاسم أو الإدارة...">
+              <span class="ico">🔍</span>
+            </div>
+            <span class="text-faint" id="instituteCount" style="font-size:12.5px;"></span>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:36px;">#</th>
+                  <th data-sort="name">اسم المعهد <span class="sort-arrow">↕</span></th>
+                  <th data-sort="department">الإدارة <span class="sort-arrow">↕</span></th>
+                  <th data-sort="stage">المرحلة <span class="sort-arrow">↕</span></th>
+                  <th>عدد الفصول</th>
+                  <th>مُكلّف به</th>
+                  <th>إجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="institutesTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Planner ============ -->
+      <section class="page" id="page-planner">
+        <div class="page-header">
+          <div><h1>🗓️ إنشاء الخطة الشهرية</h1><div class="sub" id="plannerMonthLabel">-</div></div>
+          <div class="page-actions">
+            <input type="month" id="plannerMonth" style="width:170px;">
+            <button class="btn btn-outline" id="btnCopyPrevMonth">⧉ نسخ الشهر السابق</button>
+            <button class="btn btn-outline" id="btnValidatePlan">🔎 تحقق من الخطة</button>
+            <button class="btn btn-danger" id="btnClearMonth">🗑 مسح الشهر</button>
+          </div>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div id="plannerTableWrap"></div>
+        </div>
+      </section>
+
+      <!-- ============ Reports ============ -->
+      <section class="page" id="page-reports">
+        <div class="page-header">
+          <div><h1>📊 التقارير</h1><div class="sub" id="reportsMonthLabel">-</div></div>
+          <div class="page-actions">
+            <input type="month" id="reportsMonth" style="width:170px;">
+            <button class="btn btn-outline" id="btnPrintGeneralPlan">🖨 طباعة الخطة العامة</button>
+            <button class="btn btn-outline" id="btnPrintAllSupervisorPlans">🖨 طباعة كل الخطط الفردية</button>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="panel-title"><h3>عدد الزيارات لكل موجه</h3></div>
+            <div class="mini-list" id="reportSupervisorList"></div>
+          </div>
+          <div class="card">
+            <div class="panel-title"><h3>الزيارات حسب الإدارة</h3></div>
+            <div class="mini-list" id="reportDepartmentList"></div>
+          </div>
+        </div>
+        <div class="card mt-16">
+          <div class="panel-title"><h3>عدد الزيارات لكل معهد</h3></div>
+          <div class="mini-list" id="reportInstituteList"></div>
+        </div>
+      </section>
+
+      <!-- ============ Backup ============ -->
+      <section class="page" id="page-backup">
+        <div class="page-header">
+          <div><h1>💾 النسخ الاحتياطي</h1><div class="sub" id="lastBackupInfo">-</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="panel-title"><h3>تصدير البيانات</h3></div>
+            <p class="text-dim mb-16" style="font-size:13px;">يشمل التصدير: الموجهين، المعاهد، تكليفات الموجهين، الخطة، والإعدادات.</p>
+            <div class="flex-col gap-10">
+              <button class="btn btn-primary btn-block" id="btnExportJson">⬇ تصدير نسخة كاملة (JSON)</button>
+              <button class="btn btn-outline btn-block" id="btnExportCsvSupervisors">⬇ تصدير الموجهين (CSV / Excel)</button>
+              <button class="btn btn-outline btn-block" id="btnExportCsvInstitutes">⬇ تصدير المعاهد (CSV / Excel)</button>
+              <button class="btn btn-outline btn-block" id="btnExportCsvPlan">⬇ تصدير خطة الشهر الحالي (CSV / Excel)</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="panel-title"><h3>استيراد نسخة احتياطية</h3></div>
+            <p class="text-dim mb-16" style="font-size:13px;">استورد ملف JSON تم تصديره سابقًا من هذا النظام. يمكنك اختيار الدمج مع البيانات الحالية أو استبدالها بالكامل.</p>
+            <input type="file" id="importFileInput" accept="application/json,.json" class="hidden">
+            <button class="btn btn-success btn-block" id="btnChooseImportFile">⬆ اختيار ملف واستيراد</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Settings ============ -->
+      <section class="page" id="page-settings">
+        <div class="page-header">
+          <div><h1>⚙️ الإعدادات</h1><div class="sub">تخصيص النظام حسب احتياجات إدارتك</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="panel-title"><h3>الإعدادات العامة</h3></div>
+            <div class="form-group">
+              <label>اسم النظام</label>
+              <input type="text" id="settingsSystemTitle">
+            </div>
+            <div class="form-group">
+              <label>اسم الإدارة/الجهة</label>
+              <input type="text" id="settingsOrgName">
+            </div>
+            <div class="form-group">
+              <label>أيام العطلة الأسبوعية</label>
+              <div class="flex gap-16">
+                <label class="checkbox-row"><input type="checkbox" id="settingsWeekendThu"> الخميس</label>
+                <label class="checkbox-row"><input type="checkbox" id="settingsWeekendFri"> الجمعة</label>
+                <label class="checkbox-row"><input type="checkbox" id="settingsWeekendSat"> السبت</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>مظهر الواجهة</label>
+              <div class="flex gap-16">
+                <label class="checkbox-row"><input type="radio" name="settingsTheme" id="settingsThemeDark"> داكن</label>
+                <label class="checkbox-row"><input type="radio" name="settingsTheme" id="settingsThemeLight"> فاتح</label>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="btnSaveSettings">حفظ الإعدادات</button>
+          </div>
+          <div class="card">
+            <div class="panel-title"><h3>منطقة الخطر</h3></div>
+            <p class="text-dim mb-16" style="font-size:13px;">إعادة الضبط ستحذف جميع بيانات الموجهين والمعاهد والخطط نهائيًا. يُنصح بأخذ نسخة احتياطية أولًا من صفحة "النسخ الاحتياطي".</p>
+            <button class="btn btn-danger btn-block" id="btnFactoryReset">🗑 إعادة ضبط النظام بالكامل</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- منطقة الطباعة (مخفية على الشاشة، تظهر فقط عند الطباعة) -->
+<div id="printArea"></div>
+
+<!-- ============ Scripts ============
+     ملاحظة تقنية مهمة: تم تعمّد استخدام سكربتات عادية (بدون
+     type="module" واستيراد/تصدير ES6) رغم أن المشروع مقسّم فعليًا
+     إلى وحدات منفصلة (Modular Architecture) بنفس فلسفة ES Modules.
+     السبب: متصفحات Chrome و Firefox تمنع تحميل type="module"
+     عبر بروتوكول file:// (خطأ CORS)، مما يمنع تشغيل المشروع بالنقر
+     المزدوج مباشرة على index.html. لذلك تم اعتماد نمط "namespace"
+     (window.APP.*) الذي يحقق نفس الفصل والتنظيم دون كسر التوافق. -->
+<script src="js/config.js"></script>
+<script src="js/utils/helpers.js"></script>
+<script src="js/services/storage.js"></script>
+<script src="js/services/sheetsSync.js"></script>
+<script src="js/services/cloudRestore.js"></script>
+<script src="js/modules/ui.js"></script>
+<script src="js/modules/theme.js"></script>
+<script src="js/utils/validation.js"></script>
+<script src="js/services/search.js"></script>
+<script src="js/services/statistics.js"></script>
+<script src="js/services/printing.js"></script>
+<script src="js/modules/supervisors.js"></script>
+<script src="js/modules/institutes.js"></script>
+<script src="js/modules/planner.js"></script>
+<script src="js/services/reports.js"></script>
+<script src="js/services/importExport.js"></script>
+<script src="js/modules/router.js"></script>
+<script src="js/app.js"></script>
+<script>
+  window.addEventListener('load', ()=>{
+    setTimeout(()=>{ document.getElementById('bootLoading')?.remove(); }, 200);
+  });
+
+  /* ================= PWA: تسجيل Service Worker ================= */
+  // يعمل فقط عبر http/https (GitHub Pages أو خادم محلي). عند فتح الملف
+  // بالنقر المزدوج (file://) لا يوجد دعم لـ Service Worker في المتصفح
+  // أصلاً، فيتخطى هذا الشرط بأمان دون أي تأثير على بقية التطبيق.
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').then((reg) => {
+        // Auto Update: عند اكتشاف نسخة جديدة من sw.js
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // يوجد إصدار جديد جاهز — أخبر المستخدم واطلب التحديث
+              if (window.APP && APP.ui && APP.ui.info) {
+                APP.ui.info('تحديث متاح', 'يوجد إصدار جديد من التطبيق — سيتم التحديث الآن.');
+              }
+              newWorker.postMessage('SKIP_WAITING');
+            }
+          });
+        });
+      }).catch((err) => console.error('[PWA] فشل تسجيل Service Worker:', err));
+
+      // عند تسلّم Service Worker جديد للسيطرة، أعد تحميل الصفحة تلقائياً
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
+    });
+  }
+
+  /* ================= PWA: Install App ================= */
+  let deferredInstallPrompt = null;
+  const installBtn = document.getElementById('pwaInstallBtn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    if (installBtn) installBtn.style.display = 'inline-flex';
+  });
+
+  installBtn?.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) return;
+    installBtn.style.display = 'none';
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    if (window.APP && APP.ui) {
+      if (outcome === 'accepted') APP.ui.success('تم التثبيت', 'تم تثبيت التطبيق على جهازك بنجاح.');
+    }
+    deferredInstallPrompt = null;
+  });
+
+  window.addEventListener('appinstalled', () => {
+    if (installBtn) installBtn.style.display = 'none';
+    deferredInstallPrompt = null;
+  });
+</script>
+</body>
+</html>
