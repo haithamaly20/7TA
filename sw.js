@@ -45,11 +45,14 @@ const PRECACHE_URLS = [
 
   "./js/services/storage.js",
   "./js/services/sheetsSync.js",
+  "./js/services/cloudRestore.js",
+  "./js/services/backgroundSync.js",
   "./js/services/search.js",
   "./js/services/statistics.js",
   "./js/services/printing.js",
   "./js/services/reports.js",
   "./js/services/importExport.js",
+  "./js/services/backupScheduler.js",
 
   "./js/modules/ui.js",
   "./js/modules/theme.js",

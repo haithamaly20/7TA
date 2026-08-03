@@ -287,6 +287,11 @@
             <button class="btn btn-success btn-block" id="btnChooseImportFile">⬆ اختيار ملف واستيراد</button>
           </div>
         </div>
+        <div class="card mt-16">
+          <div class="panel-title"><h3>النسخ الاحتياطية التلقائية</h3></div>
+          <p class="text-dim mb-16" style="font-size:13px;">يحتفظ النظام تلقائيًا بنسخ دورية (يومية/أسبوعية/شهرية) داخل الجهاز، كشبكة أمان إضافية مستقلة عن التصدير اليدوي والمزامنة السحابية.</p>
+          <div id="autoBackupsList" class="flex-col gap-8"></div>
+        </div>
       </section>
 
       <!-- ============ Settings ============ -->
@@ -351,6 +356,7 @@
 <script src="js/services/sheetsSync.js"></script>
 <script src="js/services/cloudRestore.js"></script>
 <script src="js/services/backgroundSync.js"></script>
+<script src="js/services/backupScheduler.js"></script>
 <script src="js/modules/ui.js"></script>
 <script src="js/modules/theme.js"></script>
 <script src="js/utils/validation.js"></script>

@@ -13,6 +13,7 @@ APP.app = (function(){
     await APP.cloudRestore.restoreIfNeeded();
     await APP.cloudRestore.syncFromCloud();
     APP.backgroundSync.init();
+    APP.backupScheduler.runIfNeeded();
     APP.theme.init();
     applySettingsToUI();
     APP.router.init();
@@ -27,6 +28,7 @@ APP.app = (function(){
     APP.planner.init();
     APP.reports.init();
     APP.importExport.init();
+    APP.backupScheduler.init();
 
     refreshDashboard();
 
