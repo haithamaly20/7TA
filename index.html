@@ -374,25 +374,41 @@
   // بالنقر المزدوج (file://) لا يوجد دعم لـ Service Worker في المتصفح
   // أصلاً، فيتخطى هذا الشرط بأمان دون أي تأثير على بقية التطبيق.
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) {
+    let pendingUpdateWorker = null;
+
+    function showUpdateDialog(){
+      if (window.APP && APP.ui && APP.ui.confirmDialog) {
+        APP.ui.confirmDialog({
+          title: 'يتوفر تحديث جديد',
+          message: 'يوجد إصدار جديد من التطبيق جاهز للتفعيل. سيتم إعادة تحميل الصفحة عند الموافقة. هل تريد التحديث الآن؟',
+          confirmLabel: 'تحديث الآن',
+          onConfirm: () => {
+            if (pendingUpdateWorker) pendingUpdateWorker.postMessage('SKIP_WAITING');
+          }
+        });
+      } else if (window.APP && APP.ui && APP.ui.info) {
+        // احتياطي بسيط لو واجهة الحوار غير متاحة لأي سبب
+        APP.ui.info('تحديث متاح', 'يوجد إصدار جديد — أعد تحميل الصفحة يدويًا لتفعيله.');
+      }
+    }
+
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js').then((reg) => {
-        // Auto Update: عند اكتشاف نسخة جديدة من sw.js
+        // Update Available Dialog: عند اكتشاف نسخة جديدة من sw.js، لا نُفعّلها
+        // تلقائيًا؛ بل نعرض على المستخدم حوار تأكيد وننتظر قراره.
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
           if (!newWorker) return;
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // يوجد إصدار جديد جاهز — أخبر المستخدم واطلب التحديث
-              if (window.APP && APP.ui && APP.ui.info) {
-                APP.ui.info('تحديث متاح', 'يوجد إصدار جديد من التطبيق — سيتم التحديث الآن.');
-              }
-              newWorker.postMessage('SKIP_WAITING');
+              pendingUpdateWorker = newWorker;
+              showUpdateDialog();
             }
           });
         });
       }).catch((err) => console.error('[PWA] فشل تسجيل Service Worker:', err));
 
-      // عند تسلّم Service Worker جديد للسيطرة، أعد تحميل الصفحة تلقائياً
+      // عند تسلّم Service Worker جديد للسيطرة (بعد موافقة المستخدم فقط الآن)، أعد تحميل الصفحة
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (refreshing) return;
