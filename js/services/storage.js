@@ -37,7 +37,8 @@ APP.storage = (function(){
       const raw = localStorage.getItem(DB_KEY);
       if(!raw){
         db = defaultDB();
-        persist();
+        persistLocalOnly(); // حفظ محلي فقط — بدون مزامنة، حتى لا تُمحى بيانات Sheets الحقيقية
+                             // قبل أن تحصل cloudRestore.restoreIfNeeded() على فرصة الاسترجاع أولاً
       } else {
         db = JSON.parse(raw);
         // safety defaults for older/partial data
@@ -50,7 +51,7 @@ APP.storage = (function(){
     }catch(e){
       console.error('تعذر تحميل البيانات، سيتم إنشاء قاعدة بيانات جديدة', e);
       db = defaultDB();
-      persist();
+      persistLocalOnly(); // نفس السبب: تجنّب مزامنة قاعدة بيانات فارغة قد تمحو بيانات Sheets الحقيقية
     }
     return db;
   }
@@ -63,6 +64,20 @@ APP.storage = (function(){
       return true;
     }catch(e){
       console.error('فشل حفظ البيانات', e);
+      return false;
+    }
+  }
+
+  // حفظ محلي فقط، بدون استدعاء المزامنة السحابية — يُستخدم فقط عند الإنشاء
+  // الأولي لقاعدة بيانات فارغة (load عند عدم وجود بيانات محلية)، حتى لا تُمحى
+  // بيانات Sheets الحقيقية بالخطأ قبل أن يحاول cloudRestore استرجاعها أولاً.
+  function persistLocalOnly(){
+    db.meta.lastUpdatedAt = new Date().toISOString();
+    try{
+      localStorage.setItem(DB_KEY, JSON.stringify(db));
+      return true;
+    }catch(e){
+      console.error('فشل حفظ البيانات محليًا', e);
       return false;
     }
   }
