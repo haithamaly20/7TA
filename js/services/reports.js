@@ -39,6 +39,33 @@ APP.reports = (function(){
     renderSupervisorList(monthKey);
     renderInstituteVisits(monthKey);
     renderDepartmentVisits(monthKey);
+    renderCharts(monthKey);
+  }
+
+  function renderCharts(monthKey){
+    if(!APP.charts) return;
+
+    const supList = stats.visitsPerSupervisor(monthKey).slice(0, 10);
+    APP.charts.renderBarChart(
+      document.getElementById('chartSupervisorVisits'),
+      supList,
+      {
+        label: item => item.supervisor.name,
+        value: item => item.count,
+        color: item => item.supervisor.color || '#6366F1'
+      }
+    );
+
+    const deptList = stats.visitsPerDepartment(monthKey);
+    APP.charts.renderBarChart(
+      document.getElementById('chartDepartmentVisits'),
+      deptList,
+      {
+        label: item => item.department,
+        value: item => item.count,
+        color: () => '#22C55E'
+      }
+    );
   }
 
   function renderSupervisorList(monthKey){

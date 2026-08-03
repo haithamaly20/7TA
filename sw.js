@@ -53,6 +53,7 @@ const PRECACHE_URLS = [
   "./js/services/reports.js",
   "./js/services/importExport.js",
   "./js/services/backupScheduler.js",
+  "./js/services/charts.js",
 
   "./js/modules/ui.js",
   "./js/modules/theme.js",
