@@ -8,8 +8,9 @@ APP.app = (function(){
   const storage = APP.storage;
   const ui = APP.ui;
 
-  function boot(){
+  async function boot(){
     storage.load();
+    await APP.cloudRestore.restoreIfNeeded();
     APP.theme.init();
     applySettingsToUI();
     APP.router.init();
