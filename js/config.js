@@ -34,7 +34,7 @@ const CONFIG = {
   SHEET_NAME: "",
 
   // تفعيل المزامنة السحابية
-  ENABLE_SYNC: false,
+  ENABLE_SYNC: true,
 
 
   /* ========================================================
