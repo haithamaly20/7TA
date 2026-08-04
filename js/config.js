@@ -18,9 +18,9 @@ const CONFIG = {
 
   APP_NAME: "خطة موجهي الضبعة",
 
-  APP_VERSION: "1.0.6",
+  APP_VERSION: "1.0.7",
 
-  CACHE_VERSION: "1.0.6",
+  CACHE_VERSION: "1.0.7",
 
 
   /* ========================================================
