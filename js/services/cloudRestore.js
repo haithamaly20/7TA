@@ -69,19 +69,23 @@ APP.cloudRestore = (function () {
 
       switch (type) {
         case 'supervisors':
+        case 'supervisor':
           newDB.supervisors.push(parsed);
           foundAny = true;
           break;
         case 'institutes':
+        case 'institute':
           newDB.institutes.push(parsed);
           foundAny = true;
           break;
         case 'plans':
+        case 'plan':
           // يُخزَّن ككائن الخطط بالكامل تحت سجل واحد (id: 'plans')
           Object.assign(newDB.plans, parsed);
           foundAny = true;
           break;
         case 'settings':
+        case 'setting':
           Object.assign(newDB.settings, parsed);
           foundAny = true;
           break;
@@ -179,18 +183,22 @@ APP.cloudRestore = (function () {
 
       switch (type) {
         case 'supervisors':
+        case 'supervisor':
           incoming.supervisors.push(parsed);
           foundAny = true;
           break;
         case 'institutes':
+        case 'institute':
           incoming.institutes.push(parsed);
           foundAny = true;
           break;
         case 'plans':
+        case 'plan':
           Object.assign(incoming.plans, parsed);
           foundAny = true;
           break;
         case 'settings':
+        case 'setting':
           Object.assign(incoming.settings, parsed);
           foundAny = true;
           break;

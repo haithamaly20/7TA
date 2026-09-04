@@ -29,21 +29,30 @@ APP.sheetsSync = {
 
   async sendRequest(action,payload={}){
     if(!this.isEnabled()) throw new Error('مزامنة Google Sheets غير مفعلة');
-    const response=await fetch(CONFIG.SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...payload})});
-    if(!response.ok) throw new Error(`خطأ HTTP ${response.status}`);
-    const result=await response.json();
-    if(result && result.ok===false) throw new Error(result.error||'خطأ من Google Apps Script');
-    if(result && result.status==='error') throw new Error(result.error||'خطأ من Google Apps Script');
-    return result;
+    const controller = new AbortController();
+    const timer = setTimeout(()=>controller.abort(), 8000);
+    try {
+      const response=await fetch(CONFIG.SCRIPT_URL,{
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({action,...payload}),
+        signal:controller.signal
+      });
+      if(!response.ok) throw new Error(`خطأ HTTP ${response.status}`);
+      const result=await response.json();
+      if(result && result.ok===false) throw new Error(result.error||'خطأ من Google Apps Script');
+      if(result && result.status==='error') throw new Error(result.error||'خطأ من Google Apps Script');
+      return result;
+    } catch(err) {
+      if(err && err.name==='AbortError') throw new Error('انتهت مهلة الاتصال بـ Google Apps Script');
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
   },
 
   async read(){
-    if(!this.isEnabled()) return {ok:false,error:'المزامنة غير مفعلة'};
-    const url=new URL(CONFIG.SCRIPT_URL);
-    url.searchParams.set('action','read');
-    const response=await fetch(url.toString(),{method:'GET'});
-    if(!response.ok) throw new Error(`خطأ HTTP ${response.status}`);
-    return await response.json();
+    return this.readSince(null);
   },
 
   async readSince(since){
@@ -51,9 +60,18 @@ APP.sheetsSync = {
     const url=new URL(CONFIG.SCRIPT_URL);
     url.searchParams.set('action','read');
     if(since) url.searchParams.set('since',since);
-    const response=await fetch(url.toString(),{method:'GET'});
-    if(!response.ok) throw new Error(`خطأ HTTP ${response.status}`);
-    return await response.json();
+    const controller = new AbortController();
+    const timer = setTimeout(()=>controller.abort(), 8000);
+    try {
+      const response=await fetch(url.toString(),{method:'GET',signal:controller.signal});
+      if(!response.ok) throw new Error(`خطأ HTTP ${response.status}`);
+      return await response.json();
+    } catch(err) {
+      if(err && err.name==='AbortError') throw new Error('انتهت مهلة الاتصال بـ Google Apps Script');
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
   },
 
   async syncBulk(type,records){
