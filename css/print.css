@@ -1,29 +1,38 @@
 /* ============================================================
-   print.css — تنسيقات الطباعة فقط
-   (تُفعَّل تلقائيًا عند الطباعة)
+   print.css — تنسيقات الطباعة فقط (تُفعَّل تلقائياً عند الطباعة)
+   الإصدار 1.1.1
    ============================================================ */
 
-/* منطقة الطباعة مخفية دائمًا على الشاشة، وتظهر فقط أثناء
-   الطباعة عندما يضيف printing.js صنف printing-active للـ body */
-#printArea { display:none; }
-body.printing-active > *:not(#printArea) { display:none !important; }
-body.printing-active #printArea { display:block !important; }
+#printArea{ display:none; }
+body.printing-active > *:not(#printArea){ display:none !important; }
+body.printing-active #printArea{ display:block !important; }
+.print-page-break{ break-after:page; page-break-after:always; }
+.print-page-break:last-child{ break-after:auto; page-break-after:auto; }
+.print-empty{ padding:30px; text-align:center; font-size:18px; }
+.unplanned-row td{ opacity:.7; }
 
-.print-page-break { break-after: page; page-break-after: always; }
-.print-page-break:last-child { break-after: auto; page-break-after: auto; }
-.print-empty { padding:30px; text-align:center; font-size:18px; }
-.unplanned-row td { opacity:.7; }
+/* الاتجاه الافتراضي: طولي (Portrait) — يُستخدم للخطط الفردية */
+@page{ margin:12mm; size:auto; }
 
-@media print {
-  body.printing-active { background:#fff !important; }
-  body.printing-active #printArea { width:100%; }
-  .print-container { direction:rtl; width:100%; }
-  .print-table { width:100%; border-collapse:collapse; font-size:12px; }
-  .print-table th,.print-table td { border:1px solid #222; padding:6px; text-align:center; }
-  .print-header { text-align:center; margin-bottom:16px; }
-  .print-header h1,.print-header h2,.print-header h3 { margin:4px 0; }
-  .print-meta { margin-top:8px; font-size:11px; }
-  .print-footer { margin-top:12px; font-size:12px; }
-  .print-landscape { page-break-after:auto; }
-  @page { margin:12mm; size:auto; }
+/* ============================================================
+   الإصلاح 1.1.1 — الطباعة الأفقية (Landscape):
+   printing.js يضع الصنف print-landscape على #printArea عند
+   طباعة الخطة العامة؛ الخاصية page:landscape هنا هي التي
+   تُفعّل قاعدة @page المسماة فعلياً في المتصفح (Chrome/Edge).
+   بدون هذا الزوج كانت الخطة العامة تُطبع طوليًا رغم الإشارة.
+   ============================================================ */
+#printArea.print-landscape{ page:landscape; }
+@page landscape{ size:A4 landscape; margin:12mm; }
+
+@media print{
+  body.printing-active{ background:#fff !important; }
+  body.printing-active #printArea{ width:100%; }
+  .print-landscape{ page-break-after:auto; }
+  .print-container{ direction:rtl; width:100%; }
+  .print-table{ width:100%; border-collapse:collapse; font-size:12px; }
+  .print-table th,.print-table td{ border:1px solid #222; padding:6px; text-align:center; }
+  .print-header{ text-align:center; margin-bottom:16px; }
+  .print-header h1,.print-header h2,.print-header h3{ margin:4px 0; }
+  .print-meta{ margin-top:8px; font-size:11px; }
+  .print-footer{ margin-top:12px; font-size:12px; }
 }
