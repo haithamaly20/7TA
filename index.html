@@ -1,92 +1,94 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>خطة موجهي الضبعة</title>
-
-  <!-- الأننماط البرمجية والتنسيقات -->
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/print.css">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0F172A"><meta name="description" content="نظام إدارة خطة الزيارات الشهرية للموجهين التربويين">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="favicon.ico">
+<title>خطة موجهي الضبعة</title>
+<link rel="stylesheet" href="css/variables.css"><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css"><link rel="stylesheet" href="css/navbar.css"><link rel="stylesheet" href="css/cards.css"><link rel="stylesheet" href="css/buttons.css"><link rel="stylesheet" href="css/tables.css"><link rel="stylesheet" href="css/forms.css"><link rel="stylesheet" href="css/dialogs.css"><link rel="stylesheet" href="css/notifications.css"><link rel="stylesheet" href="css/print.css"><link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
+<div class="app-shell">
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-brand"><div class="brand-icon">📚</div><div><strong data-bind="systemTitle">خطة موجهي الضبعة</strong><small data-bind="orgName">إدارة الضبعة التعليمية</small></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">الرئيسية</div>
+      <button class="nav-item active" data-page="dashboard">🏠 <span>لوحة التحكم</span></button>
+      <div class="nav-section-label">الإدارة</div>
+      <button class="nav-item" data-page="supervisors">🧑‍🏫 <span>الموجهون</span></button>
+      <button class="nav-item" data-page="institutes">🏫 <span>المعاهد</span></button>
+      <button class="nav-item" data-page="planner">🗓️ <span>إنشاء الخطة</span></button>
+      <button class="nav-item" data-page="reports">📊 <span>التقارير والطباعة</span></button>
+      <div class="nav-section-label">النظام</div>
+      <button class="nav-item" data-page="backup">💾 <span>النسخ الاحتياطي</span></button>
+      <button class="nav-item" data-page="settings">⚙️ <span>الإعدادات</span></button>
+    </nav>
+    <button id="sidebarToggle" class="sidebar-toggle" title="طي القائمة">◀</button>
+  </aside>
 
-  <!-- شريط الملاحة والأزرار الرئيسية -->
-  <header class="main-header">
-    <div class="container flex-between">
-      <h1>تطبيق خطة موجهي الضبعة</h1>
-      <div class="actions flex-gap">
-        <button class="btn btn-primary" onclick="APP.printing.printGeneralPlan(APP.storage.getPlans())">طباعة الخطة العامة</button>
-        <button class="btn btn-success" onclick="APP.sheetsSync.saveBackupToDrive('Dabaa_Plan_Backup.json', JSON.stringify(APP.storage.getFullExportData()))">حفظ نسخة في Drive</button>
-      </div>
-    </div>
-  </header>
+  <div class="main-shell">
+    <header class="topbar">
+      <button id="mobileMenuBtn" class="btn btn-outline">☰</button>
+      <div class="topbar-search"><input id="globalSearch" class="form-control" placeholder="بحث سريع عن موجه أو معهد..."><div id="globalSearchResults" class="search-results hidden"></div></div>
+      <div class="topbar-actions"><button id="themeToggleBtn" class="btn btn-outline" title="تبديل المظهر">🌓</button><div class="clock"><strong id="topClock">--:--</strong><small id="topDate">--</small></div></div>
+    </header>
 
-  <main class="container content">
-
-    <!-- قسم الفلترة وشريط البحث للمعاهد -->
-    <section class="card">
-      <h3>إدارة المعاهد الأزهرية</h3>
-      
-      <div class="table-toolbar flex-between margin-bottom">
-        <div class="search-box">
-          <input type="text" id="instituteSearchInput" class="form-control" placeholder="بحث باسم أو كود المعهد..." oninput="APP.institutes.filterTable()">
+    <main class="page-content container">
+      <section class="page active" id="page-dashboard">
+        <div class="page-heading"><div><h2 data-bind="systemTitle">خطة موجهي الضبعة</h2><p>نظرة سريعة على حالة البيانات والخطة الحالية.</p></div><span class="badge blue" id="dashCurrentMonth">--</span></div>
+        <div class="cards-grid">
+          <div class="card stat-card"><span>الموجهون النشطون</span><strong id="statTotalSupervisors">0</strong><small id="statTotalSupervisorsSub">--</small></div>
+          <div class="card stat-card"><span>إجمالي المعاهد</span><strong id="statTotalInstitutes">0</strong><small id="statTotalInstitutesSub">--</small></div>
+          <div class="card stat-card"><span>الزيارات المخططة</span><strong id="statPlannedVisits">0</strong><small id="statPlannedVisitsSub">--</small></div>
+          <div class="card stat-card"><span>نسبة الإنجاز</span><strong id="statCompletion">0%</strong><small id="statCompletionSub">--</small></div>
         </div>
-        
-        <div class="filters flex-gap">
-          <select id="filterDepartment" class="form-control" onchange="APP.institutes.filterTable()">
-            <option value=""> جميع الإدارات </option>
-          </select>
-
-          <select id="filterStage" class="form-control" onchange="APP.institutes.filterTable()">
-            <option value=""> جميع المراحل </option>
-          </select>
-
-          <button class="btn btn-outline" onclick="APP.institutes.resetFilters()">إعادة ضبط</button>
+        <div class="grid-2">
+          <div class="card"><div class="card-header"><h3>إجراءات سريعة</h3></div><div class="flex gap-8 wrap"><button id="qaAddSupervisor" class="btn btn-primary">➕ إضافة موجه</button><button id="qaAddInstitute" class="btn btn-success">🏫 إضافة معهد</button><button id="qaOpenPlanner" class="btn btn-outline">🗓️ فتح الخطة</button><button id="qaOpenBackup" class="btn btn-outline">💾 النسخ الاحتياطي</button></div></div>
+          <div class="card"><div class="card-header"><h3>آخر الموجهين</h3><span id="dashToday" class="text-faint"></span></div><div id="dashRecentList"></div></div>
         </div>
+      </section>
 
-        <div id="institutesCountBadge" class="badge blue">العدد: 0</div>
-      </div>
+      <section class="page" id="page-supervisors">
+        <div class="page-heading"><div><h2>إدارة الموجهين</h2><p>إضافة الموجهين وتكليفهم بالمعاهد.</p></div><button id="btnAddSupervisor" class="btn btn-primary">➕ إضافة موجه</button></div>
+        <div class="card"><div class="table-toolbar flex-between"><input id="supervisorSearch" class="form-control" placeholder="بحث بالاسم أو الوظيفة أو الإدارة..."><select id="supervisorStatusFilter" class="form-control"><option value="all">كل الحالات</option><option value="active">نشط</option><option value="disabled">معطل</option></select><span id="supervisorCount" class="badge blue">0 موجه</span></div>
+          <div class="table-responsive"><table id="supervisorsTable" class="data-table"><thead><tr><th>#</th><th>اللون</th><th data-sort="name">الاسم</th><th data-sort="role">الوظيفة</th><th>الإدارات</th><th>المعاهد</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody id="supervisorsTbody"></tbody></table></div>
+        </div>
+      </section>
 
-      <!-- جدول عرض المعاهد -->
-      <div class="table-responsive">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>اسم المعهد</th>
-              <th>الكود</th>
-              <th>الإدارة</th>
-              <th>المرحلة</th>
-            </tr>
-          </thead>
-          <tbody id="institutesTableBody">
-            <!-- يتم تعبئة البيانات ديناميكياً بواسطة institutes.js -->
-          </tbody>
-        </table>
-      </div>
-    </section>
+      <section class="page" id="page-institutes">
+        <div class="page-heading"><div><h2>إدارة المعاهد الأزهرية</h2><p>بحث وفلترة بيانات المعاهد.</p></div><button id="btnAddInstitute" class="btn btn-success">➕ إضافة معهد</button></div>
+        <div class="card"><div class="table-toolbar flex-between margin-bottom"><input id="instituteSearchInput" class="form-control" placeholder="بحث باسم أو كود المعهد..." oninput="APP.institutes.filterTable()"><select id="filterDepartment" class="form-control" onchange="APP.institutes.filterTable()"><option value="">جميع الإدارات</option></select><select id="filterStage" class="form-control" onchange="APP.institutes.filterTable()"><option value="">جميع المراحل</option></select><button class="btn btn-outline" onclick="APP.institutes.resetFilters()">إعادة ضبط</button><span id="institutesCountBadge" class="badge blue">المعروض: 0</span></div>
+        <div class="table-responsive"><table class="data-table"><thead><tr><th>#</th><th>اسم المعهد</th><th>الكود</th><th>الإدارة</th><th>المرحلة</th></tr></thead><tbody id="institutesTableBody"></tbody></table></div></div>
+      </section>
 
-  </main>
+      <section class="page" id="page-planner">
+        <div class="page-heading"><div><h2>إنشاء الخطة الشهرية</h2><p>وزّع المعاهد على الموجهين مع منع التعارضات.</p></div><input id="plannerMonth" type="month" class="form-control" style="max-width:180px"></div>
+        <div class="card"><div class="card-header"><div><h3>خطة <span id="plannerMonthLabel">--</span></h3></div><div class="flex gap-8 wrap"><button id="btnCopyPrevMonth" class="btn btn-outline">📋 نسخ الشهر السابق</button><button id="btnValidatePlan" class="btn btn-outline">🔎 فحص الخطة</button><button id="btnClearMonth" class="btn btn-danger">🗑 مسح الشهر</button></div></div><div id="plannerTableWrap"></div></div>
+      </section>
 
-  <!-- منطقة الطباعة المخصصة المستقلة -->
-  <div id="printArea"></div>
+      <section class="page" id="page-reports">
+        <div class="page-heading"><div><h2>التقارير والطباعة</h2><p>راجع الخطة واطبع الخطة العامة أو خطط الموجهين.</p></div><input id="reportsMonth" type="month" class="form-control" style="max-width:180px"></div>
+        <div class="card"><div class="card-header"><h3>الشهر: <span id="reportsMonthLabel">--</span></h3><div class="flex gap-8 wrap"><button id="btnPrintGeneralPlan" class="btn btn-primary">🖨 طباعة الخطة العامة</button><button id="btnPrintAllSupervisorPlans" class="btn btn-success">🖨 طباعة جميع الخطط الفردية</button></div></div><div id="reportSupervisorList" class="mini-list"></div></div>
+        <div class="grid-2"><div class="card"><div class="card-header"><h3>زيارات المعاهد</h3></div><div id="reportInstituteList"></div></div><div class="card"><div class="card-header"><h3>زيارات الإدارات</h3></div><div id="reportDepartmentList"></div></div></div>
+        <div class="grid-2"><div class="card"><h3>زيارات الموجهين</h3><canvas id="chartSupervisorVisits" height="260"></canvas></div><div class="card"><h3>زيارات الإدارات</h3><canvas id="chartDepartmentVisits" height="260"></canvas></div></div>
+      </section>
 
-  <!-- تحميل الملفات والخدمات البرمجية بالترتيب الصحيح -->
-  <script src="js/config.js"></script>
-  <script src="js/services/storage.js"></script>
-  <script src="js/services/sheetsSync.js"></script>
-  <script src="js/services/printing.js"></script>
-  <script src="js/modules/institutes.js"></script>
+      <section class="page" id="page-backup">
+        <div class="page-heading"><div><h2>النسخ الاحتياطي</h2><p>احفظ نسخة JSON أو استورد نسخة سابقة.</p></div></div>
+        <div class="grid-2"><div class="card"><h3>نسخة يدوية</h3><p class="text-dim">آخر نسخة: <span id="lastBackupInfo">لم يتم إنشاء أي نسخة احتياطية بعد</span></p><div class="flex gap-8 wrap"><button id="btnExportJson" class="btn btn-primary">⬇ تصدير JSON</button><button id="btnChooseImportFile" class="btn btn-outline">⬆ استيراد JSON</button><input id="importFileInput" type="file" accept="application/json,.json" hidden></div><hr><h4>CSV</h4><div class="flex gap-8 wrap"><button id="btnExportCsvSupervisors" class="btn btn-outline">الموجهون CSV</button><button id="btnExportCsvInstitutes" class="btn btn-outline">المعاهد CSV</button><button id="btnExportCsvPlan" class="btn btn-outline">الخطة CSV</button></div></div><div class="card"><h3>نسخ تلقائية</h3><div id="autoBackupsList"></div></div></div>
+      </section>
 
-  <script>
-    // تشغيل التهيئة الابتدائية للتطبيق فور اكتمال التحميل
-    document.addEventListener('DOMContentLoaded', () => {
-      if (window.APP && window.APP.institutes) {
-        window.APP.institutes.init();
-      }
-    });
-  </script>
+      <section class="page" id="page-settings">
+        <div class="page-heading"><div><h2>الإعدادات</h2><p>إعدادات اسم النظام والمظهر وأيام العطلة.</p></div></div>
+        <div class="card"><div class="form-row"><div class="form-group"><label>اسم النظام</label><input id="settingsSystemTitle" class="form-control"></div><div class="form-group"><label>اسم الإدارة</label><input id="settingsOrgName" class="form-control"></div></div><div class="form-group"><label>أيام العطلة</label><div class="flex gap-12 wrap"><label><input type="checkbox" id="settingsWeekendThu"> الخميس</label><label><input type="checkbox" id="settingsWeekendFri"> الجمعة</label><label><input type="checkbox" id="settingsWeekendSat"> السبت</label></div></div><div class="form-group"><label>المظهر</label><div class="flex gap-12"><label><input type="radio" name="theme" id="settingsThemeDark"> داكن</label><label><input type="radio" name="theme" id="settingsThemeLight"> فاتح</label></div></div><div class="flex gap-8"><button id="btnSaveSettings" class="btn btn-primary">حفظ الإعدادات</button><button id="btnFactoryReset" class="btn btn-danger">إعادة ضبط كاملة</button></div></div>
+      </section>
+    </main>
+  </div>
+</div>
+<div id="printArea"></div><div id="toastContainer" class="toast-container"></div><div id="modalRoot"></div>
 
-</body>
-</html>
+<script src="js/config.js"></script><script src="js/utils/helpers.js"></script><script src="js/utils/validation.js"></script>
+<script src="js/services/storage.js"></script><script src="js/services/sheetsSync.js"></script><script src="js/services/cloudRestore.js"></script><script src="js/services/backgroundSync.js"></script><script src="js/services/search.js"></script><script src="js/services/statistics.js"></script><script src="js/services/printing.js"></script><script src="js/services/reports.js"></script><script src="js/services/importExport.js"></script><script src="js/services/backupScheduler.js"></script><script src="js/services/charts.js"></script>
+<script src="js/modules/ui.js"></script><script src="js/modules/theme.js"></script><script src="js/modules/router.js"></script><script src="js/modules/supervisors.js"></script><script src="js/modules/institutes.js"></script><script src="js/modules/planner.js"></script><script src="js/app.js"></script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('Service Worker:',e)));}</script>
+</body></html>
