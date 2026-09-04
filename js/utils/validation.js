@@ -4,7 +4,10 @@
 window.APP = window.APP || {};
 
 APP.validation = (function(){
-  const storage = APP.storage;
+  function getStorage(){
+    if(!APP.storage) throw new Error('طبقة التخزين لم تُحمّل بعد');
+    return APP.storage;
+  }
 
   function isNameValid(name){
     return !!(name && name.trim().length >= 2);
@@ -12,7 +15,7 @@ APP.validation = (function(){
 
   // يمنع تكرار نفس المعهد في نفس اليوم عبر أكثر من موجه
   function findInstituteConflict(monthKey, day, instituteId, excludeSupervisorId){
-    const plan = storage.getMonthPlan(monthKey);
+    const plan = getStorage().getMonthPlan(monthKey);
     for(const supId of Object.keys(plan)){
       if(supId === excludeSupervisorId) continue;
       if(plan[supId][day] === instituteId) return supId;
@@ -22,14 +25,15 @@ APP.validation = (function(){
 
   // يتحقق أن المعهد ضمن نطاق تكليف الموجه
   function isInstituteAssignedToSupervisor(supervisorId, instituteId){
-    const sup = storage.getSupervisor(supervisorId);
+    const sup = getStorage().getSupervisor(supervisorId);
     if(!sup) return false;
     return (sup.instituteIds||[]).includes(instituteId);
   }
 
   // تحليل شامل للخطة الشهرية لإيجاد التعارضات والأيام الفارغة
   function analyzeMonthPlan(monthKey, workingDays){
-    const plan = storage.getMonthPlan(monthKey);
+    const plan = getStorage().getMonthPlan(monthKey);
+    const storage = getStorage();
     const supervisors = storage.listSupervisors().filter(s=>s.status==='active');
     const conflicts = [];
     const emptyDaysBySupervisor = {};
