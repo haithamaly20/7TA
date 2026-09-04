@@ -24,7 +24,7 @@ const HEADERS = ['id', 'type', 'data', 'updatedAt'];
 function doGet(e) {
   try {
     const sheet = getSheet_();
-    const action = (e.parameter.action || 'read').toLowerCase();
+    const action = String(e.parameter.action || 'read').toLowerCase();
     const rows = readAllRows_(sheet);
 
     let result;
@@ -86,13 +86,33 @@ function doPost(e) {
 function getSheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = SHEET_NAME ? ss.getSheetByName(SHEET_NAME) : ss.getSheets()[0];
-  if (!sheet) {
-    sheet = ss.insertSheet(SHEET_NAME || 'Data');
-  }
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(HEADERS);
-  }
+  if (!sheet) sheet = ss.insertSheet(SHEET_NAME || 'Data');
+
+  // بعض ملفات Sheets/CSV قد تحتوي على أقل من 4 أعمدة.
+  // التطبيق يحتاج دائمًا إلى الأعمدة: id | type | data | updatedAt.
+  ensureSchema_(sheet);
   return sheet;
+}
+
+function ensureSchema_(sheet) {
+  const requiredColumns = HEADERS.length; // 4
+  const maxColumns = sheet.getMaxColumns();
+  if (maxColumns < requiredColumns) {
+    sheet.insertColumnsAfter(maxColumns, requiredColumns - maxColumns);
+  }
+
+  // إذا كانت الورقة فارغة، أنشئ الترويسة.
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1, 1, requiredColumns).setValues([HEADERS]);
+    return;
+  }
+
+  // إذا كانت أول خلية فارغة أو الترويسة غير مكتملة، صحح أول 4 أعمدة.
+  const header = sheet.getRange(1, 1, 1, requiredColumns).getValues()[0];
+  const matches = HEADERS.every((h, i) => String(header[i] || '').trim() === h);
+  if (!matches) {
+    sheet.getRange(1, 1, 1, requiredColumns).setValues([HEADERS]);
+  }
 }
 
 function readAllRows_(sheet) {
@@ -109,9 +129,11 @@ function readAllRows_(sheet) {
 }
 
 function findRowIndexById_(sheet, id) {
-  const ids = sheet.getRange(2, 1, Math.max(sheet.getLastRow() - 1, 0), 1).getValues();
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return -1;
+  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
   for (let i = 0; i < ids.length; i++) {
-    if (String(ids[i][0]) === String(id)) return i + 2; // +2: يبدأ من الصف 2 بعد الترويسة
+    if (String(ids[i][0]) === String(id)) return i + 2;
   }
   return -1;
 }
@@ -119,7 +141,8 @@ function findRowIndexById_(sheet, id) {
 function addRow_(sheet, record) {
   if (!record || !record.id) throw new Error('السجل يحتاج id');
   const now = new Date().toISOString();
-  sheet.appendRow([record.id, record.type || '', JSON.stringify(record.data || {}), now]);
+  const type = normalizeType_(record.type || '');
+  sheet.appendRow([record.id, type, JSON.stringify(record.data || {}), now]);
   return { id: record.id, updatedAt: now };
 }
 
@@ -130,7 +153,8 @@ function updateRow_(sheet, id, record) {
     // إن لم يوجد السجل، أضفه (upsert) بدلاً من فشل العملية
     return addRow_(sheet, Object.assign({ id: id }, record));
   }
-  sheet.getRange(rowIdx, 2, 1, 3).setValues([[record.type || '', JSON.stringify(record.data || {}), now]]);
+  const type = normalizeType_(record.type || '');
+  sheet.getRange(rowIdx, 2, 1, 3).setValues([[type, JSON.stringify(record.data || {}), now]]);
   return { id: id, updatedAt: now };
 }
 
@@ -142,18 +166,40 @@ function deleteRow_(sheet, id) {
 }
 
 function bulkSync_(sheet, type, records) {
+  ensureSchema_(sheet);
+  const normalizedType = normalizeType_(type);
   const values = sheet.getDataRange().getValues();
-  // احذف كل الصفوف من نفس النوع (من الأسفل للأعلى لتفادي انزياح الفهارس)
+
+  // احذف كل الصفوف من نفس النوع، مع دعم الصيغ القديمة المفردة والجديدة الجمع.
   for (let i = values.length - 1; i >= 1; i--) {
-    if (String(values[i][1]) === String(type)) {
+    if (normalizeType_(values[i][1]) === normalizedType) {
       sheet.deleteRow(i + 1);
     }
   }
+
   const now = new Date().toISOString();
-  records.forEach(r => {
-    sheet.appendRow([r.id, type, JSON.stringify(r.data || r), now]);
-  });
-  return { type: type, count: records.length, updatedAt: now };
+  const safeRecords = Array.isArray(records) ? records : [];
+  if (safeRecords.length) {
+    const rows = safeRecords.map(r => [
+      String(r.id || ''),
+      normalizedType,
+      JSON.stringify(r.data !== undefined ? r.data : (r || {})),
+      now
+    ]);
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, HEADERS.length).setValues(rows);
+  }
+  return { type: normalizedType, count: safeRecords.length, updatedAt: now };
+}
+
+function normalizeType_(type) {
+  const t = String(type || '').trim().toLowerCase();
+  const map = {
+    supervisor: 'supervisors', supervisors: 'supervisors',
+    institute: 'institutes', institutes: 'institutes',
+    plan: 'plans', plans: 'plans',
+    setting: 'settings', settings: 'settings'
+  };
+  return map[t] || String(type || '');
 }
 
 function filterRowsSince_(rows, sinceIso) {

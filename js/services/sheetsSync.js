@@ -6,6 +6,8 @@ window.APP = window.APP || {};
 APP.sheetsSync = {
   isSyncing:false,
   queue:[],
+  consecutiveFailures:0,
+  disabledUntil:0,
 
   isEnabled(){
     return !!(window.CONFIG && CONFIG.ENABLE_SYNC && CONFIG.SCRIPT_URL);
@@ -23,12 +25,18 @@ APP.sheetsSync = {
     this.isSyncing=true;
     const task=this.queue.shift();
     try{ task.resolve(await this.sendRequest(task.action,task.payload)); }
-    catch(err){ console.error('Sheets sync:',err); task.reject(err); }
+    catch(err){
+      this.consecutiveFailures++;
+      if(this.consecutiveFailures >= 3) this.disabledUntil = Date.now() + 60000;
+      console.error('Sheets sync:',err);
+      task.reject(err);
+    }
     finally{ this.isSyncing=false; this.processQueue(); }
   },
 
   async sendRequest(action,payload={}){
     if(!this.isEnabled()) throw new Error('مزامنة Google Sheets غير مفعلة');
+    if(Date.now() < this.disabledUntil) throw new Error('مزامنة Google Sheets متوقفة مؤقتًا بعد فشل الاتصال');
     const controller = new AbortController();
     const timer = setTimeout(()=>controller.abort(), 8000);
     try {
@@ -42,6 +50,8 @@ APP.sheetsSync = {
       const result=await response.json();
       if(result && result.ok===false) throw new Error(result.error||'خطأ من Google Apps Script');
       if(result && result.status==='error') throw new Error(result.error||'خطأ من Google Apps Script');
+      this.consecutiveFailures=0;
+      this.disabledUntil=0;
       return result;
     } catch(err) {
       if(err && err.name==='AbortError') throw new Error('انتهت مهلة الاتصال بـ Google Apps Script');
