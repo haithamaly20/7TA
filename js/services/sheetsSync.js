@@ -9,6 +9,11 @@ APP.sheetsSync = {
   consecutiveFailures:0,
   disabledUntil:0,
 
+  // مهلة الاتصال بالـ Web App. أول طلب يمر بـ "Cold Start" في
+  // Google Apps Script (تفعيل النسخة + فتح الشيت + قراءة البيانات)
+  // وقد يستغرق أكثر من 8 ثوانٍ مع البيانات الكثيرة — لذلك 25 ثانية.
+  REQUEST_TIMEOUT_MS: 25000,
+
   isEnabled(){
     return !!(window.CONFIG && CONFIG.ENABLE_SYNC && CONFIG.SCRIPT_URL);
   },
@@ -38,13 +43,14 @@ APP.sheetsSync = {
     if(!this.isEnabled()) throw new Error('مزامنة Google Sheets غير مفعلة');
     if(Date.now() < this.disabledUntil) throw new Error('مزامنة Google Sheets متوقفة مؤقتًا بعد فشل الاتصال');
     const controller = new AbortController();
-    const timer = setTimeout(()=>controller.abort(), 8000);
+    const timer = setTimeout(()=>controller.abort(), this.REQUEST_TIMEOUT_MS);
     try {
       const response=await fetch(CONFIG.SCRIPT_URL,{
         method:'POST',
         headers:{'Content-Type':'text/plain;charset=utf-8'},
         body:JSON.stringify({action,...payload}),
-        signal:controller.signal
+        signal:controller.signal,
+        redirect:'follow'
       });
       if(!response.ok) throw new Error(`خطأ HTTP ${response.status}`);
       const result=await response.json();
@@ -71,9 +77,9 @@ APP.sheetsSync = {
     url.searchParams.set('action','read');
     if(since) url.searchParams.set('since',since);
     const controller = new AbortController();
-    const timer = setTimeout(()=>controller.abort(), 8000);
+    const timer = setTimeout(()=>controller.abort(), this.REQUEST_TIMEOUT_MS);
     try {
-      const response=await fetch(url.toString(),{method:'GET',signal:controller.signal});
+      const response=await fetch(url.toString(),{method:'GET',signal:controller.signal,redirect:'follow'});
       if(!response.ok) throw new Error(`خطأ HTTP ${response.status}`);
       return await response.json();
     } catch(err) {
