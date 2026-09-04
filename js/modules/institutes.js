@@ -1,158 +1,109 @@
-/* ============================================================
-   institutes.js — إدارة المعاهد
-   ============================================================ */
+// js/modules/institutes.js
+
 window.APP = window.APP || {};
 
-APP.institutes = (function(){
-  const h = APP.helpers;
-  const storage = APP.storage;
-  const ui = APP.ui;
+window.APP.institutes = {
+  /**
+   * تهيئة قسم المعاهد وإضافة استماع للأحداث
+   */
+  init() {
+    this.render();
+    this.populateFilterOptions();
+  },
 
-  let state = { query:'', sortKey:'name', sortDir:1 };
+  /**
+   * تعبئة خيارات القوائم المنسدلة للفلترة ديناميكياً
+   */
+  populateFilterOptions() {
+    const institutes = window.APP.storage ? window.APP.storage.getInstitutes() : [];
+    const deptSelect = document.getElementById('filterDepartment');
+    const stageSelect = document.getElementById('filterStage');
 
-  function init(){
-    document.getElementById('btnAddInstitute').addEventListener('click', ()=>openInstituteForm());
-    const search = document.getElementById('instituteSearch');
-    search.addEventListener('input', h.debounce(()=>{ state.query = search.value; render(); }, 150));
+    if (!deptSelect || !stageSelect) return;
 
-    document.querySelectorAll('#institutesTable thead th[data-sort]').forEach(th=>{
-      th.addEventListener('click', ()=>{
-        const key = th.dataset.sort;
-        if(state.sortKey === key) state.sortDir *= -1; else { state.sortKey = key; state.sortDir = 1; }
-        render();
-      });
-    });
+    // استخراج الإدارات والمراحل الفريدة
+    const departments = [...new Set(institutes.map(i => i.department).filter(Boolean))];
+    const stages = [...new Set(institutes.map(i => i.stage).filter(Boolean))];
 
-    render();
-  }
+    deptSelect.innerHTML = '<option value="">جميع الإدارات</option>' + 
+      departments.map(d => `<option value="${d}">${d}</option>`).join('');
 
-  function getFiltered(){
-    let list = storage.listInstitutes().slice();
-    if(state.query){
-      list = list.filter(i=>h.contains(i.name, state.query) || h.contains(i.department, state.query) || h.contains(i.stage, state.query));
-    }
-    list.sort((a,b)=>{
-      const ka = (a[state.sortKey]||'').toString();
-      const kb = (b[state.sortKey]||'').toString();
-      return ka.localeCompare(kb,'ar') * state.sortDir;
-    });
-    return list;
-  }
+    stageSelect.innerHTML = '<option value="">جميع المراحل</option>' + 
+      stages.map(s => `<option value="${s}">${s}</option>`).join('');
+  },
 
-  function supervisorsOf(instituteId){
-    return storage.listSupervisors().filter(s=>(s.instituteIds||[]).includes(instituteId));
-  }
+  /**
+   * عرض جدول المعاهد
+   */
+  render() {
+    const institutes = window.APP.storage ? window.APP.storage.getInstitutes() : [];
+    this.renderRows(institutes);
+  },
 
-  function render(){
-    const tbody = document.getElementById('institutesTbody');
-    const list = getFiltered();
-    document.getElementById('instituteCount').textContent = `${storage.listInstitutes().length} معهد`;
+  /**
+   * رسم صفوف الجدول
+   */
+  renderRows(list) {
+    const tbody = document.getElementById('institutesTableBody');
+    if (!tbody) return;
 
-    if(!list.length){
-      tbody.innerHTML = `<tr class="table-empty-row"><td colspan="6">
-        <div class="empty-state"><div class="icon">🏫</div><strong>لا توجد معاهد بعد</strong><span>ابدأ بإضافة أول معهد ليتم تكليف الموجهين به</span></div>
-      </td></tr>`;
+    if (!list || list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center">لا توجد معاهد مسجلة</td></tr>';
       return;
     }
 
-    tbody.innerHTML = list.map((i,idx)=>{
-      const supCount = supervisorsOf(i.id).length;
-      return `
-      <tr data-id="${i.id}">
-        <td class="row-num">${idx+1}</td>
-        <td><strong>${h.escapeHtml(i.name)}</strong></td>
-        <td>${h.escapeHtml(i.department||'-')}</td>
-        <td>${h.escapeHtml(i.stage||'-')}</td>
-        <td>${i.classCount ?? '-'}</td>
-        <td><span class="badge blue">${supCount} موجه</span></td>
-        <td>
-          <div class="table-actions">
-            <button class="action-icon" title="تعديل" data-act="edit">✏️</button>
-            <button class="action-icon danger" title="حذف" data-act="delete">🗑</button>
-          </div>
-        </td>
-      </tr>`;
-    }).join('');
+    tbody.innerHTML = list.map((inst, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td><strong>${inst.name || ''}</strong></td>
+        <td>${inst.code || '-'}</td>
+        <td>${inst.department || '-'}</td>
+        <td><span class="badge blue">${inst.stage || '-'}</span></td>
+      </tr>
+    `).join('');
 
-    tbody.querySelectorAll('tr[data-id]').forEach(tr=>{
-      const id = tr.dataset.id;
-      tr.querySelector('[data-act="edit"]').addEventListener('click', ()=>openInstituteForm(id));
-      tr.querySelector('[data-act="delete"]').addEventListener('click', ()=>confirmDelete(id));
+    const countBadge = document.getElementById('institutesCountBadge');
+    if (countBadge) {
+      const total = window.APP.storage ? window.APP.storage.getInstitutes().length : 0;
+      countBadge.innerText = `المعروض: ${list.length} من أصل ${total}`;
+    }
+  },
+
+  /**
+   * تطبيق الفلترة والبحث المباشر
+   */
+  filterTable() {
+    const q = (document.getElementById('instituteSearchInput')?.value || '').toLowerCase().trim();
+    const dept = document.getElementById('filterDepartment')?.value || '';
+    const stage = document.getElementById('filterStage')?.value || '';
+
+    const allInstitutes = window.APP.storage ? window.APP.storage.getInstitutes() : [];
+    
+    const filtered = allInstitutes.filter(inst => {
+      const matchQ = !q || 
+        (inst.name && inst.name.toLowerCase().includes(q)) || 
+        (inst.code && inst.code.toLowerCase().includes(q));
+      const matchDept = !dept || inst.department === dept;
+      const matchStage = !stage || inst.stage === stage;
+
+      return matchQ && matchDept && matchStage;
     });
+
+    this.renderRows(filtered);
+  },
+
+  /**
+   * إعادة ضبط كل الفلاتر
+   */
+  resetFilters() {
+    const searchInput = document.getElementById('instituteSearchInput');
+    const deptSelect = document.getElementById('filterDepartment');
+    const stageSelect = document.getElementById('filterStage');
+
+    if (searchInput) searchInput.value = '';
+    if (deptSelect) deptSelect.value = '';
+    if (stageSelect) stageSelect.value = '';
+
+    this.render();
   }
-
-  function confirmDelete(id){
-    const inst = storage.getInstitute(id);
-    const supCount = supervisorsOf(id).length;
-    ui.confirmDialog({
-      title:'حذف معهد',
-      message:`هل أنت متأكد من حذف معهد "${inst.name}"؟ ${supCount ? `سيتم إزالته من تكليفات ${supCount} موجه ومن الخطة.` : ''}`,
-      danger:true,
-      confirmLabel:'حذف نهائيًا',
-      onConfirm:()=>{
-        storage.deleteInstitute(id);
-        ui.success('تم الحذف', `تم حذف معهد "${inst.name}"`);
-        render();
-        APP.app.refreshDashboard();
-      }
-    });
-  }
-
-  function openInstituteForm(id){
-    const existing = id ? storage.getInstitute(id) : null;
-    const bodyHtml = `
-      <div class="form-group">
-        <label>اسم المعهد *</label>
-        <input type="text" id="fInstName" value="${h.escapeHtml(existing?.name||'')}" placeholder="مثال: معهد الضبعة الأزهري">
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>الإدارة</label>
-          <input type="text" id="fInstDept" value="${h.escapeHtml(existing?.department||'')}" placeholder="إدارة الضبعة">
-        </div>
-        <div class="form-group">
-          <label>المرحلة</label>
-          <input type="text" id="fInstStage" value="${h.escapeHtml(existing?.stage||'')}" placeholder="ابتدائي / إعدادي / ثانوي">
-        </div>
-      </div>
-      <div class="form-group">
-        <label>عدد الفصول</label>
-        <input type="number" min="0" id="fInstClasses" value="${existing?.classCount ?? ''}">
-      </div>
-      <div class="form-group">
-        <label>ملاحظات</label>
-        <textarea id="fInstNotes" placeholder="ملاحظات إضافية...">${h.escapeHtml(existing?.notes||'')}</textarea>
-      </div>
-    `;
-
-    const overlay = ui.openModal({
-      title: existing ? 'تعديل بيانات المعهد' : 'إضافة معهد جديد',
-      icon:'🏫',
-      bodyHtml,
-      footerButtons:[
-        { label:'إلغاء', className:'btn-ghost' },
-        { label: existing ? 'حفظ التعديلات' : 'إضافة المعهد', className:'btn-primary', close:false, onClick:(ov)=>{
-          const name = document.getElementById('fInstName').value.trim();
-          if(!APP.validation.isNameValid(name)){
-            ui.error('بيانات غير مكتملة','يرجى إدخال اسم المعهد (حرفان على الأقل)');
-            return;
-          }
-          const inst = existing || { id:h.uid('inst') };
-          inst.name = name;
-          inst.department = document.getElementById('fInstDept').value.trim();
-          inst.stage = document.getElementById('fInstStage').value.trim();
-          const cc = document.getElementById('fInstClasses').value;
-          inst.classCount = cc === '' ? null : Number(cc);
-          inst.notes = document.getElementById('fInstNotes').value.trim();
-          storage.saveInstitute(inst);
-          ui.success(existing ? 'تم الحفظ' : 'تمت الإضافة', inst.name);
-          ui.closeModal(ov);
-          render();
-          APP.app.refreshDashboard();
-        }}
-      ]
-    });
-  }
-
-  return { init, render, supervisorsOf };
-})();
+};
