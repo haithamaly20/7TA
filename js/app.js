@@ -10,8 +10,9 @@ APP.app = (function(){
 
   async function boot(){
     storage.load();
-    await APP.cloudRestore.restoreIfNeeded();
-    await APP.cloudRestore.syncFromCloud();
+    // فشل الاتصال السحابي لا يجب أن يمنع تشغيل التطبيق محليًا.
+    try { await APP.cloudRestore.restoreIfNeeded(); } catch (e) { console.warn('Cloud restore skipped:', e); }
+    try { await APP.cloudRestore.syncFromCloud(); } catch (e) { console.warn('Cloud sync skipped:', e); }
     APP.backgroundSync.init();
     APP.backupScheduler.runIfNeeded();
     APP.theme.init();
@@ -79,6 +80,7 @@ APP.app = (function(){
   function initGlobalSearch(){
     const input = document.getElementById('globalSearch');
     const resultsBox = document.getElementById('globalSearchResults');
+    if(!input || !resultsBox || !APP.search) return;
     APP.search.bindGlobalSearch(input, (results)=>{
       const hasQuery = !!input.value.trim();
       if(!hasQuery){ resultsBox.classList.add('hidden'); resultsBox.innerHTML=''; return; }
