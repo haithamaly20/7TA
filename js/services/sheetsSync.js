@@ -1,84 +1,104 @@
-/* ============================================================
-   sheetsSync.js — طبقة مزامنة اختيارية مع Google Sheets
-   ------------------------------------------------------------
-   - تُستخدم فقط إذا كان CONFIG.SCRIPT_URL غير فارغ.
-   - LocalStorage يبقى مصدر الحقيقة أوفلاين دائماً؛ هذا الملف
-     يزامن التغييرات في الخلفية فقط ولا يُستخدم كمصدر أساسي للبيانات.
-   - جميع الاتصالات عبر Fetch API فقط، مع معالجة كاملة للأخطاء:
-     انقطاع الإنترنت، انتهاء المهلة، فشل Apps Script.
-   ============================================================ */
+// js/services/sheetsSync.js
+
 window.APP = window.APP || {};
 
-APP.sheetsSync = (function () {
-  const TIMEOUT_MS = 15000;
+window.APP.sheetsSync = {
+  // حالة المزامنة الحالية لمنع التضارب
+  isSyncing: false,
+  
+  // طابور الطلبات المتسلسلة
+  queue: [],
 
-  function isEnabled() {
-    return !!(window.CONFIG && CONFIG.SCRIPT_URL && CONFIG.SCRIPT_URL.trim());
-  }
+  /**
+   * إضافة مهمة إلى طابور المعالجة وتنفيذها بالتسلسل
+   * @param {string} action نوع العملية (add, update, delete, bulk_sync, save_json_backup)
+   * @param {Object} payload البيانات المراد إرسالها
+   */
+  enqueue(action, payload) {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ action, payload, resolve, reject });
+      this.processQueue();
+    });
+  },
 
-  function withTimeout(promise, ms) {
-    return Promise.race([
-      promise,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('انتهت مهلة الاتصال')), ms))
-    ]);
-  }
+  /**
+   * معالجة طابور المهام بالتسلسل واحدة تلو الأخرى
+   */
+  async processQueue() {
+    if (this.isSyncing || this.queue.length === 0) return;
 
-  async function request(method, params, body) {
-    if (!isEnabled()) return { ok: false, error: 'غير مفعّل (SCRIPT_URL فارغ)', skipped: true };
-    if (!navigator.onLine) return { ok: false, error: 'لا يوجد اتصال بالإنترنت' };
+    this.isSyncing = true;
+    const task = this.queue.shift();
 
     try {
-      let url = CONFIG.SCRIPT_URL;
-      const opts = { method };
-
-      if (method === 'GET') {
-        const qs = new URLSearchParams(params || {}).toString();
-        url += (url.includes('?') ? '&' : '?') + qs;
-      } else {
-        opts.headers = { 'Content-Type': 'text/plain;charset=utf-8' }; // يتفادى preflight CORS مع Apps Script
-        opts.body = JSON.stringify(body || {});
-      }
-
-      const res = await withTimeout(fetch(url, opts), TIMEOUT_MS);
-      if (!res.ok) {
-        return { ok: false, error: `خطأ من الخادم (${res.status})` };
-      }
-      const json = await res.json();
-      if (!json.ok) {
-        return { ok: false, error: json.error || 'خطأ غير معروف من Google Apps Script' };
-      }
-      return { ok: true, data: json.data };
+      const response = await this.sendRequest(task.action, task.payload);
+      if (task.resolve) task.resolve(response);
     } catch (err) {
-      const msg = err && err.message === 'انتهت مهلة الاتصال'
-        ? 'انتهت مهلة الاتصال بالخادم'
-        : 'تعذر الاتصال بـ Google Sheets (تحقق من الإنترنت أو رابط Apps Script)';
-      return { ok: false, error: msg };
+      console.error("خطأ في عملية المزامنة الحالية:", err);
+      if (task.reject) task.reject(err);
+    } finally {
+      this.isSyncing = false;
+      // الانتقال الفوري لمعالجة المهمة التالية في الطابور إن وجدت
+      this.processQueue();
     }
-  }
+  },
 
-  // ---------- عمليات CRUD ----------
-  const read = () => request('GET', { action: 'read' });
-  const readSince = (since) => request('GET', { action: 'read', since });
-  const search = (q) => request('GET', { action: 'search', q });
-  const sort = (field, dir) => request('GET', { action: 'sort', field, dir });
+  /**
+   * إرسال طلب HTTP POST المباشر إلى Web App
+   */
+  async sendRequest(action, payload = {}) {
+    const scriptUrl = window.CONFIG && window.CONFIG.SCRIPT_URL;
+    if (!scriptUrl) {
+      throw new Error("رابط SCRIPT_URL غير معرف في ملف config.js");
+    }
 
-  const add = (record) => request('POST', null, { action: 'add', record });
-  const update = (id, record) => request('POST', null, { action: 'update', id, record });
-  const remove = (id) => request('POST', null, { action: 'delete', id });
+    const requestData = {
+      action: action,
+      ...payload
+    };
 
-  // مزامنة دفعة كاملة لنوع معين (supervisors / institutes / plans / settings)
-  const bulkSync = (type, records) => request('POST', null, { action: 'bulk_sync', type, records });
+    // استخدام fetch مع إرسال البيانات بصيغة text/plain لتفادي تعقيدات CORS Preflight
+    const response = await fetch(scriptUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+      },
+      body: JSON.stringify(requestData)
+    });
 
-  // ---------- Hook: يُستدعى من storage.js بعد كل كتابة محلية ----------
-  // fire-and-forget، لا يعطّل أي عملية محلية إن فشلت المزامنة
-  function syncInBackground(type, records) {
-    if (!isEnabled()) return;
-    bulkSync(type, records).then((res) => {
-      if (!res.ok && APP.ui) {
-        APP.ui.warning('تعذّرت المزامنة مع Google Sheets', res.error);
-      }
+    if (!response.ok) {
+      throw new Error(`خطأ في استجابة الخادم: ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (result.status === 'error') {
+      throw new Error(result.error || 'حدث خطأ غير معروف في الخادم');
+    }
+
+    return result;
+  },
+
+  /**
+   * مزامنة مجموعة من السجلات دفعة واحدة (Bulk Sync)
+   * @param {string} type نوع البيانات (institutes, supervisors, plans)
+   * @param {Array} records قائمة السجلات
+   */
+  async syncBulk(type, records) {
+    return this.enqueue('bulk_sync', {
+      type: type,
+      records: records
+    });
+  },
+
+  /**
+   * حفظ نسخة احتياطية كاملة بصيغة JSON إلى Google Drive
+   * @param {string} fileName اسم الملف
+   * @param {string} jsonContent محتوى البيانات
+   */
+  async saveBackupToDrive(fileName, jsonContent) {
+    return this.enqueue('save_json_backup', {
+      fileName: fileName,
+      jsonContent: jsonContent
     });
   }
-
-  return { isEnabled, read, readSince, search, sort, add, update, remove, bulkSync, syncInBackground };
-})();
+};
