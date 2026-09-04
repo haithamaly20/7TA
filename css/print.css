@@ -1,91 +1,19 @@
-// js/services/printing.js
+/* ============================================================
+   print.css — تنسيقات الطباعة فقط
+   (تُفعَّل تلقائيًا عند الطباعة)
+   ============================================================ */
 
-window.APP = window.APP || {};
-
-window.APP.printing = {
-  /**
-   * تهيئة وتجهيز منطقة الطباعة ثم استدعاء window.print
-   * @param {string} contentHtml - محتوى HTML المراد طباعته
-   * @param {boolean} isLandscape - طباعة بالعرض (true) أم بالطول (false)
-   */
-  triggerPrint(contentHtml, isLandscape = false) {
-    let printArea = document.getElementById('printArea');
-    
-    // إنشاء منطقة الطباعة إذا لم تكن موجودة في DOM
-    if (!printArea) {
-      printArea = document.createElement('div');
-      printArea.id = 'printArea';
-      document.body.appendChild(printArea);
-    }
-
-    printArea.className = isLandscape ? 'print-landscape' : 'print-portrait';
-    printArea.innerHTML = contentHtml;
-
-    // الانتظار لرسم عناصر DOM بالكامل لمنع ظهور صفحات فارغة
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        window.print();
-        
-        // تنظيف منطقة الطباعة بعد الانتهاء
-        window.addEventListener('afterprint', () => {
-          printArea.innerHTML = '';
-        }, { once: true });
-      }, 150);
-    });
-  },
-
-  /**
-   * بناء وطباعة الخطة العامة لجميع الموجهين
-   */
-  printGeneralPlan(plansData) {
-    if (!plansData || plansData.length === 0) {
-      if (window.APP.ui) window.APP.ui.showToast("لا توجد بيانات خطة للطباعة", "warning");
-      return;
-    }
-
-    const html = `
-      <div class="print-container">
-        <div class="print-header">
-          <h2>المنطقة الأزهرية بالضبعة</h2>
-          <h3>الخطة العامة لموجهي الإدارة</h3>
-        </div>
-        <table class="print-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>اسم الموجه</th>
-              <th>المعهد الموجه إليه</th>
-              <th>المرحلة</th>
-              <th>اليوم / التاريخ</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${plansData.map((p, idx) => `
-              <tr>
-                <td>${idx + 1}</td>
-                <td>${p.supervisorName || '-'}</td>
-                <td>${p.instituteName || '-'}</td>
-                <td>${p.stage || '-'}</td>
-                <td>${p.date || '-'}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    this.triggerPrint(html, true); // طباعة بالعرض
-  }
-};
-
-/* إصلاحات نظام الطباعة 1.0.8 */
+/* منطقة الطباعة مخفية دائمًا على الشاشة، وتظهر فقط أثناء
+   الطباعة عندما يضيف printing.js صنف printing-active للـ body */
 #printArea { display:none; }
 body.printing-active > *:not(#printArea) { display:none !important; }
 body.printing-active #printArea { display:block !important; }
+
 .print-page-break { break-after: page; page-break-after: always; }
 .print-page-break:last-child { break-after: auto; page-break-after: auto; }
 .print-empty { padding:30px; text-align:center; font-size:18px; }
 .unplanned-row td { opacity:.7; }
+
 @media print {
   body.printing-active { background:#fff !important; }
   body.printing-active #printArea { width:100%; }
@@ -96,7 +24,6 @@ body.printing-active #printArea { display:block !important; }
   .print-header h1,.print-header h2,.print-header h3 { margin:4px 0; }
   .print-meta { margin-top:8px; font-size:11px; }
   .print-footer { margin-top:12px; font-size:12px; }
-  @page { margin:12mm; }
   .print-landscape { page-break-after:auto; }
-  @page { size:auto; }
+  @page { margin:12mm; size:auto; }
 }
