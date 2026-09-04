@@ -69,6 +69,9 @@ function doPost(e) {
         // مزامنة دفعة كاملة: يستبدل كل الصفوف من نفس النوع (type) بالمرسلة حديثاً
         result = bulkSync_(sheet, body.type, body.records || []);
         break;
+      case 'save_json_backup':
+        result = saveJsonBackup_(body.fileName || 'Dabaa_Plan_Backup.json', body.jsonContent || '{}');
+        break;
       default:
         return jsonError_('عملية POST غير معروفة: ' + action);
     }
@@ -188,4 +191,12 @@ function jsonError_(message) {
   return ContentService
     .createTextOutput(JSON.stringify({ ok: false, error: message }))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+
+function saveJsonBackup_(fileName, jsonContent) {
+  const safeName = String(fileName || 'Dabaa_Plan_Backup.json').replace(/[\\/:*?"<>|]/g, '_');
+  const blob = Utilities.newBlob(String(jsonContent || '{}'), MimeType.JSON, safeName);
+  const file = DriveApp.createFile(blob);
+  return { id: file.getId(), name: file.getName(), url: file.getUrl() };
 }
