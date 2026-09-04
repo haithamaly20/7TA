@@ -99,7 +99,11 @@ APP.storage = (function(){
     if(options && options.sync === false){ persistLocalOnly(); } else { persist(); }
   }
 
-  function mergeDB(incoming){
+  // options.sync === false → حفظ محلي بدون الدفع إلى Google Sheets.
+  // يُستخدم عند دمج بيانات قادمة من السحابة نفسها (cloudRestore.js)،
+  // فلا معنى لإعادة رفع إلى الشيت ما سُحب للتو منه — أي تعديل
+  // محلي لاحق سيدفع الحالة الكاملة الجديدة في حينه على أي حال.
+  function mergeDB(incoming, options){
     // merge supervisors/institutes by id, plans deep-merged by month/supervisor/day
     (incoming.supervisors||[]).forEach(s=>{
       const idx = db.supervisors.findIndex(x=>x.id===s.id);
@@ -118,7 +122,7 @@ APP.storage = (function(){
     if(incoming.settings){
       db.settings = Object.assign(db.settings, incoming.settings);
     }
-    persist();
+    if(options && options.sync === false){ persistLocalOnly(); } else { persist(); }
   }
 
   // ---------- Supervisors ----------
