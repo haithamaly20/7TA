@@ -77,3 +77,26 @@ window.APP.printing = {
     this.triggerPrint(html, true); // طباعة بالعرض
   }
 };
+
+/* إصلاحات نظام الطباعة 1.0.8 */
+#printArea { display:none; }
+body.printing-active > *:not(#printArea) { display:none !important; }
+body.printing-active #printArea { display:block !important; }
+.print-page-break { break-after: page; page-break-after: always; }
+.print-page-break:last-child { break-after: auto; page-break-after: auto; }
+.print-empty { padding:30px; text-align:center; font-size:18px; }
+.unplanned-row td { opacity:.7; }
+@media print {
+  body.printing-active { background:#fff !important; }
+  body.printing-active #printArea { width:100%; }
+  .print-container { direction:rtl; width:100%; }
+  .print-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .print-table th,.print-table td { border:1px solid #222; padding:6px; text-align:center; }
+  .print-header { text-align:center; margin-bottom:16px; }
+  .print-header h1,.print-header h2,.print-header h3 { margin:4px 0; }
+  .print-meta { margin-top:8px; font-size:11px; }
+  .print-footer { margin-top:12px; font-size:12px; }
+  @page { margin:12mm; }
+  .print-landscape { page-break-after:auto; }
+  @page { size:auto; }
+}
