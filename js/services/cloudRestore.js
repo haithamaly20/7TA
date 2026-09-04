@@ -208,7 +208,10 @@ APP.cloudRestore = (function () {
     });
 
     if (foundAny) {
-      APP.storage.mergeDB(incoming);
+      // دمج بلا إعادة رفع: هذه البيانات مصدرها الشيت نفسه،
+      // وإعادة دفعها فورًا تعني كتابة مزدوجة وعاصفة طلبات عند الإقلاع.
+      // أي تعديل محلي لاحق سيدفع الحالة الكاملة الجديدة في حينه.
+      APP.storage.mergeDB(incoming, {sync:false});
     }
 
     setLastSyncAt(maxUpdatedAt(rows) || new Date().toISOString());
