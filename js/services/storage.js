@@ -94,9 +94,9 @@ APP.storage = (function(){
 
   function getDB(){ return db; }
 
-  function replaceDB(newDb){
-    db = newDb;
-    persist();
+  function replaceDB(newDb, options){
+    db = newDb || defaultDB();
+    if(options && options.sync === false){ persistLocalOnly(); } else { persist(); }
   }
 
   function mergeDB(incoming){
@@ -137,6 +137,8 @@ APP.storage = (function(){
 
   // ---------- Institutes ----------
   function listInstitutes(){ return db.institutes; }
+  // توافق خلفي مع النسخ القديمة من institutes.js
+  function getInstitutes(){ return db.institutes; }
   function getInstitute(id){ return db.institutes.find(i=>i.id===id); }
   function saveInstitute(inst){
     const idx = db.institutes.findIndex(i=>i.id===inst.id);
@@ -200,8 +202,9 @@ APP.storage = (function(){
   return {
     load, getDB, replaceDB, mergeDB, persist, defaultDB, syncToSheetsIfEnabled,
     listSupervisors, getSupervisor, saveSupervisor, deleteSupervisor,
-    listInstitutes, getInstitute, saveInstitute, deleteInstitute,
+    listInstitutes, getInstitutes, getInstitute, saveInstitute, deleteInstitute,
     getMonthPlan, setCell, clearDay, clearWeek, clearSupervisorMonth, copyMonth,
+    getPlans: ()=>db.plans,
     getSettings, saveSettings
   };
 })();

@@ -134,7 +134,7 @@ APP.cloudRestore = (function () {
     }
 
     // 5) استبدال قاعدة البيانات المحلية بالكامل، ثم الحفظ محليًا
-    APP.storage.replaceDB(newDB);
+    APP.storage.replaceDB(newDB, {sync:false});
 
     // تسجيل مرجع زمني دقيق لآخر مزامنة، لاستخدامه لاحقًا في المزامنة التدريجية
     setLastSyncAt(maxUpdatedAt(rows) || new Date().toISOString());
