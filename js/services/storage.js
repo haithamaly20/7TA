@@ -60,7 +60,7 @@ APP.storage = (function(){
     db.meta.lastUpdatedAt = new Date().toISOString();
     try{
       localStorage.setItem(DB_KEY, JSON.stringify(db));
-      syncToSheetsIfEnabled();
+      scheduleSyncToSheets(); // مزامنة مؤجلة (Debounce) بدل فورية مع كل حفظ
       return true;
     }catch(e){
       console.error('فشل حفظ البيانات', e);
@@ -82,8 +82,26 @@ APP.storage = (function(){
     }
   }
 
-  // مزامنة اختيارية في الخلفية — لا تعمل إلا إذا CONFIG.SCRIPT_URL مملوء،
-  // ولا تُعطّل أو تُبطئ أي عملية محلية (fire-and-forget عبر sheetsSync.js)
+  // ---------------- مزامنة Google Sheets (مؤجلة) ----------------
+  // مبدأ العملية: persist() تُستدعى مع كل تعديل صغير (خلية خطة، حقل
+  // نموذج، إعداد...) — وإطلاق 4 طلبات bulk_sync بالبيانات الكاملة مع
+  // كل حفظ يُنتج عاصفة طلبات (مثال: 22 تعديلًا في الخطة = 88 POST).
+  // الحل: مؤقت Debounce — كل حفظ يُعيد ضبط المؤقت، وعند سكوت
+  // التعديلات لمدة SYNC_DEBOUNCE_MS تُرسل مزامنة واحدة بالحالة الأخيرة.
+  // لا خطر فقدان: أي حفظ لاحق أو عودة اتصال (backgroundSync) تدفع
+  // الحالة الكاملة من جديد في كل حالة.
+  const SYNC_DEBOUNCE_MS = 2500;
+  let syncTimer = null;
+
+  function scheduleSyncToSheets(){
+    if(!window.APP || !APP.sheetsSync || !APP.sheetsSync.isEnabled()) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(()=>{
+      syncTimer = null;
+      syncToSheetsIfEnabled();
+    }, SYNC_DEBOUNCE_MS);
+  }
+
   function syncToSheetsIfEnabled(){
     if(!window.APP || !APP.sheetsSync || !APP.sheetsSync.isEnabled()) return;
     APP.sheetsSync.syncInBackground('supervisors', db.supervisors.map(s=>({id:s.id, data:s})));
