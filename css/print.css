@@ -22,7 +22,7 @@ body.printing-active #printArea{ display:block !important; }
    بدون هذا الزوج كانت الخطة العامة تُطبع طوليًا رغم الإشارة.
    ============================================================ */
 #printArea.print-landscape{ page:landscape; }
-@page landscape{ size:A4 landscape; margin:12mm; }
+@page landscape{ size:A4 landscape; margin:10mm; }
 
 @media print{
   body.printing-active{ background:#fff !important; }
@@ -35,4 +35,19 @@ body.printing-active #printArea{ display:block !important; }
   .print-header h1,.print-header h2,.print-header h3{ margin:4px 0; }
   .print-meta{ margin-top:8px; font-size:11px; }
   .print-footer{ margin-top:12px; font-size:12px; }
+}
+
+/* ============================================================
+   1.1.2 — عناصر التصميم الرسمي للخطة العامة
+   ============================================================ */
+.print-org{ text-align:left; font-weight:700; font-size:13px; line-height:1.9; margin-bottom:2mm; }
+.print-title-center{ text-align:center; margin-bottom:4mm; }
+.print-title-center h1{ font-size:15px; margin:2px 0; }
+.print-title-center h2{ font-size:13.5px; margin:2px 0; font-weight:700; }
+.print-table.plan-grid th,.print-table.plan-grid td{ padding:2px 5px; font-size:11px; }
+.print-table.plan-grid .day-col{ white-space:nowrap; font-weight:700; width:95px; }
+.print-sign{
+  display:flex; justify-content:space-between; gap:12px;
+  margin-top:5mm; padding-top:3mm; border-top:1px solid #222;
+  font-weight:700; font-size:12.5px;
 }
