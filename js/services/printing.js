@@ -1,10 +1,18 @@
 /* ============================================================
    printing.js — نظام طباعة الخطط
+   الإصدار 1.1.2
+   ------------------------------------------------------------
+   الخطة العامة: تصميم رسمي ثابت — ترويسة الأزهر + عنوان مركزي
+   باسم الشهر والعام الدراسي + جدول (أيام العمل ذات الخطة صفوفًا × الموجهون
+   أعمدة، 5 موجهين في كل صفحة) + سطر التوقيعات. المتغيرات فقط:
+   التاريخ، أسماء المعاهد، أسماء الموجهين.
+   الخطط الفردية: كما كانت (Portrait) دون تغيير.
    ============================================================ */
 window.APP = window.APP || {};
 
 APP.printing = (function(){
   const esc = (value) => APP.helpers ? APP.helpers.escapeHtml(value ?? '') : String(value ?? '');
+  const h = () => APP.helpers;
 
   function normalizePlanData(monthKey){
     const storage = APP.storage;
@@ -72,17 +80,95 @@ APP.printing = (function(){
     </div>`;
   }
 
-  function generalHtml(data){
-    const rows = data.rows;
-    return `<div class="print-container">
-      ${header('الخطة العامة لموجهي الإدارة', 'كشف الزيارات المخططة لجميع الموجهين', data.monthKey)}
-      ${rows.length ? `<table class="print-table"><thead><tr>
-        <th>#</th><th>الموجه</th><th>الإدارة</th><th>المعهد</th><th>المرحلة</th><th>اليوم</th><th>التاريخ</th>
-      </tr></thead><tbody>${rows.map((r,i)=>`<tr>
-        <td>${i+1}</td><td>${esc(r.supervisorName)}</td><td>${esc(r.department)}</td><td>${esc(r.instituteName)}</td><td>${esc(r.stage)}</td><td>${esc(r.dowName)}</td><td>${esc(r.date)}</td>
-      </tr>`).join('')}</tbody></table>` : `<div class="print-empty">لا توجد زيارات مخططة لهذا الشهر.</div>`}
-      <div class="print-footer">إجمالي الزيارات المخططة: <strong>${rows.length}</strong></div>
+  /* ============================================================
+     الخطة العامة — التصميم الرسمي الثابت (1.1.2)
+     ============================================================ */
+
+  // العام الدراسي: يبدأ من يوليو (7) — أكتوبر 2025 → 2025/2026
+  function schoolYearLabel(monthKey){
+    const [y,m] = monthKey.split('-').map(Number);
+    return m >= 7 ? `${y}/${(y+1)}` : `${(y-1)}/${y}`;
+  }
+
+  // الترويسة + العنوان المركزي — نص ثابت، المتغيرات: الشهر والعام فقط
+  function generalPlanHeader(monthKey){
+    return `
+      <div class="print-org">
+        <div>الأزهر الشريف</div>
+        <div>الإدارة المركزية لمنطقة مطروح</div>
+        <div>إدارة الضبعة الأزهرية</div>
+      </div>
+      <div class="print-title-center">
+        <h1>الخطة العامة لموجهي إدارة الضبعة الأزهرية لشهر ${esc(h().monthLabel(monthKey))}</h1>
+        <h2>للعام الدراسي ${schoolYearLabel(monthKey)}م</h2>
+      </div>`;
+  }
+
+  // سطر التوقيعات — ثابت في أسفل كل صفحة
+  function signatureRow(){
+    return `<div class="print-sign">
+      <span>المختص</span>
+      <span>مدير إدارة الضبعة</span>
+      <span>التوصية المثلى</span>
+      <span>يعتمد مدير الإدارة المركزية</span>
     </div>`;
+  }
+
+  function generalHtml(data){
+    const storage = APP.storage;
+    const SUPS_PER_PAGE = 5;
+    const plan = storage.getMonthPlan(data.monthKey);
+    const supervisors = data.supervisors;
+    // أيام عمل الشهر وفق إعدادات العطلة — متغيرة (14/22/23... يومًا)
+    const workingDays = h().getMonthDays(data.monthKey, storage.getSettings().weekendDows)
+      .filter(d => !d.isWeekend);
+    // لا يُدرج اليوم إلا إذا وُجدت عليه زيارة مخططة لموجّه واحد على الأقل —
+    // أي يوم عمل لا يوجد به خطة لكل الموجهين لا يوضع في الخطة العامة
+    const plannedDays = workingDays.filter(d =>
+      supervisors.some(sup => (plan[sup.id] || {})[d.day])
+    );
+    const allDays = plannedDays.length ? plannedDays : workingDays;
+
+    if(!supervisors.length){
+      return `<div class="print-container">${generalPlanHeader(data.monthKey)}<div class="print-empty">لا يوجد موجهون.</div></div>`;
+    }
+    if(!plannedDays.length){
+      return `<div class="print-container">${generalPlanHeader(data.monthKey)}<div class="print-empty">لا توجد زيارات مخططة لهذا الشهر.</div>${signatureRow()}</div>`;
+    }
+
+    // تقسيم الموجهين: 5 في كل صفحة
+    const chunks = [];
+    for(let i = 0; i < supervisors.length; i += SUPS_PER_PAGE){
+      chunks.push(supervisors.slice(i, i + SUPS_PER_PAGE));
+    }
+
+    return chunks.map((chunk, idx) => {
+      const isLast = idx === chunks.length - 1;
+      return `<section class="${isLast ? '' : 'print-page-break'}">
+        <div class="print-container general-plan">
+          ${generalPlanHeader(data.monthKey)}
+          <table class="print-table plan-grid">
+            <thead>
+              <tr>
+                <th class="day-col">اليوم / التاريخ</th>
+                ${chunk.map(s => `<th>${esc(s.name)}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${allDays.map(d => {
+                const cells = chunk.map(sup => {
+                  const instId = (plan[sup.id] || {})[d.day];
+                  const inst = instId ? storage.getInstitute(instId) : null;
+                  return `<td>${inst ? esc(inst.name) : ''}</td>`;
+                }).join('');
+                return `<tr><td class="day-col">${esc(d.dowName)} ${d.day}</td>${cells}</tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+          ${signatureRow()}
+        </div>
+      </section>`;
+    }).join('');
   }
 
   function supervisorHtml(data, supervisorId){
@@ -112,7 +198,7 @@ APP.printing = (function(){
     }
     monthKey = monthKey || APP.helpers.currentMonthKey();
     const data = normalizePlanData(monthKey);
-    if(!data.rows.length){ APP.ui?.warning('لا توجد بيانات','لا توجد زيارات مخططة لهذا الشهر للطباعة'); return; }
+    if(!data.supervisors.length){ APP.ui?.warning('لا توجد بيانات','لا يوجد موجهون للطباعة'); return; }
     triggerPrint(generalHtml(data), true);
   }
 
