@@ -40,22 +40,29 @@ table.data-table{ width:100%; border-collapse:collapse; font-size:13.5px; }
 
 .table-empty-row td{ padding:50px 20px; text-align:center; color:var(--text-faint); }
 
-/* Planner grid specific */
+/* ============================================================
+   Planner grid — الإصدار 1.2.0
+   ------------------------------------------------------------
+   ⭐ عرض ثابت لأعمدة الأيام (~108px) بحيث تظهر حوالي 10 أيام
+   عمل في منطقة العرض المرئية، وباقي الأيام تُرؤيتُها عبرعبر
+   التمرير الأفقي الموجود أصلاً في .planner-scroll — دون أي
+   ضغط أو تصغير تلقائي للأعمدة.
+   أيام العطلة لا تُنشأ كأعمدة إطلاقًا (انظر planner.js).
+   ============================================================ */
 .planner-scroll{ overflow:auto; max-height:calc(100vh - 340px); border-radius:var(--radius); }
 table.planner-table{ border-collapse:separate; border-spacing:0; width:max-content; min-width:100%; font-size:12.5px; }
 .planner-table th, .planner-table td{ border-bottom:1px solid var(--border-color); border-inline-start:1px solid var(--border-color); }
 .planner-table thead th{
   position:sticky; top:0; background:#233246; z-index:6; padding:10px 8px; text-align:center;
-  font-size:11.5px; color:var(--text-dim); min-width:120px;
+  font-size:11.5px; color:var(--text-dim);
+  width:108px; min-width:108px;          /* ⭐ عرض ثابت: ~10 أيام مرئية */
 }
-.planner-table thead th.sup-col-header{ position:sticky; right:0; top:0; z-index:8; text-align:right; min-width:190px; background:#233246; }
-.planner-table thead th.weekend-col{ color:var(--text-faint); background:#1a2536; }
+.planner-table thead th.sup-col-header{ position:sticky; right:0; top:0; z-index:8; text-align:right; min-width:190px; width:190px; background:#233246; }
 .planner-table tbody th.sup-row-header{
   position:sticky; right:0; background:var(--surface); z-index:4;
   text-align:right; padding:10px 12px; min-width:190px; font-weight:700;
 }
-.planner-table td.plan-cell{ padding:5px; min-width:120px; }
-.planner-table td.weekend-cell{ background:#161f30; }
+.planner-table td.plan-cell{ padding:5px; width:108px; min-width:108px; } /* ⭐ مطابق لعرض العمود */
 .plan-select{
   width:100%; background:var(--surface-2); color:var(--text); border:1px solid var(--border-color);
   border-radius:8px; padding:7px 8px; font-size:12px; cursor:pointer;
