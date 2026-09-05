@@ -83,6 +83,7 @@ APP.planner = (function(){
   function render(){
     const supervisors = activeSupervisors();
     const days = getPlanDays(); // ⭐ أيام العمل فقط — لا عطلات إطلاقًا
+    const todayStr = h.todayISO(); // لتلوين عمود "اليوم"
     const wrap = document.getElementById('plannerTableWrap');
     document.getElementById('plannerMonthLabel').textContent = h.monthLabel(currentMonthKey);
 
@@ -101,7 +102,10 @@ APP.planner = (function(){
 
     let thead = `<tr><th class="sup-col-header">الموجه</th>`;
     days.forEach(d=>{
-      thead += `<th>${d.day}<br><small>${d.dowName}</small></th>`;
+      // ⭐ تمييز عمود اليوم الحالي حسب تاريخ الجهاز — أي خلل في
+      // ساعة/سنة الجهاز يصبح واضحًا للمستخدم فورًا بمجرد النظر
+      const isToday = (d.iso === todayStr);
+      thead += `<th class="${isToday?'today-col':''}">${isToday?'<span class="today-badge">اليوم</span>':''}${d.day}<br><small>${d.dowName}</small></th>`;
     });
     thead += `</tr>`;
 
