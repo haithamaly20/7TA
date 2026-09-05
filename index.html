@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="dark">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#0F172A"><meta name="description" content="نظام إدارة خطة الزيارات الشهرية للموجهين التربويين">
@@ -10,37 +10,43 @@
 <body>
 <div class="app-shell">
   <aside id="sidebar" class="sidebar">
-    <div class="sidebar-brand"><div class="brand-icon">📚</div><div><strong data-bind="systemTitle">خطة موجهي الضبعة</strong><small data-bind="orgName">إدارة الضبعة التعليمية</small></div></div>
+    <div class="sidebar-brand"><div class="logo-mark">📚</div><div class="brand-text"><strong data-bind="systemTitle">خطة موجهي الضبعة</strong><small data-bind="orgName">إدارة الضبعة التعليمية</small></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">الرئيسية</div>
-      <button class="nav-item active" data-page="dashboard">🏠 <span>لوحة التحكم</span></button>
+      <button class="nav-item active" data-page="dashboard"><span class="nav-ico">🏠</span><span class="nav-label">لوحة التحكم</span></button>
       <div class="nav-section-label">الإدارة</div>
-      <button class="nav-item" data-page="supervisors">🧑‍🏫 <span>الموجهون</span></button>
-      <button class="nav-item" data-page="institutes">🏫 <span>المعاهد</span></button>
-      <button class="nav-item" data-page="planner">🗓️ <span>إنشاء الخطة</span></button>
-      <button class="nav-item" data-page="reports">📊 <span>التقارير والطباعة</span></button>
+      <button class="nav-item" data-page="supervisors"><span class="nav-ico">🧑‍🏫</span><span class="nav-label">الموجهون</span></button>
+      <button class="nav-item" data-page="institutes"><span class="nav-ico">🏫</span><span class="nav-label">المعاهد</span></button>
+      <button class="nav-item" data-page="planner"><span class="nav-ico">🗓️</span><span class="nav-label">إنشاء الخطة</span></button>
+      <button class="nav-item" data-page="reports"><span class="nav-ico">📊</span><span class="nav-label">التقارير والطباعة</span></button>
       <div class="nav-section-label">النظام</div>
-      <button class="nav-item" data-page="backup">💾 <span>النسخ الاحتياطي</span></button>
-      <button class="nav-item" data-page="settings">⚙️ <span>الإعدادات</span></button>
+      <button class="nav-item" data-page="backup"><span class="nav-ico">💾</span><span class="nav-label">النسخ الاحتياطي</span></button>
+      <button class="nav-item" data-page="settings"><span class="nav-ico">⚙️</span><span class="nav-label">الإعدادات</span></button>
     </nav>
     <button id="sidebarToggle" class="sidebar-toggle" title="طي القائمة">◀</button>
   </aside>
 
-  <div class="main-shell">
+  <div class="main-shell main-area">
     <header class="topbar">
-      <button id="mobileMenuBtn" class="btn btn-outline">☰</button>
-      <div class="topbar-search"><input id="globalSearch" class="form-control" placeholder="بحث سريع عن موجه أو معهد..."><div id="globalSearchResults" class="search-results hidden"></div></div>
-      <div class="topbar-actions"><button id="themeToggleBtn" class="btn btn-outline" title="تبديل المظهر">🌓</button><div class="clock"><strong id="topClock">--:--</strong><small id="topDate">--</small></div></div>
+      <div class="topbar-left">
+        <button id="mobileMenuBtn" class="btn btn-outline">☰</button>
+        <div class="topbar-search"><input id="globalSearch" class="form-control" placeholder="بحث سريع عن موجه أو معهد..."><div id="globalSearchResults" class="search-results hidden"></div></div>
+      </div>
+      <div class="topbar-right">
+        <button id="themeToggleBtn" class="btn btn-outline" title="تبديل المظهر">🌓</button>
+        <div class="topbar-clock"><div class="time" id="topClock">--:--</div><div class="date" id="topDate">--</div></div>
+      </div>
     </header>
 
     <main class="page-content container">
+      <!-- ... بقية الأقسام كما هي ... -->
       <section class="page active" id="page-dashboard">
         <div class="page-heading"><div><h2 data-bind="systemTitle">خطة موجهي الضبعة</h2><p>نظرة سريعة على حالة البيانات والخطة الحالية.</p></div><span class="badge blue" id="dashCurrentMonth">--</span></div>
-        <div class="cards-grid">
-          <div class="card stat-card"><span>الموجهون النشطون</span><strong id="statTotalSupervisors">0</strong><small id="statTotalSupervisorsSub">--</small></div>
-          <div class="card stat-card"><span>إجمالي المعاهد</span><strong id="statTotalInstitutes">0</strong><small id="statTotalInstitutesSub">--</small></div>
-          <div class="card stat-card"><span>الزيارات المخططة</span><strong id="statPlannedVisits">0</strong><small id="statPlannedVisitsSub">--</small></div>
-          <div class="card stat-card"><span>نسبة الإنجاز</span><strong id="statCompletion">0%</strong><small id="statCompletionSub">--</small></div>
+        <div class="cards-grid stats-grid">
+          <div class="card stat-card"><div class="icon-box blue">🧑‍🏫</div><div><div class="stat-num" id="statTotalSupervisors">0</div><div class="stat-label" id="statTotalSupervisorsSub">--</div></div></div>
+          <div class="card stat-card"><div class="icon-box green">🏫</div><div><div class="stat-num" id="statTotalInstitutes">0</div><div class="stat-label" id="statTotalInstitutesSub">--</div></div></div>
+          <div class="card stat-card"><div class="icon-box amber">📅</div><div><div class="stat-num" id="statPlannedVisits">0</div><div class="stat-label" id="statPlannedVisitsSub">--</div></div></div>
+          <div class="card stat-card"><div class="icon-box red">📈</div><div><div class="stat-num" id="statCompletion">0%</div><div class="stat-label" id="statCompletionSub">--</div></div></div>
         </div>
         <div class="grid-2">
           <div class="card"><div class="card-header"><h3>إجراءات سريعة</h3></div><div class="flex gap-8 wrap"><button id="qaAddSupervisor" class="btn btn-primary">➕ إضافة موجه</button><button id="qaAddInstitute" class="btn btn-success">🏫 إضافة معهد</button><button id="qaOpenPlanner" class="btn btn-outline">🗓️ فتح الخطة</button><button id="qaOpenBackup" class="btn btn-outline">💾 النسخ الاحتياطي</button></div></div>
@@ -51,14 +57,14 @@
       <section class="page" id="page-supervisors">
         <div class="page-heading"><div><h2>إدارة الموجهين</h2><p>إضافة الموجهين وتكليفهم بالمعاهد.</p></div><button id="btnAddSupervisor" class="btn btn-primary">➕ إضافة موجه</button></div>
         <div class="card"><div class="table-toolbar flex-between"><input id="supervisorSearch" class="form-control" placeholder="بحث بالاسم أو الوظيفة أو الإدارة..."><select id="supervisorStatusFilter" class="form-control"><option value="all">كل الحالات</option><option value="active">نشط</option><option value="disabled">معطل</option></select><span id="supervisorCount" class="badge blue">0 موجه</span></div>
-          <div class="table-responsive"><table id="supervisorsTable" class="data-table"><thead><tr><th>#</th><th>اللون</th><th data-sort="name">الاسم</th><th data-sort="role">الوظيفة</th><th>الإدارات</th><th>المعاهد</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody id="supervisorsTbody"></tbody></table></div>
+          <div class="table-responsive table-scroll"><table id="supervisorsTable" class="data-table"><thead><tr><th>#</th><th>اللون</th><th data-sort="name">الاسم</th><th data-sort="role">الوظيفة</th><th>الإدارات</th><th>المعاهد</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody id="supervisorsTbody"></tbody></table></div>
         </div>
       </section>
 
       <section class="page" id="page-institutes">
         <div class="page-heading"><div><h2>إدارة المعاهد الأزهرية</h2><p>بحث وفلترة بيانات المعاهد.</p></div><button id="btnAddInstitute" class="btn btn-success">➕ إضافة معهد</button></div>
         <div class="card"><div class="table-toolbar flex-between margin-bottom"><input id="instituteSearchInput" class="form-control" placeholder="بحث باسم أو كود المعهد..." oninput="APP.institutes.filterTable()"><select id="filterDepartment" class="form-control" onchange="APP.institutes.filterTable()"><option value="">جميع الإدارات</option></select><select id="filterStage" class="form-control" onchange="APP.institutes.filterTable()"><option value="">جميع المراحل</option></select><button class="btn btn-outline" onclick="APP.institutes.resetFilters()">إعادة ضبط</button><span id="institutesCountBadge" class="badge blue">المعروض: 0</span></div>
-        <div class="table-responsive"><table class="data-table"><thead><tr><th>#</th><th>اسم المعهد</th><th>الكود</th><th>الإدارة</th><th>المرحلة</th></tr></thead><tbody id="institutesTableBody"></tbody></table></div></div>
+        <div class="table-responsive table-scroll"><table class="data-table"><thead><tr><th>#</th><th>اسم المعهد</th><th>الكود</th><th>الإدارة</th><th>المرحلة</th></tr></thead><tbody id="institutesTableBody"></tbody></table></div></div>
       </section>
 
       <section class="page" id="page-planner">
@@ -87,7 +93,6 @@
 </div>
 <div id="printArea"></div><div id="toastContainer" class="toast-container"></div><div id="modalRoot"></div>
 
-<!-- ترتيب تحميل الوحدات مهم: كل وحدة تُحمّل بعد اعتمادياتها -->
 <script src="js/config.js"></script>
 <script src="js/utils/helpers.js"></script>
 <script src="js/services/storage.js"></script>
