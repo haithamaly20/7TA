@@ -1,5 +1,15 @@
 /* ============================================================
    planner.js — إنشاء الخطة الشهرية للزيارات
+   الإصدار 1.2.0
+   ------------------------------------------------------------
+   التعديلات:
+   1) استبعاد أيام العطلة (الراحة الأسبوعية حسب الإعدادات) نهائيًا
+      من أعمدة الجدول — لا أعمدة فارغة إطلاقًا.
+   2) عرض ~10 أيام عمل بعرض ثابت مع تمرير أفقي (راجع tables.css).
+   3) حجز "المعهد الأساسي + اليوم": عند استخدام أي مرحلة من معهد
+      ما في يوم ما بواسطة أي موجه، تختفي جميع مراحل هذا المعهد
+      من قوائم بقية الموجهين في نفس اليوم فقط، ويُحسب ذلك من
+      بيانات الخطة المخزنة (storage) وليس من عناصر HTML.
    ============================================================ */
 window.APP = window.APP || {};
 
@@ -37,9 +47,42 @@ APP.planner = (function(){
     return h.getMonthDays(currentMonthKey, settings.weekendDows);
   }
 
+  // ⭐ أيام العمل الفعلية فقط — بدون أيام العطلة/الراحة الأسبوعية.
+  // هذه هي الأيام الوحيدة التي تظهر كأعمدة في الجدول.
+  function getPlanDays(){
+    return getWorkingDays().filter(d=>!d.isWeekend);
+  }
+
+  /* ============================================================
+     ⭐ منطق حجز "المعهد + اليوم"
+     ------------------------------------------------------------
+     المراحل (ابتدائي/إعدادي/ثانوي...) سجلات منفصلة في قاعدة
+     البيانات لكنها تشترك في اسم المعهد الأساسي (الجزء قبل "—").
+     مفتاح الحجز = اسم المعهد الأساسي + رقم اليوم، ويُحسب من
+     بيانات الخطة المخزنة في storage وليس من عناصر الصفحة.
+     ============================================================ */
+
+  function baseInstituteName(inst){
+    if(!inst) return '';
+    // "معهد الفرقان — ابتدائي" → "معهد الفرقان"
+    return (inst.name || '').split(/\s*[—–]\s*/)[0].trim();
+  }
+
+  // الأسماء الأساسية للمعاهد المستخدمة في يوم معين (عبر جميع الموجهين)
+  function computeUsedBaseNames(plan, supervisors, day){
+    const used = new Set();
+    supervisors.forEach(sup=>{
+      const instId = (plan[sup.id] || {})[day];
+      if(!instId) return;
+      const inst = storage.getInstitute(instId);
+      if(inst) used.add(baseInstituteName(inst));
+    });
+    return used;
+  }
+
   function render(){
     const supervisors = activeSupervisors();
-    const days = getWorkingDays();
+    const days = getPlanDays(); // ⭐ أيام العمل فقط — لا عطلات إطلاقًا
     const wrap = document.getElementById('plannerTableWrap');
     document.getElementById('plannerMonthLabel').textContent = h.monthLabel(currentMonthKey);
 
@@ -50,9 +93,15 @@ APP.planner = (function(){
 
     const plan = storage.getMonthPlan(currentMonthKey);
 
+    // ⭐ حساب المعاهد المحجوزة لكل يوم عمل مرة واحدة قبل بناء الصفوف
+    const usedByDay = {};
+    days.forEach(d=>{
+      usedByDay[d.day] = computeUsedBaseNames(plan, supervisors, d.day);
+    });
+
     let thead = `<tr><th class="sup-col-header">الموجه</th>`;
     days.forEach(d=>{
-      thead += `<th class="${d.isWeekend?'weekend-col':''}">${d.day}<br><small>${d.dowName}</small></th>`;
+      thead += `<th>${d.day}<br><small>${d.dowName}</small></th>`;
     });
     thead += `</tr>`;
 
@@ -65,13 +114,16 @@ APP.planner = (function(){
           <span class="swatch" style="background:${sup.color}; margin-inline-end:6px;"></span>${h.escapeHtml(sup.name)}
         </th>`;
       days.forEach(d=>{
-        if(d.isWeekend){
-          tbody += `<td class="plan-cell weekend-cell"></td>`;
-          return;
-        }
         const currentInstId = dayMap[d.day] || '';
+        const selectedInst = currentInstId ? storage.getInstitute(currentInstId) : null;
+        const selectedBase = selectedInst ? baseInstituteName(selectedInst) : null;
+
         let options = `<option value="">—</option>`;
         assignedInstitutes.forEach(inst=>{
+          const instBase = baseInstituteName(inst);
+          // ⭐ إخفاء أي مرحلة من معهد محجوز في هذا اليوم لموجه آخر.
+          // استثناء: اختيار الموجه الحالي نفسه يبقى ظاهرًا حتى لا يمنع نفسه.
+          if(usedByDay[d.day].has(instBase) && instBase !== selectedBase) return;
           options += `<option value="${inst.id}" ${inst.id===currentInstId?'selected':''}>${h.escapeHtml(inst.name)}</option>`;
         });
         tbody += `<td class="plan-cell">
@@ -97,6 +149,16 @@ APP.planner = (function(){
     markConflicts();
   }
 
+  // إعادة رسم مع الحفاظ على موضع التمرير الأفقي (حتى لا يقفز الجدول
+  // إلى أول يوم عند كل تعديل في منتصف الشهر)
+  function renderPreservingScroll(){
+    const scroller = document.querySelector('#plannerTableWrap .planner-scroll');
+    const left = scroller ? scroller.scrollLeft : 0;
+    render();
+    const sc2 = document.querySelector('#plannerTableWrap .planner-scroll');
+    if(sc2) sc2.scrollLeft = left;
+  }
+
   function bindCellEvents(){
     document.querySelectorAll('.plan-select').forEach(sel=>{
       sel.addEventListener('change', ()=>{
@@ -105,6 +167,20 @@ APP.planner = (function(){
         const instId = sel.value || null;
 
         if(instId){
+          // شبكة أمان إضافية: تحقق مباشر من بيانات الخطة المخزنة
+          const usedBases = computeUsedBaseNames(
+            storage.getMonthPlan(currentMonthKey),
+            activeSupervisors(),
+            day
+          );
+          const inst = storage.getInstitute(instId);
+          if(inst && usedBases.has(baseInstituteName(inst))){
+            const otherSup = validation.findInstituteConflict(currentMonthKey, day, instId, supId);
+            const otherName = otherSup ? (storage.getSupervisor(otherSup)?.name || 'موجه آخر') : 'موجه آخر';
+            ui.error('تعارض في الخطة', `هذا المعهد محجوز بالفعل مع ${otherName} في يوم ${day}`);
+            sel.value = '';
+            return;
+          }
           const conflictSup = validation.findInstituteConflict(currentMonthKey, day, instId, supId);
           if(conflictSup){
             const otherName = storage.getSupervisor(conflictSup)?.name || 'موجه آخر';
@@ -114,7 +190,9 @@ APP.planner = (function(){
           }
         }
         storage.setCell(currentMonthKey, supId, day, instId);
-        sel.classList.toggle('has-value', !!instId);
+        // ⭐ إعادة رسم فورية: تحرير المعهد القديم / حجز الجديد يظهر
+        // لكل الموجهين في نفس اليوم ديناميكيًا
+        renderPreservingScroll();
       });
     });
   }
@@ -129,7 +207,7 @@ APP.planner = (function(){
   }
 
   function markConflicts(){
-    const days = getWorkingDays().filter(d=>!d.isWeekend);
+    const days = getPlanDays();
     const analysis = validation.analyzeMonthPlan(currentMonthKey, days);
     // highlight conflicting selects
     document.querySelectorAll('.plan-select').forEach(sel=>sel.classList.remove('conflict'));
@@ -156,6 +234,15 @@ APP.planner = (function(){
       confirmLabel:'نسخ الآن',
       onConfirm:()=>{
         storage.copyMonth(prevKey, currentMonthKey);
+        // ⭐ تنظيف: عدم نقل أي إسناد كان على يوم عطلة في الشهر الجديد
+        const workingDayNums = new Set(getPlanDays().map(d=>d.day));
+        const plan = storage.getMonthPlan(currentMonthKey);
+        Object.keys(plan).forEach(supId=>{
+          Object.keys(plan[supId]).forEach(day=>{
+            if(!workingDayNums.has(Number(day))) delete plan[supId][day];
+          });
+        });
+        storage.persist();
         ui.success('تم النسخ', `تم نسخ خطة ${h.monthLabel(prevKey)} بنجاح`);
         render();
       }
@@ -178,7 +265,7 @@ APP.planner = (function(){
   }
 
   function showValidationReport(){
-    const days = getWorkingDays().filter(d=>!d.isWeekend);
+    const days = getPlanDays();
     const analysis = validation.analyzeMonthPlan(currentMonthKey, days);
     const supervisors = activeSupervisors();
 
@@ -217,5 +304,5 @@ APP.planner = (function(){
 
   function getCurrentMonthKey(){ return currentMonthKey; }
 
-  return { init, render, getCurrentMonthKey, getWorkingDays };
+  return { init, render, getCurrentMonthKey, getWorkingDays, getPlanDays };
 })();
