@@ -2,6 +2,7 @@
    storage.js — طبقة تخزين البيانات (LocalStorage)
    جميع البيانات تُحفظ محليًا في متصفح الجهاز. لا يعتمد النظام
    على أي خادم أو قاعدة بيانات خارجية.
+   الإصدار 1.1.1
    ============================================================ */
 window.APP = window.APP || {};
 
@@ -32,6 +33,12 @@ APP.storage = (function(){
 
   let db = null;
 
+  // ---------- مؤقت المزامنة المجمّعة (الإصلاح 1.1.1) ----------
+  // كل حفظ يُعيد ضبط المؤقت؛ بعد سكوت التعديلات 2.5 ثانية تُرسل
+  // مزامنة واحدة بدل عاصفة طلبات (كل خلية كانت = 4 طلبات كاملة).
+  let syncTimer = null;
+  const SYNC_DEBOUNCE_MS = 2500;
+
   function load(){
     try{
       const raw = localStorage.getItem(DB_KEY);
@@ -60,7 +67,7 @@ APP.storage = (function(){
     db.meta.lastUpdatedAt = new Date().toISOString();
     try{
       localStorage.setItem(DB_KEY, JSON.stringify(db));
-      scheduleSyncToSheets(); // مزامنة مؤجلة (Debounce) بدل فورية مع كل حفظ
+      scheduleSyncToSheets();
       return true;
     }catch(e){
       console.error('فشل حفظ البيانات', e);
@@ -68,9 +75,18 @@ APP.storage = (function(){
     }
   }
 
-  // حفظ محلي فقط، بدون استدعاء المزامنة السحابية — يُستخدم فقط عند الإنشاء
+  function scheduleSyncToSheets(){
+    if(syncTimer) clearTimeout(syncTimer);
+    syncTimer = setTimeout(()=>{
+      syncTimer = null;
+      syncToSheetsIfEnabled();
+    }, SYNC_DEBOUNCE_MS);
+  }
+
+  // حفظ محلي فقط، بدون استدعاء المزامنة السحابية — يُستخدم عند الإنشاء
   // الأولي لقاعدة بيانات فارغة (load عند عدم وجود بيانات محلية)، حتى لا تُمحى
   // بيانات Sheets الحقيقية بالخطأ قبل أن يحاول cloudRestore استرجاعها أولاً.
+  // كما يُستخدم عند الدمج القادم من السحابة (mergeDB مع {sync:false}).
   function persistLocalOnly(){
     db.meta.lastUpdatedAt = new Date().toISOString();
     try{
@@ -82,26 +98,8 @@ APP.storage = (function(){
     }
   }
 
-  // ---------------- مزامنة Google Sheets (مؤجلة) ----------------
-  // مبدأ العملية: persist() تُستدعى مع كل تعديل صغير (خلية خطة، حقل
-  // نموذج، إعداد...) — وإطلاق 4 طلبات bulk_sync بالبيانات الكاملة مع
-  // كل حفظ يُنتج عاصفة طلبات (مثال: 22 تعديلًا في الخطة = 88 POST).
-  // الحل: مؤقت Debounce — كل حفظ يُعيد ضبط المؤقت، وعند سكوت
-  // التعديلات لمدة SYNC_DEBOUNCE_MS تُرسل مزامنة واحدة بالحالة الأخيرة.
-  // لا خطر فقدان: أي حفظ لاحق أو عودة اتصال (backgroundSync) تدفع
-  // الحالة الكاملة من جديد في كل حالة.
-  const SYNC_DEBOUNCE_MS = 2500;
-  let syncTimer = null;
-
-  function scheduleSyncToSheets(){
-    if(!window.APP || !APP.sheetsSync || !APP.sheetsSync.isEnabled()) return;
-    clearTimeout(syncTimer);
-    syncTimer = setTimeout(()=>{
-      syncTimer = null;
-      syncToSheetsIfEnabled();
-    }, SYNC_DEBOUNCE_MS);
-  }
-
+  // مزامنة اختيارية في الخلفية — لا تعمل إلا إذا CONFIG.SCRIPT_URL مملوء،
+  // ولا تُعطّل أو تُبطّئ أي عملية محلية (fire-and-forget عبر sheetsSync.js)
   function syncToSheetsIfEnabled(){
     if(!window.APP || !APP.sheetsSync || !APP.sheetsSync.isEnabled()) return;
     APP.sheetsSync.syncInBackground('supervisors', db.supervisors.map(s=>({id:s.id, data:s})));
@@ -117,10 +115,6 @@ APP.storage = (function(){
     if(options && options.sync === false){ persistLocalOnly(); } else { persist(); }
   }
 
-  // options.sync === false → حفظ محلي بدون الدفع إلى Google Sheets.
-  // يُستخدم عند دمج بيانات قادمة من السحابة نفسها (cloudRestore.js)،
-  // فلا معنى لإعادة رفع إلى الشيت ما سُحب للتو منه — أي تعديل
-  // محلي لاحق سيدفع الحالة الكاملة الجديدة في حينه على أي حال.
   function mergeDB(incoming, options){
     // merge supervisors/institutes by id, plans deep-merged by month/supervisor/day
     (incoming.supervisors||[]).forEach(s=>{
@@ -140,6 +134,9 @@ APP.storage = (function(){
     if(incoming.settings){
       db.settings = Object.assign(db.settings, incoming.settings);
     }
+    // {sync:false} → حفظ محلي دون الدفع إلى الشيت (لقطع الحلقة العكسية
+    // عند الدمج القادم من السحابة نفسها). الاستيراد اليدوي يستمر بلا خيارات
+    // فيدفع البيانات للشيت كما يجب.
     if(options && options.sync === false){ persistLocalOnly(); } else { persist(); }
   }
 

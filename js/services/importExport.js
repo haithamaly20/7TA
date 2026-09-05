@@ -1,5 +1,6 @@
 /* ============================================================
    importExport.js — التصدير والاستيراد والنسخ الاحتياطي
+   الإصدار 1.1.1
    ============================================================ */
 window.APP = window.APP || {};
 
@@ -17,6 +18,9 @@ APP.importExport = (function(){
     const fileInput = document.getElementById('importFileInput');
     document.getElementById('btnChooseImportFile').addEventListener('click', ()=>fileInput.click());
     fileInput.addEventListener('change', handleFileSelected);
+
+    // حفظ نسخة JSON في Google Drive عبر Apps Script (اختياري — يحتاج نشر Code.gs 1.1.1)
+    document.getElementById('btnSaveToDrive')?.addEventListener('click', saveToDrive);
 
     renderLastBackupInfo();
   }
@@ -39,6 +43,37 @@ APP.importExport = (function(){
     ui.success('تم التصدير', 'تم تنزيل ملف النسخة الاحتياطية بصيغة JSON');
   }
 
+  async function saveToDrive(){
+    if(!APP.sheetsSync || !APP.sheetsSync.isEnabled()){
+      ui.warning('المزامنة غير مفعّلة', 'تأكد من ملء SCRIPT_URL في js/config.js أولًا');
+      return;
+    }
+    if(!navigator.onLine){
+      ui.error('لا يوجد اتصال', 'يتطلب الحفظ في Google Drive وجود اتصال بالإنترنت');
+      return;
+    }
+    const db = storage.getDB();
+    const hasData = (db.supervisors && db.supervisors.length) || (db.institutes && db.institutes.length);
+    if(!hasData){
+      ui.warning('لا توجد بيانات', 'لا فائدة من رفع نسخة فارغة إلى Drive');
+      return;
+    }
+    const payload = JSON.stringify(db, null, 2);
+    const filename = `نسخة-احتياطية-خطة-موجهي-الضبعة-${h.todayISO()}.json`;
+    try{
+      const res = await APP.sheetsSync.saveBackupToDrive(filename, payload);
+      if(res && res.ok && res.data && (res.data.id || res.data.url)){
+        storage.saveSettings({ lastBackupAt: new Date().toISOString() });
+        renderLastBackupInfo();
+        ui.success('تم الحفظ في Google Drive', `الملف: ${res.data.name || filename}`);
+      } else {
+        throw new Error((res && res.error) || 'استجابة غير صالحة من Google Apps Script');
+      }
+    }catch(err){
+      ui.error('فشل الحفظ في Drive', (err && err.message) || 'تأكد من نشر Apps Script بصلاحية الوصول إلى Drive');
+    }
+  }
+
   function toCSV(rows){
     return rows.map(r=>r.map(cell=>{
       const s = (cell===null||cell===undefined) ? '' : String(cell);
@@ -51,7 +86,7 @@ APP.importExport = (function(){
     storage.listSupervisors().forEach(s=>{
       rows.push([s.name, s.role||'', (s.departments||[]).join('؛ '), s.phone||'', s.status==='active'?'نشط':'معطل', (s.instituteIds||[]).length]);
     });
-    h.downloadBlob('\uFEFF'+toCSV(rows), `الموجهون-${h.todayISO()}.csv`, 'text/csv;charset=utf-8');
+    h.downloadBlob('﻿'+toCSV(rows), `الموجهون-${h.todayISO()}.csv`, 'text/csv;charset=utf-8');
     ui.success('تم التصدير','تم تنزيل بيانات الموجهين بصيغة CSV (متوافق مع Excel)');
   }
 
@@ -60,7 +95,7 @@ APP.importExport = (function(){
     storage.listInstitutes().forEach(i=>{
       rows.push([i.name, i.department||'', i.stage||'', i.classCount ?? '', i.notes||'']);
     });
-    h.downloadBlob('\uFEFF'+toCSV(rows), `المعاهد-${h.todayISO()}.csv`, 'text/csv;charset=utf-8');
+    h.downloadBlob('﻿'+toCSV(rows), `المعاهد-${h.todayISO()}.csv`, 'text/csv;charset=utf-8');
     ui.success('تم التصدير','تم تنزيل بيانات المعاهد بصيغة CSV (متوافق مع Excel)');
   }
 
@@ -76,7 +111,7 @@ APP.importExport = (function(){
         return inst ? inst.name : '';
       })]);
     });
-    h.downloadBlob('\uFEFF'+toCSV(rows), `خطة-${monthKey}.csv`, 'text/csv;charset=utf-8');
+    h.downloadBlob('﻿'+toCSV(rows), `خطة-${monthKey}.csv`, 'text/csv;charset=utf-8');
     ui.success('تم التصدير', `تم تنزيل خطة ${h.monthLabel(monthKey)} بصيغة CSV`);
   }
 
@@ -137,6 +172,7 @@ APP.importExport = (function(){
               }
             });
           } else {
+            // الاستيراد اليدوي تعديل محلي حقيقي → يدفع البيانات للشيت (sync:true وهو الافتراضي)
             storage.mergeDB(parsed);
             ui.success('تم الاستيراد', 'تم دمج البيانات بنجاح');
             ui.closeModal(ov);

@@ -1,5 +1,6 @@
 /* ============================================================
    sheetsSync.js — مزامنة Google Sheets / Apps Script
+   الإصدار 1.1.1
    ============================================================ */
 window.APP = window.APP || {};
 
@@ -9,9 +10,7 @@ APP.sheetsSync = {
   consecutiveFailures:0,
   disabledUntil:0,
 
-  // مهلة الاتصال بالـ Web App. أول طلب يمر بـ "Cold Start" في
-  // Google Apps Script (تفعيل النسخة + فتح الشيت + قراءة البيانات)
-  // وقد يستغرق أكثر من 8 ثوانٍ مع البيانات الكثيرة — لذلك 25 ثانية.
+  // مهلة موحّدة لكل الطلبات: 25 ثانية تستوعب Cold Start في Apps Script
   REQUEST_TIMEOUT_MS: 25000,
 
   isEnabled(){
@@ -49,8 +48,10 @@ APP.sheetsSync = {
         method:'POST',
         headers:{'Content-Type':'text/plain;charset=utf-8'},
         body:JSON.stringify({action,...payload}),
-        signal:controller.signal,
-        redirect:'follow'
+        // Apps Script يرد أحيانًا بتحويل 302 إلى script.googleusercontent.com —
+        // يجب اتباعه صراحةً حتى لا يُحسب الطلب فاشلًا
+        redirect:'follow',
+        signal:controller.signal
       });
       if(!response.ok) throw new Error(`خطأ HTTP ${response.status}`);
       const result=await response.json();
@@ -79,7 +80,7 @@ APP.sheetsSync = {
     const controller = new AbortController();
     const timer = setTimeout(()=>controller.abort(), this.REQUEST_TIMEOUT_MS);
     try {
-      const response=await fetch(url.toString(),{method:'GET',signal:controller.signal,redirect:'follow'});
+      const response=await fetch(url.toString(),{method:'GET',redirect:'follow',signal:controller.signal});
       if(!response.ok) throw new Error(`خطأ HTTP ${response.status}`);
       return await response.json();
     } catch(err) {
