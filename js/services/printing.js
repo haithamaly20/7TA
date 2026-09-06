@@ -1,6 +1,6 @@
 /* ============================================================
 printing.js — نظام طباعة الخطط
-الإصدار 1.2.3 — إلغاء "الزيارة رقم" + ضبط الاتجاهات
+الإصدار 1.3.0 — إعادة تصميم صفحة الخطة الفردية بحجم ديناميكي
 ============================================================ */
 window.APP = window.APP || {};
 APP.printing = (function(){
@@ -27,6 +27,7 @@ APP.printing = (function(){
           supervisorName: sup.name,
           supervisorRole: sup.role || '',
           supervisorPhone: sup.phone || '',
+          supervisorRegistry: sup.registryNumber || '',
           supervisorDepartment: (sup.departments || []).join('، '),
           instituteId: inst.id,
           instituteName: inst.name,
@@ -44,14 +45,13 @@ APP.printing = (function(){
     return { monthKey, days, rows, supervisors };
   }
 
-  function triggerPrint(contentHtml, isLandscape){
+  function triggerPrint(contentHtml, isLandscape = true){
     let printArea = document.getElementById('printArea');
     if(!printArea){
       printArea = document.createElement('div');
       printArea.id = 'printArea';
       document.body.appendChild(printArea);
     }
-    // ⭐ تحديد الاتجاه: true = أفقي (Landscape)، false = رأسي (Portrait)
     printArea.className = isLandscape ? 'print-landscape' : 'print-portrait';
     printArea.innerHTML = contentHtml;
     document.body.classList.add('printing-active');
@@ -104,7 +104,7 @@ APP.printing = (function(){
   }
 
   /* ============================================================
-     الخطة العامة — ⭐ تُطبع أفقياً (Landscape)
+     الخطة العامة — أفقي (Landscape)
   ============================================================ */
   function generalHtml(data){
     const storage = APP.storage;
@@ -160,8 +160,17 @@ APP.printing = (function(){
   }
 
   /* ============================================================
-     الخطة الفردية — ⭐ تُطبع رأسياً (Portrait)
-     ⭐ تم إلغاء "الزيارة رقم X" من المربعات
+     ⭐ الخطة الفردية — إعادة تصميم كاملة (الإصدار 1.3.0)
+     ————————————————————————————————————————————————
+     خوارزمية التخطيط الديناميكي:
+     1) حساب عدد الزيارات (N)
+     2) تثبيت عدد الأعمدة = 3
+     3) حساب عدد الصفوف = ceil(N / 3)
+     4) حساب المساحة المتاحة = ارتفاع A4 - الهوامش - الترويسة - التذييل
+     5) حساب ارتفاع البطاقة = (المساحة المتاحة - (الصفوف-1) × الفجوة) / الصفوف
+     6) تقييد الارتفاع بين 22mm (للحد الأقصى 22 زيارة) و 65mm (لزيارة واحدة)
+     7) تمرير القيم كمتغيرات CSS لتستخدمها شبكة CSS Grid
+     النتيجة: صفحة A4 واحدة دائمًا، أيًّا كان عدد الزيارات.
   ============================================================ */
   function supervisorHtml(data, supervisorId){
     const sup = data.supervisors.find(s => String(s.id) === String(supervisorId));
@@ -172,60 +181,93 @@ APP.printing = (function(){
     const rows = data.rows.filter(r => String(r.supervisorId) === String(supervisorId));
     const monthLabel = h().monthLabel(data.monthKey);
 
+    // ⭐ خوارزمية الحساب الديناميكي
+    const visitsCount = Math.max(rows.length, 1);
+    const cols = 3;
+    const rowsCount = Math.max(1, Math.ceil(visitsCount / cols));
+
+    // أبعاد صفحة A4 بالمليمتر
+    const PAGE_H_MM     = 297;
+    const MARGIN_MM     = 10;
+    const HEADER_H_MM   = 40;   // الترويسة الرسمية
+    const FOOTER_H_MM   = 35;   // التوقيعات
+    const GAP_MM        = 3;    // الفجوة بين البطاقات
+
+    const availableH = PAGE_H_MM - (MARGIN_MM * 2) - HEADER_H_MM - FOOTER_H_MM;
+    let cardH = (availableH - (rowsCount - 1) * GAP_MM) / rowsCount;
+    // تقييد الارتفاع ضمن حدود عملية
+    cardH = Math.max(22, Math.min(65, cardH));
+
+    // بيانات الموجه
+    const registryNumber = sup.registryNumber || sup.phone || '---';
+    const specialization = sup.role || '---';
+
+    // بناء الترويسة الرسمية
     let html = `<div class="print-container individual-plan">`;
 
-    // === الترويسة ===
-    html += `<div class="print-header-custom">`;
-    html += `<div class="print-top-line">إدارة الضبعة الأزهرية — خطة الموجه لشهر ${esc(monthLabel)}</div>`;
-    html += `<div class="print-mid-line">`;
-    html += `<span class="mid-item">الاسم: ${esc(sup.name)}</span>`;
-   html += `<span class="mid-item">رقم السجل: ${esc(sup.registryNumber || sup.phone || '---')}</span>`;
-    html += `<span class="mid-item">موجه: ${esc(sup.role || '---')}</span>`;
+    html += `<header class="ind-header">`;
+    html += `<div class="ind-org-name">إدارة الضبعة التعليمية</div>`;
+    html += `<div class="ind-plan-title">خطة الموجه لشهر ${esc(monthLabel)}</div>`;
+    html += `<div class="ind-separator"></div>`;
+    html += `<div class="ind-sup-info">`;
+    html += `<span class="ind-info-item"><strong>اسم الموجه:</strong> ${esc(sup.name)}</span>`;
+    html += `<span class="ind-info-item"><strong>رقم السجل:</strong> ${esc(registryNumber)}</span>`;
+    html += `<span class="ind-info-item"><strong>مادة التخصص:</strong> ${esc(specialization)}</span>`;
     html += `</div>`;
-    html += `</div>`;
+    html += `</header>`;
 
-    // === المربعات — بدون "الزيارة رقم X" ===
+    // بناء شبكة الزيارات مع المتغيرات الديناميكية
+    html += `<div class="ind-visits-grid" style="--card-h:${cardH.toFixed(1)}mm; --rows:${rowsCount}; --cols:${cols}; --gap:${GAP_MM}mm;">`;
+
     if(!rows.length){
-      html += `<div class="print-empty">لا توجد زيارات مخططة لهذا الموجه في هذا الشهر.</div>`;
+      html += `<div class="ind-empty" style="grid-column: 1 / -1;">لا توجد زيارات مخططة لهذا الموجه في هذا الشهر.</div>`;
     } else {
-      html += `<div class="print-visits-grid">`;
       rows.forEach((r) => {
-        html += `<div class="print-visit-box">`;
-        // ⭐ تم حذف سطر "الزيارة رقم X"
-        html += `<div class="box-day">${esc(r.dowName)}</div>`;
-        html += `<div class="box-date">${esc(r.date)}</div>`;
-        html += `<div class="box-institute">${esc(r.instituteName)}</div>`;
+        html += `<div class="ind-visit-box">`;
+        html += `<div class="box-top">`;
+        html += `<span class="box-day">${esc(r.dowName)}</span>`;
+        html += `<span class="box-date">${esc(r.day)}/${esc(data.monthKey.split('-')[1])}</span>`;
+        html += `</div>`;
+        html += `<div class="box-school">${esc(r.instituteName)}</div>`;
+        html += `<div class="box-stamp"></div>`;
         html += `</div>`;
       });
-      html += `</div>`;
     }
 
-    // === التذييل ===
-    html += `<div class="print-footer-custom">`;
-    html += `<span class="footer-right">المختص</span>`;
-    html += `<span class="footer-left">رئيس الإدارة</span>`;
     html += `</div>`;
+
+    // بناء التذييل (التوقيعات)
+    html += `<footer class="ind-footer">`;
+    html += `<div class="ind-sign-block">`;
+    html += `<div class="ind-sign-title">المختص</div>`;
+    html += `<div class="ind-sign-line"></div>`;
+    html += `<div class="ind-sign-label">التوقيع</div>`;
+    html += `</div>`;
+    html += `<div class="ind-sign-block">`;
+    html += `<div class="ind-sign-title">مدير الإدارة</div>`;
+    html += `<div class="ind-sign-line"></div>`;
+    html += `<div class="ind-sign-label">التوقيع</div>`;
+    html += `</div>`;
+    html += `</footer>`;
 
     html += `</div>`;
     return html;
   }
 
   /* ============================================================
-     دوال الطباعة — ⭐ الاتجاهات مضبوطة هنا
+     دوال الطباعة
   ============================================================ */
   function printGeneralPlan(monthKey, legacyDays){
     if(Array.isArray(monthKey)){
       const legacyRows = monthKey;
       if(!legacyRows.length){ APP.ui?.warning('لا توجد بيانات','لا توجد خطة للطباعة'); return; }
       const html = `<div class="print-container">${header('الخطة العامة لموجهي الإدارة','',APP.helpers.currentMonthKey())}<table class="print-table"><thead><tr><th>#</th><th>الموجه</th><th>المعهد</th><th>المرحلة</th><th>التاريخ</th></tr></thead><tbody>${legacyRows.map((p,i)=>`<tr><td>${i+1}</td><td>${esc(p.supervisorName)}</td><td>${esc(p.instituteName)}</td><td>${esc(p.stage)}</td><td>${esc(p.date)}</td></tr>`).join('')}</tbody></table></div>`;
-      // ⭐ الخطة العامة — أفقي (true)
       triggerPrint(html, true);
       return;
     }
     monthKey = monthKey || APP.helpers.currentMonthKey();
     const data = normalizePlanData(monthKey);
     if(!data.supervisors.length){ APP.ui?.warning('لا توجد بيانات','لا يوجد موجهون للطباعة'); return; }
-    // ⭐ الخطة العامة — أفقي (true)
     triggerPrint(generalHtml(data), true);
   }
 
@@ -234,7 +276,6 @@ APP.printing = (function(){
     const data = normalizePlanData(monthKey);
     const sup = data.supervisors.find(s => String(s.id) === String(supervisorId));
     if(!sup){ APP.ui?.error('خطأ','الموجه المطلوب غير موجود'); return; }
-    // ⭐ الخطة الفردية — رأسي (false)
     triggerPrint(supervisorHtml(data, supervisorId), false);
   }
 
@@ -245,7 +286,6 @@ APP.printing = (function(){
     const html = data.supervisors.map((sup) =>
       `<section class="print-page-break">${supervisorHtml(data, sup.id)}</section>`
     ).join('');
-    // ⭐ الخطط الفردية — رأسي (false)
     triggerPrint(html, false);
   }
 
