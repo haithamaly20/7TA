@@ -1,117 +1,483 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" data-theme="dark">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="theme-color" content="#0F172A"><meta name="description" content="نظام إدارة خطة الزيارات الشهرية للموجهين التربويين">
-<link rel="manifest" href="manifest.json"><link rel="icon" href="favicon.ico">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>خطة موجهي الضبعة</title>
-<link rel="stylesheet" href="css/variables.css"><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css"><link rel="stylesheet" href="css/navbar.css"><link rel="stylesheet" href="css/cards.css"><link rel="stylesheet" href="css/buttons.css"><link rel="stylesheet" href="css/tables.css"><link rel="stylesheet" href="css/forms.css"><link rel="stylesheet" href="css/dialogs.css"><link rel="stylesheet" href="css/notifications.css"><link rel="stylesheet" href="css/print.css"><link rel="stylesheet" href="css/responsive.css">
+
+<!-- ⭐ تطبيق الثيم مبكراً جداً لمنع وميض المحتوى (FOUC) -->
+<script>
+(function(){
+  try {
+    var t = localStorage.getItem('dabaa_theme_pref') || 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch(e){}
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F172A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="خطة الضبعة">
+
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/navbar.css">
+<link rel="stylesheet" href="css/cards.css">
+<link rel="stylesheet" href="css/buttons.css">
+<link rel="stylesheet" href="css/tables.css">
+<link rel="stylesheet" href="css/forms.css">
+<link rel="stylesheet" href="css/dialogs.css">
+<link rel="stylesheet" href="css/notifications.css">
+<link rel="stylesheet" href="css/print.css">
+<link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
+
+<div id="globalLoading" class="loading-screen">
+  <div class="logo-mark" style="width:64px;height:64px;font-size:28px;">ض</div>
+  <div class="spinner"></div>
+  <span>جارِ تحميل النظام...</span>
+</div>
+
 <div class="app-shell">
+
+  <!-- ========================= Sidebar ========================= -->
   <aside id="sidebar" class="sidebar">
-    <div class="sidebar-brand"><div class="logo-mark">📚</div><div class="brand-text"><strong data-bind="systemTitle">خطة موجهي الضبعة</strong><small data-bind="orgName">إدارة الضبعة التعليمية</small></div></div>
+    <div class="sidebar-brand">
+      <div class="logo-mark">ض</div>
+      <div class="brand-text">
+        <strong data-bind="systemTitle">خطة موجهي الضبعة</strong>
+        <small data-bind="orgName">إدارة الضبعة التعليمية</small>
+      </div>
+      <button id="sidebarToggle" class="sidebar-toggle" title="طي/فتح الشريط">◀</button>
+    </div>
+
     <nav class="sidebar-nav">
       <div class="nav-section-label">الرئيسية</div>
-      <button class="nav-item active" data-page="dashboard"><span class="nav-ico">🏠</span><span class="nav-label">لوحة التحكم</span></button>
+      <div class="nav-item active" data-page="dashboard"><span class="nav-ico">🏠</span><span class="nav-label">لوحة التحكم</span></div>
+
       <div class="nav-section-label">الإدارة</div>
- <div class="card stat-card"><div class="icon-box blue">🧑‍</div><div><div class="stat-num" id="statTotalSupervisors">0</div><div class="stat-label" id="statTotalSupervisorsSub">--</div></div></div>      <button class="nav-item" data-page="institutes"><span class="nav-ico">🏫</span><span class="nav-label">المعاهد</span></button>
-      <button class="nav-item" data-page="planner"><span class="nav-ico">🗓️</span><span class="nav-label">إنشاء الخطة</span></button>
-      <button class="nav-item" data-page="reports"><span class="nav-ico">📊</span><span class="nav-label">التقارير والطباعة</span></button>
+      <div class="nav-item" data-page="supervisors"><span class="nav-ico">🧑‍</span><span class="nav-label">الموجهون</span></div>
+      <div class="nav-item" data-page="institutes"><span class="nav-ico">🏫</span><span class="nav-label">المعاهد</span></div>
+      <div class="nav-item" data-page="planner"><span class="nav-ico">🗓️</span><span class="nav-label">إنشاء الخطة</span></div>
+      <div class="nav-item" data-page="reports"><span class="nav-ico">📊</span><span class="nav-label">التقارير والطباعة</span></div>
+
       <div class="nav-section-label">النظام</div>
-      <button class="nav-item" data-page="backup"><span class="nav-ico">💾</span><span class="nav-label">النسخ الاحتياطي</span></button>
-      <button class="nav-item" data-page="settings"><span class="nav-ico">⚙️</span><span class="nav-label">الإعدادات</span></button>
+      <div class="nav-item" data-page="backup"><span class="nav-ico">💾</span><span class="nav-label">النسخ الاحتياطي</span></div>
+      <div class="nav-item" data-page="settings"><span class="nav-ico">⚙️</span><span class="nav-label">الإعدادات</span></div>
     </nav>
-    <button id="sidebarToggle" class="sidebar-toggle" title="طي القائمة">◀</button>
+
+    <div class="sidebar-footer">
+      الإصدار <span id="appVersion">1.1.4</span>
+    </div>
   </aside>
 
-  <div class="main-shell main-area">
+  <!-- ========================= Main Area ========================= -->
+  <div class="main-area">
+
+    <!-- ========================= Topbar ========================= -->
     <header class="topbar">
       <div class="topbar-left">
         <button id="mobileMenuBtn" class="btn btn-outline">☰</button>
-        <div class="topbar-search"><input id="globalSearch" class="form-control" placeholder="بحث سريع عن موجه أو معهد..."><div id="globalSearchResults" class="search-results hidden"></div></div>
+        <div class="topbar-search">
+          <input id="globalSearch" class="form-control" placeholder="بحث سريع عن موجه أو معهد...">
+          <div id="globalSearchResults" class="search-results hidden"></div>
+        </div>
       </div>
       <div class="topbar-right">
-<button id="forceSyncBtn" class="btn btn-outline" title="مزامنة فورية مع Google Sheets">🔄</button>
-<button id="themeToggleBtn" class="btn btn-outline" title="تبديل المظهر">🌓</button>        <div class="topbar-clock"><div class="time" id="topClock">--:--</div><div class="date" id="topDate">--</div></div>
+        <!-- ⭐ جديد: زر المزامنة الفورية مع Google Sheets -->
+        <button id="forceSyncBtn" class="btn btn-outline" title="مزامنة فورية مع Google Sheets">🔄</button>
+        <button id="themeToggleBtn" class="btn btn-outline" title="تبديل المظهر">🌓</button>
+        <div class="topbar-clock">
+          <div class="time" id="topClock">--:--</div>
+          <div class="date" id="topDate">--</div>
+        </div>
       </div>
     </header>
 
+    <!-- ========================= Page Content ========================= -->
     <main class="page-content container">
-      <!-- ... بقية الأقسام كما هي ... -->
+
+      <!-- ========================= Dashboard ========================= -->
       <section class="page active" id="page-dashboard">
-        <div class="page-heading"><div><h2 data-bind="systemTitle">خطة موجهي الضبعة</h2><p>نظرة سريعة على حالة البيانات والخطة الحالية.</p></div><span class="badge blue" id="dashCurrentMonth">--</span></div>
+        <div class="page-heading">
+          <div>
+            <h2 data-bind="systemTitle">خطة موجهي الضبعة</h2>
+            <p>نظرة سريعة على حالة البيانات والخطة الحالية.</p>
+          </div>
+          <span class="badge blue" id="dashCurrentMonth">--</span>
+        </div>
+
         <div class="cards-grid stats-grid">
-          <div class="card stat-card"><div class="icon-box blue">🧑‍🏫</div><div><div class="stat-num" id="statTotalSupervisors">0</div><div class="stat-label" id="statTotalSupervisorsSub">--</div></div></div>
-          <div class="card stat-card"><div class="icon-box green">🏫</div><div><div class="stat-num" id="statTotalInstitutes">0</div><div class="stat-label" id="statTotalInstitutesSub">--</div></div></div>
-          <div class="card stat-card"><div class="icon-box amber">📅</div><div><div class="stat-num" id="statPlannedVisits">0</div><div class="stat-label" id="statPlannedVisitsSub">--</div></div></div>
-          <div class="card stat-card"><div class="icon-box red">📈</div><div><div class="stat-num" id="statCompletion">0%</div><div class="stat-label" id="statCompletionSub">--</div></div></div>
+          <div class="card stat-card">
+            <div class="icon-box blue">🧑‍</div>
+            <div>
+              <div class="stat-num" id="statTotalSupervisors">0</div>
+              <div class="stat-label" id="statTotalSupervisorsSub">--</div>
+            </div>
+          </div>
+          <div class="card stat-card">
+            <div class="icon-box green">🏫</div>
+            <div>
+              <div class="stat-num" id="statTotalInstitutes">0</div>
+              <div class="stat-label" id="statTotalInstitutesSub">--</div>
+            </div>
+          </div>
+          <div class="card stat-card">
+            <div class="icon-box amber">📅</div>
+            <div>
+              <div class="stat-num" id="statPlannedVisits">0</div>
+              <div class="stat-label" id="statPlannedVisitsSub">--</div>
+            </div>
+          </div>
+          <div class="card stat-card">
+            <div class="icon-box red">📈</div>
+            <div>
+              <div class="stat-num" id="statCompletion">0%</div>
+              <div class="stat-label" id="statCompletionSub">--</div>
+            </div>
+          </div>
         </div>
+
         <div class="grid-2">
-          <div class="card"><div class="card-header"><h3>إجراءات سريعة</h3></div><div class="flex gap-8 wrap"><button id="qaAddSupervisor" class="btn btn-primary">➕ إضافة موجه</button><button id="qaAddInstitute" class="btn btn-success">🏫 إضافة معهد</button><button id="qaOpenPlanner" class="btn btn-outline">🗓️ فتح الخطة</button><button id="qaOpenBackup" class="btn btn-outline">💾 النسخ الاحتياطي</button></div></div>
-          <div class="card"><div class="card-header"><h3>آخر الموجهين</h3><span id="dashToday" class="text-faint"></span></div><div id="dashRecentList"></div></div>
+          <div class="card">
+            <div class="card-header"><h3>إجراءات سريعة</h3></div>
+            <div class="flex gap-8 wrap">
+              <button id="qaAddSupervisor" class="btn btn-primary">➕ إضافة موجه</button>
+              <button id="qaAddInstitute" class="btn btn-success">🏫 إضافة معهد</button>
+              <button id="qaOpenPlanner" class="btn btn-outline">🗓️ فتح الخطة</button>
+              <button id="qaOpenBackup" class="btn btn-outline">💾 النسخ الاحتياطي</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3>آخر الموجهين</h3>
+              <span id="dashToday" class="text-faint"></span>
+            </div>
+            <div id="dashRecentList"></div>
+          </div>
         </div>
       </section>
 
+      <!-- ========================= Supervisors ========================= -->
       <section class="page" id="page-supervisors">
-        <div class="page-heading"><div><h2>إدارة الموجهين</h2><p>إضافة الموجهين وتكليفهم بالمعاهد.</p></div><button id="btnAddSupervisor" class="btn btn-primary">➕ إضافة موجه</button></div>
-        <div class="card"><div class="table-toolbar flex-between"><input id="supervisorSearch" class="form-control" placeholder="بحث بالاسم أو الوظيفة أو الإدارة..."><select id="supervisorStatusFilter" class="form-control"><option value="all">كل الحالات</option><option value="active">نشط</option><option value="disabled">معطل</option></select><span id="supervisorCount" class="badge blue">0 موجه</span></div>
-          <div class="table-responsive table-scroll"><table id="supervisorsTable" class="data-table"><thead><tr><th>#</th><th>اللون</th><th data-sort="name">الاسم</th><th data-sort="role">الوظيفة</th><th>الإدارات</th><th>المعاهد</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody id="supervisorsTbody"></tbody></table></div>
+        <div class="page-heading">
+          <div>
+            <h2>إدارة الموجهين</h2>
+            <p>إضافة الموجهين وتكليفهم بالمعاهد.</p>
+          </div>
+          <button id="btnAddSupervisor" class="btn btn-primary">➕ إضافة موجه</button>
+        </div>
+
+        <div class="card">
+          <div class="table-toolbar flex-between">
+            <input id="supervisorSearch" class="form-control" placeholder="بحث بالاسم أو الوظيفة أو الإدارة...">
+            <select id="supervisorStatusFilter" class="form-control">
+              <option value="all">كل الحالات</option>
+              <option value="active">نشط</option>
+              <option value="disabled">معطل</option>
+            </select>
+            <span id="supervisorCount" class="badge blue">0 موجه</span>
+          </div>
+          <div class="table-responsive table-scroll">
+            <table id="supervisorsTable" class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>اللون</th>
+                  <th data-sort="name">الاسم</th>
+                  <th data-sort="role">الوظيفة</th>
+                  <th>الإدارات</th>
+                  <th>المعاهد</th>
+                  <th>الحالة</th>
+                  <th>الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="supervisorsTbody"></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
+      <!-- ========================= Institutes ========================= -->
       <section class="page" id="page-institutes">
-        <div class="page-heading"><div><h2>إدارة المعاهد الأزهرية</h2><p>بحث وفلترة بيانات المعاهد.</p></div><button id="btnAddInstitute" class="btn btn-success">➕ إضافة معهد</button></div>
-        <div class="card"><div class="table-toolbar flex-between margin-bottom"><input id="instituteSearchInput" class="form-control" placeholder="بحث باسم أو كود المعهد..." oninput="APP.institutes.filterTable()"><select id="filterDepartment" class="form-control" onchange="APP.institutes.filterTable()"><option value="">جميع الإدارات</option></select><select id="filterStage" class="form-control" onchange="APP.institutes.filterTable()"><option value="">جميع المراحل</option></select><button class="btn btn-outline" onclick="APP.institutes.resetFilters()">إعادة ضبط</button><span id="institutesCountBadge" class="badge blue">المعروض: 0</span></div>
-        <div class="<table class="data-table"><thead><tr><th>#</th><th>اسم المعهد</th><th>الكود</th><th>الإدارة</th><th>المرحلة</th><th>الإجراءات</th></tr></thead><tbody id="institutesTableBody"></tbody></table></div></div>
+        <div class="page-heading">
+          <div>
+            <h2>إدارة المعاهد الأزهرية</h2>
+            <p>بحث وفلترة بيانات المعاهد.</p>
+          </div>
+          <button id="btnAddInstitute" class="btn btn-success">➕ إضافة معهد</button>
+        </div>
+
+        <div class="card">
+          <div class="table-toolbar flex-between margin-bottom">
+            <input id="instituteSearchInput" class="form-control" placeholder="بحث باسم أو كود المعهد..." oninput="APP.institutes.filterTable()">
+            <select id="filterDepartment" class="form-control" onchange="APP.institutes.filterTable()">
+              <option value="">جميع الإدارات</option>
+            </select>
+            <select id="filterStage" class="form-control" onchange="APP.institutes.filterTable()">
+              <option value="">جميع المراحل</option>
+            </select>
+            <button class="btn btn-outline" onclick="APP.institutes.resetFilters()">إعادة ضبط</button>
+            <span id="institutesCountBadge" class="badge blue">المعروض: 0</span>
+          </div>
+          <div class="table-responsive table-scroll">
+            <!-- ⭐ التعديل: إضافة عمود "الإجراءات" -->
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>اسم المعهد</th>
+                  <th>الكود</th>
+                  <th>الإدارة</th>
+                  <th>المرحلة</th>
+                  <th>الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="institutesTableBody"></tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
+      <!-- ========================= Planner ========================= -->
       <section class="page" id="page-planner">
-        <div class="page-heading"><div><h2>إنشاء الخطة الشهرية</h2><p>وزّع المعاهد على الموجهين مع منع التعارضات.</p></div><input id="plannerMonth" type="month" class="form-control" style="max-width:180px"></div>
-        <div class="card"><div class="card-header"><div><h3>خطة <span id="plannerMonthLabel">--</span></h3></div><div class="flex gap-8 wrap"><button id="btnCopyPrevMonth" class="btn btn-outline">📋 نسخ الشهر السابق</button><button id="btnValidatePlan" class="btn btn-outline">🔎 فحص الخطة</button><button id="btnClearMonth" class="btn btn-danger">🗑 مسح الشهر</button></div></div><div id="plannerTableWrap"></div></div>
+        <div class="page-heading">
+          <div>
+            <h2>إنشاء الخطة الشهرية</h2>
+            <p>وزّع المعاهد على الموجهين مع منع التعارضات.</p>
+          </div>
+          <input id="plannerMonth" type="month" class="form-control" style="max-width:180px">
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>خطة <span id="plannerMonthLabel">--</span></h3>
+            </div>
+            <div class="flex gap-8 wrap">
+              <button id="btnCopyPrevMonth" class="btn btn-outline">📋 نسخ الشهر السابق</button>
+              <button id="btnValidatePlan" class="btn btn-outline">🔎 فحص الخطة</button>
+              <button id="btnClearMonth" class="btn btn-danger">🗑 مسح الشهر</button>
+            </div>
+          </div>
+          <div id="plannerTableWrap"></div>
+        </div>
       </section>
 
+      <!-- ========================= Reports ========================= -->
       <section class="page" id="page-reports">
-        <div class="page-heading"><div><h2>التقارير والطباعة</h2><p>راجع الخطة واطبع الخطة العامة أو خطط الموجهين.</p></div><input id="reportsMonth" type="month" class="form-control" style="max-width:180px"></div>
-        <div class="card"><div class="card-header"><h3>الشهر: <span id="reportsMonthLabel">--</span></h3><div class="flex gap-8 wrap"><button id="btnPrintGeneralPlan" class="btn btn-primary">🖨 طباعة الخطة العامة</button><button id="btnPrintAllSupervisorPlans" class="btn btn-success">🖨 طباعة جميع الخطط الفردية</button></div></div><div id="reportSupervisorList" class="mini-list"></div></div>
-        <div class="grid-2"><div class="card"><div class="card-header"><h3>زيارات المعاهد</h3></div><div id="reportInstituteList"></div></div><div class="card"><div class="card-header"><h3>زيارات الإدارات</h3></div><div id="reportDepartmentList"></div></div></div>
-        <div class="grid-2"><div class="card"><h3>زيارات الموجهين</h3><canvas id="chartSupervisorVisits" height="260"></canvas></div><div class="card"><h3>زيارات الإدارات</h3><canvas id="chartDepartmentVisits" height="260"></canvas></div></div>
+        <div class="page-heading">
+          <div>
+            <h2>التقارير والطباعة</h2>
+            <p>راجع الخطة واطبع الخطة العامة أو خطط الموجهين.</p>
+          </div>
+          <input id="reportsMonth" type="month" class="form-control" style="max-width:180px">
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>الشهر: <span id="reportsMonthLabel">--</span></h3>
+            <div class="flex gap-8 wrap">
+              <button id="btnPrintGeneralPlan" class="btn btn-primary">🖨 طباعة الخطة العامة</button>
+              <button id="btnPrintAllSupervisorPlans" class="btn btn-success">🖨 طباعة جميع الخطط الفردية</button>
+            </div>
+          </div>
+          <div id="reportSupervisorList" class="mini-list"></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><h3>زيارات المعاهد</h3></div>
+            <div id="reportInstituteList"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>زيارات الإدارات</h3></div>
+            <div id="reportDepartmentList"></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>زيارات الموجهين</h3>
+            <canvas id="chartSupervisorVisits" height="260"></canvas>
+          </div>
+          <div class="card">
+            <h3>زيارات الإدارات</h3>
+            <canvas id="chartDepartmentVisits" height="260"></canvas>
+          </div>
+        </div>
       </section>
 
+      <!-- ========================= Backup ========================= -->
       <section class="page" id="page-backup">
-        <div class="page-heading"><div><h2>النسخ الاحتياطي</h2><p>احفظ نسخة JSON أو استورد نسخة سابقة.</p></div></div>
-        <div class="grid-2"><div class="card"><h3>نسخة يدوية</h3><p class="text-dim">آخر نسخة: <span id="lastBackupInfo">لم يتم إنشاء أي نسخة احتياطية بعد</span></p><div class="flex gap-8 wrap"><button id="btnExportJson" class="btn btn-primary">⬇ تصدير JSON</button><button id="btnChooseImportFile" class="btn btn-outline">⬆ استيراد JSON</button><input id="importFileInput" type="file" accept="application/json,.json" hidden></div><hr><h4>CSV</h4><div class="flex gap-8 wrap"><button id="btnExportCsvSupervisors" class="btn btn-outline">الموجهون CSV</button><button id="btnExportCsvInstitutes" class="btn btn-outline">المعاهد CSV</button><button id="btnExportCsvPlan" class="btn btn-outline">الخطة CSV</button></div><hr><h4>Google Drive</h4><p class="text-dim" style="font-size:12.5px;">حفظ نسخة JSON كاملة في Google Drive عبر Google Apps Script.</p><div class="flex gap-8 wrap"><button id="btnSaveToDrive" class="btn btn-outline">☁️ حفظ نسخة في Google Drive</button></div></div><div class="card"><h3>نسخ تلقائية</h3><div id="autoBackupsList"></div></div></div>
+        <div class="page-heading">
+          <div>
+            <h2>النسخ الاحتياطي</h2>
+            <p>احفظ نسخة JSON أو استورد نسخة سابقة.</p>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>نسخة يدوية</h3>
+            <p class="text-dim">آخر نسخة: <span id="lastBackupInfo">لم يتم إنشاء أي نسخة احتياطية بعد</span></p>
+            <div class="flex gap-8 wrap">
+              <button id="btnExportJson" class="btn btn-primary">⬇ تصدير JSON</button>
+              <button id="btnChooseImportFile" class="btn btn-outline">⬆ استيراد JSON</button>
+              <input id="importFileInput" type="file" accept="application/json,.json" hidden>
+            </div>
+            <hr>
+            <h4>CSV</h4>
+            <div class="flex gap-8 wrap">
+              <button id="btnExportCsvSupervisors" class="btn btn-outline">الموجهون CSV</button>
+              <button id="btnExportCsvInstitutes" class="btn btn-outline">المعاهد CSV</button>
+              <button id="btnExportCsvPlan" class="btn btn-outline">الخطة CSV</button>
+            </div>
+            <hr>
+            <h4>Google Drive</h4>
+            <p class="text-dim" style="font-size:12.5px;">حفظ نسخة JSON كاملة في Google Drive عبر Google Apps Script.</p>
+            <div class="flex gap-8 wrap">
+              <button id="btnSaveToDrive" class="btn btn-outline">☁️ حفظ نسخة في Google Drive</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>نسخ تلقائية</h3>
+            <div id="autoBackupsList"></div>
+          </div>
+        </div>
       </section>
 
+      <!-- ========================= Settings ========================= -->
       <section class="page" id="page-settings">
-        <div class="page-heading"><div><h2>الإعدادات</h2><p>إعدادات اسم النظام والمظهر وأيام العطلة.</p></div></div>
-        <div class="card"><div class="form-row"><div class="form-group"><label>اسم النظام</label><input id="settingsSystemTitle" class="form-control"></div><div class="form-group"><label>اسم الإدارة</label><input id="settingsOrgName" class="form-control"></div></div><div class="form-group"><label>أيام العطلة</label><div class="flex gap-12 wrap"><label><input type="checkbox" id="settingsWeekendThu"> الخميس</label><label><input type="checkbox" id="settingsWeekendFri"> الجمعة</label><label><input type="checkbox" id="settingsWeekendSat"> السبت</label></div></div><div class="form-group"><label>المظهر</label><div class="flex gap-12"><label><input type="radio" name="theme" id="settingsThemeDark"> داكن</label><label><input type="radio" name="theme" id="settingsThemeLight"> فاتح</label></div></div><div class="flex gap-8"><button id="btnSaveSettings" class="btn btn-primary">حفظ الإعدادات</button><button id="btnFactoryReset" class="btn btn-danger">إعادة ضبط كاملة</button></div></div>
+        <div class="page-heading">
+          <div>
+            <h2>الإعدادات</h2>
+            <p>إعدادات اسم النظام والمظهر وأيام العطلة.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="form-row">
+            <div class="form-group">
+              <label>اسم النظام</label>
+              <input id="settingsSystemTitle" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>اسم الإدارة</label>
+              <input id="settingsOrgName" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>أيام العطلة</label>
+            <div class="flex gap-12 wrap">
+              <label><input type="checkbox" id="settingsWeekendThu"> الخميس</label>
+              <label><input type="checkbox" id="settingsWeekendFri"> الجمعة</label>
+              <label><input type="checkbox" id="settingsWeekendSat"> السبت</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>المظهر</label>
+            <div class="flex gap-12">
+              <label><input type="radio" name="theme" id="settingsThemeDark"> داكن</label>
+              <label><input type="radio" name="theme" id="settingsThemeLight"> فاتح</label>
+            </div>
+          </div>
+          <div class="flex gap-8">
+            <button id="btnSaveSettings" class="btn btn-primary">حفظ الإعدادات</button>
+            <button id="btnFactoryReset" class="btn btn-danger">إعادة ضبط كاملة</button>
+          </div>
+        </div>
       </section>
+
     </main>
   </div>
 </div>
-<div id="printArea"></div><div id="toastContainer" class="toast-container"></div><div id="modalRoot"></div>
 
+<!-- ========================= Scripts ========================= -->
 <script src="js/config.js"></script>
 <script src="js/utils/helpers.js"></script>
+<script src="js/utils/validation.js"></script>
 <script src="js/services/storage.js"></script>
 <script src="js/services/sheetsSync.js"></script>
 <script src="js/services/cloudRestore.js"></script>
 <script src="js/services/backgroundSync.js"></script>
+<script src="js/services/backupScheduler.js"></script>
+<script src="js/services/charts.js"></script>
 <script src="js/services/search.js"></script>
 <script src="js/services/statistics.js"></script>
-<script src="js/utils/validation.js"></script>
+<script src="js/services/printing.js"></script>
+<script src="js/services/reports.js"></script>
+<script src="js/services/importExport.js"></script>
 <script src="js/modules/ui.js"></script>
 <script src="js/modules/theme.js"></script>
-<script src="js/modules/router.js"></script>
-<script src="js/services/charts.js"></script>
-<script src="js/services/printing.js"></script>
-<script src="js/services/importExport.js"></script>
-<script src="js/services/backupScheduler.js"></script>
 <script src="js/modules/supervisors.js"></script>
 <script src="js/modules/institutes.js"></script>
 <script src="js/modules/planner.js"></script>
-<script src="js/services/reports.js"></script>
+<script src="js/modules/router.js"></script>
 <script src="js/app.js"></script>
-<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('Service Worker:',e)));}</script>
-</body></html>
+
+<script>
+// تسجيل Service Worker (يعمل فقط عبر http/https — لا يعمل عبر file://)
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
+        console.log('[SW] Registered:', reg.scope);
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              if (window.APP && window.APP.ui) {
+                window.APP.ui.info('تحديث متاح', 'سيتم تحديث التطبيق عند إعادة التحميل');
+              }
+              newWorker.postMessage('SKIP_WAITING');
+            }
+          });
+        });
+      })
+      .catch(err => console.warn('[SW] Registration failed:', err));
+  });
+}
+
+// زر تثبيت PWA
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  let btn = document.getElementById('pwaInstallBtn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'pwaInstallBtn';
+    btn.className = 'btn btn-success btn-sm';
+    btn.textContent = '⬇ تثبيت التطبيق';
+    btn.title = 'تثبيت التطبيق على جهازك';
+    const topbarRight = document.querySelector('.topbar-right');
+    if (topbarRight) topbarRight.insertBefore(btn, topbarRight.firstChild);
+  }
+  btn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted' && window.APP && window.APP.ui) {
+      window.APP.ui.success('تم التثبيت', 'تم تثبيت التطبيق بنجاح على جهازك');
+    }
+    deferredPrompt = null;
+    btn.style.display = 'none';
+  }, { once: true });
+});
+</script>
+
+</body>
+</html>
