@@ -170,24 +170,51 @@ APP.printing = (function(){
       </section>`;
     }).join('');
   }
+function supervisorHtml(data, supervisorId) {
+  const sup = data.supervisors.find(s => String(s.id) === String(supervisorId));
+  if (!sup) return `<div class="print-container"><div class="print-empty">لم يتم العثور على الموجه.</div></div>`;
 
-  function supervisorHtml(data, supervisorId){
-    const sup = data.supervisors.find(s => String(s.id) === String(supervisorId));
-    if(!sup) return `<div class="print-container"><div class="print-empty">لم يتم العثور على الموجه.</div></div>`;
-    const rows = data.rows.filter(r => String(r.supervisorId) === String(supervisorId));
-    const byDay = new Map(rows.map(r => [r.day, r]));
-    return `<div class="print-container supervisor-plan">
-      ${header(`خطة الموجه: ${sup.name}`, `${sup.role || 'موجه'}${sup.departments?.length ? ' — ' + sup.departments.join('، ') : ''}`, data.monthKey)}
-      <table class="print-table"><thead><tr><th>#</th><th>اليوم</th><th>التاريخ</th><th>المعهد</th><th>الكود</th><th>الإدارة</th><th>المرحلة</th></tr></thead><tbody>
-      ${data.days.map((d,i)=>{
-        const r = byDay.get(d.day);
-        return `<tr class="${r?'':'unplanned-row'}"><td>${i+1}</td><td>${esc(d.dowName)}</td><td>${esc(`${d.day}/${data.monthKey.split('-')[1]}/${data.monthKey.split('-')[0]}`)}</td><td>${esc(r?.instituteName || '—')}</td><td>${esc(r?.instituteCode || '—')}</td><td>${esc(r?.department || '—')}</td><td>${esc(r?.stage || '—')}</td></tr>`;
-      }).join('')}
-      </tbody></table>
-      <div class="print-footer">عدد الزيارات المخططة: <strong>${rows.length}</strong> من ${data.days.length} يوم عمل.</div>
+  const rows = data.rows.filter(r => String(r.supervisorId) === String(supervisorId));
+  const monthLabel = h().monthLabel(data.monthKey);
+  const settings = APP.storage.getSettings();
+
+  // ⭐ 1. الترويسة الجديدة
+  let html = `<div class="print-container individual-plan">`;
+  html += `<div class="print-header-custom">`;
+  html += `<div class="print-top-line">إدارة الضبعة الأزهرية - خطة الموجه لشهر ${esc(monthLabel)}</div>`;
+  html += `<div class="print-mid-line">`;
+  html += `<span class="mid-item">الاسم: ${esc(sup.name)}</span>`;
+  // ملاحظة: نستخدم حقل الهاتف كـ "رقم السجل" لأنه الحقل الأقرب في قاعدة البيانات الحالية. 
+  // إذا أردت حقلًا مخصصًا لرقم السجل، يمكن إضافته لاحقًا.
+  html += `<span class="mid-item">رقم السجل: ${esc(sup.phone || '---')}</span>`;
+  html += `<span class="mid-item">موجه: ${esc(sup.role || '---')}</span>`;
+  html += `</div>`;
+  html += `</div>`;
+
+  // ⭐ 2. جسم الصفحة: تقسيم إلى مربعات بعدد الزيارات
+  html += `<div class="print-visits-grid">`;
+  rows.forEach((r, index) => {
+    html += `
+    <div class="print-visit-box">
+      <div class="box-header">الزيارة رقم ${index + 1}</div>
+      <div class="box-day">${esc(r.dowName)}</div>
+      <div class="box-date">${esc(r.date)}</div>
+      <div class="box-institute">${esc(r.instituteName)}</div>
     </div>`;
-  }
+ each
+  });
+  html += `</div>`;
 
+  // ⭐ 3. التذييل: المختص (يمين) ورئيس الإدارة (يسار)
+  html += `
+  <div class="print-footer-custom">
+    <span class="footer-right">المختص</span>
+    <span class="footer-left">رئيس الإدارة</span>
+  </div>
+  </div>`; // نهاية print-container
+
+  return html;
+}
   function printGeneralPlan(monthKey, legacyDays){
     // يدعم الاستدعاء القديم printGeneralPlan(array) أيضًا.
     if(Array.isArray(monthKey)){
