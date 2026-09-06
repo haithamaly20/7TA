@@ -1,9 +1,9 @@
 /* ============================================================
 print.css — تنسيقات الطباعة
-الإصدار 1.2.3 — ضبط الاتجاهات (أفقي للعامة / رأسي للفردية)
+الإصدار 1.3.0 — إعادة تصميم صفحة الخطة الفردية بحجم ديناميكي
 ============================================================ */
 
-/* إخفاء كل شيء عدا منطقة الطباعة عند الطباعة */
+/* إخفاء كل شيء عدا منطقة الطباعة */
 #printArea { display: none; }
 body.printing-active > *:not(#printArea) { display: none !important; }
 body.printing-active #printArea { display: block !important; }
@@ -16,44 +16,39 @@ body.printing-active #printArea { display: block !important; }
 .unplanned-row td { opacity: .7; }
 
 /* ============================================================
-   الاتجاه الافتراضي: رأسي (Portrait) — للخطط الفردية
+   الاتجاه الافتراضي: A4 رأسي (Portrait) للخطط الفردية
 ============================================================ */
 @page {
-  margin: 12mm;
   size: A4 portrait;
+  margin: 10mm;
 }
 
 /* ============================================================
-   ⭐ الخطة العامة — أفقي (Landscape)
-   يُفعَّل عندما يضع printing.js الصنف print-landscape على #printArea
+   الخطة العامة — أفقي (Landscape)
 ============================================================ */
-#printArea.print-landscape {
-  page: landscape;
-}
+#printArea.print-landscape { page: landscape; }
 @page landscape {
   size: A4 landscape;
   margin: 10mm;
 }
 
 /* ============================================================
-   ⭐ الخطط الفردية — رأسي (Portrait)
-   يُفعَّل عندما يضع printing.js الصنف print-portrait على #printArea
+   الخطوط للطباعة — خطوط نظام عربية واضحة
 ============================================================ */
-#printArea.print-portrait {
-  page: portrait;
-}
-@page portrait {
-  size: A4 portrait;
-  margin: 12mm;
+@media print {
+  body.printing-active {
+    background: #fff !important;
+    font-family: 'Arial', 'Traditional Arabic', 'Simplified Arabic', sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  body.printing-active #printArea { width: 100%; }
 }
 
 /* ============================================================
-   تنسيقات مشتركة عند الطباعة
+   تنسيقات مشتركة
 ============================================================ */
 @media print {
-  body.printing-active { background: #fff !important; }
-  body.printing-active #printArea { width: 100%; }
-
   .print-container { direction: rtl; width: 100%; }
 
   /* جدول الخطة العامة */
@@ -77,100 +72,189 @@ body.printing-active #printArea { display: block !important; }
   .print-sign { display: flex; justify-content: space-between; gap: 12px; margin-top: 5mm; padding-top: 3mm; border-top: 1px solid #222; font-weight: 700; font-size: 12.5px; }
 
   /* ============================================================
-     ⭐ تنسيقات الخطة الفردية (نظام المربعات) — تُطبع رأسياً
+     ⭐ الخطة الفردية — التصميم الرسمي الجديد (1.3.0)
+     ————————————————————————————————————————————
+     الصفحة A4 كاملة مقسمة إلى 3 مناطق:
+     1) Header  — ارتفاع ثابت ~40mm
+     2) Grid    — ارتفاع ديناميكي (flex: 1)
+     3) Footer  — ارتفاع ثابت ~35mm
   ============================================================ */
 
-  /* الترويسة المخصصة */
-  .print-header-custom {
-    text-align: center;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #000;
-    padding-bottom: 12px;
-  }
-  .print-top-line {
-    font-size: 16px;
-    font-weight: 800;
-    margin-bottom: 10px;
-    letter-spacing: 0.5px;
-  }
-  .print-mid-line {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    flex-wrap: wrap;
-    font-size: 13px;
-    font-weight: 700;
-  }
-  .print-mid-line .mid-item {
-    background: #f8f9fa;
-    padding: 5px 14px;
-    border-radius: 6px;
-    border: 1px solid #dee2e6;
-    white-space: nowrap;
-  }
-
-  /* شبكة المربعات — تتكيف مع العرض الرأسي */
-  .print-visits-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 10px;
-    margin: 15px 0;
-  }
-  .print-visit-box {
-    border: 2px solid #000;
-    border-radius: 8px;
-    padding: 10px 8px;
-    text-align: center;
-    min-height: 100px;
+  .print-container.individual-plan {
+    width: 190mm;                 /* A4 (210mm) - 2×10mm margins */
+    height: 277mm;                /* A4 (297mm) - 2×10mm margins */
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    page-break-inside: avoid;
+    direction: rtl;
+    font-family: 'Arial', 'Traditional Arabic', sans-serif;
+    color: #000;
     background: #fff;
-  }
-  /* ⭐ تم حذف box-header (الزيارة رقم X) */
-  .print-visit-box .box-day {
-    font-size: 16px;
-    font-weight: 800;
-    margin-bottom: 2px;
-  }
-  .print-visit-box .box-date {
-    font-size: 11px;
-    color: #333;
-    margin-bottom: 8px;
-  }
-  .print-visit-box .box-institute {
-    font-size: 12px;
-    font-weight: 700;
-    border-top: 1px solid #000;
-    padding-top: 6px;
-    margin-top: auto;
-    line-height: 1.4;
+    box-sizing: border-box;
+    overflow: hidden;             /* ⭐ ضمان عدم تجاوز الصفحة */
   }
 
-  /* التذييل المخصص */
-  .print-footer-custom {
+  /* ——————— الترويسة الرسمية ——————— */
+  .ind-header {
+    flex: 0 0 auto;
+    text-align: center;
+    padding: 4mm 2mm 3mm;
+    border-bottom: 2px solid #000;
+  }
+  .ind-org-name {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin-bottom: 2mm;
+  }
+  .ind-plan-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 2mm;
+  }
+  .ind-separator {
+    height: 1px;
+    background: #000;
+    margin: 2mm 10%;
+    opacity: 0.5;
+  }
+  .ind-sup-info {
+    display: flex;
+    justify-content: center;
+    gap: 6mm;
+    flex-wrap: wrap;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+  .ind-info-item strong {
+    font-weight: 800;
+    margin-left: 2mm;
+  }
+
+  /* ——————— شبكة الزيارات (المنطقة الديناميكية) ——————— */
+  .ind-visits-grid {
+    flex: 1 1 auto;               /* ⭐ يأخذ كل المساحة المتبقية */
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 3), 1fr);
+    grid-template-rows: repeat(var(--rows, 1), var(--card-h, 40mm));
+    gap: var(--gap, 3mm);
+    padding: 3mm 1mm;
+    align-content: stretch;
+    overflow: hidden;
+  }
+
+  .ind-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #555;
+    padding: 10mm;
+    text-align: center;
+  }
+
+  /* ——————— بطاقة الزيارة الواحدة ——————— */
+  .ind-visit-box {
+    border: 1.5px solid #000;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+    padding: 2mm;
+    background: #fff;
+    box-sizing: border-box;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    overflow: hidden;
+    height: 100%;
+  }
+
+  .box-top {
     display: flex;
     justify-content: space-between;
-    margin-top: 40px;
-    padding-top: 15px;
-    border-top: 2px solid #000;
-    font-size: 15px;
+    align-items: center;
+    padding: 1mm 1.5mm;
+    border-bottom: 1px solid #000;
+    flex: 0 0 auto;
+    background: #f5f5f5;
+    margin: -2mm -2mm 0 -2mm;
+    width: calc(100% + 4mm);
+    box-sizing: border-box;
+  }
+  .box-day {
+    font-size: 11px;
     font-weight: 800;
   }
-  .print-footer-custom .footer-right {
-    text-align: right;
-    min-width: 140px;
+  .box-date {
+    font-size: 10.5px;
+    font-weight: 700;
+    direction: ltr;
   }
-  .print-footer-custom .footer-left {
-    text-align: left;
-    min-width: 140px;
+
+  .box-school {
+    flex: 0 0 auto;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1.5mm 1mm;
+    border-bottom: 1px dashed #888;
+    line-height: 1.3;
+    word-break: break-word;
+  }
+
+  /* ⭐ منطقة الختم — المساحة البيضاء الكبيرة */
+  .box-stamp {
+    flex: 1 1 auto;
+    min-height: 0;
+    /* لا نضع أي محتوى — المساحة فارغة عمداً لاستقبال الختم الفعلي */
+  }
+
+  /* ——————— التذييل (التوقيعات) ——————— */
+  .ind-footer {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    padding: 3mm 5mm 2mm;
+    border-top: 2px solid #000;
+    gap: 10mm;
+  }
+  .ind-sign-block {
+    flex: 1;
+    text-align: center;
+    max-width: 70mm;
+  }
+  .ind-sign-title {
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 4mm;
+  }
+  .ind-sign-line {
+    border-bottom: 1.5px solid #000;
+    margin: 0 5mm 2mm;
+  }
+  .ind-sign-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #333;
   }
 
   /* ضمان عدم تأثر الخطة العامة بتنسيقات الخطط الفردية */
-  .print-container.general-plan .print-visits-grid,
-  .print-container.general-plan .print-footer-custom,
-  .print-container.general-plan .print-header-custom {
+  .print-container.general-plan .ind-visits-grid,
+  .print-container.general-plan .ind-footer,
+  .print-container.general-plan .ind-header {
     display: none;
   }
+}
+
+/* ============================================================
+   معاينة على الشاشة (قبل الطباعة) — لتسهيل التطوير
+============================================================ */
+#printArea.print-portrait {
+  background: #fff;
+  margin: 20px auto;
+  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+}
+#printArea.print-portrait .print-container.individual-plan {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
 }
