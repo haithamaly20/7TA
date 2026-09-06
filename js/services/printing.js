@@ -1,6 +1,6 @@
 /* ============================================================
 printing.js — نظام طباعة الخطط
-الإصدار 1.3.0 — إعادة تصميم صفحة الخطة الفردية بحجم ديناميكي
+الإصدار 1.4.0 — إصلاح تجاوز الهامش + تثبيت التذييل في نفس الصفحة
 ============================================================ */
 window.APP = window.APP || {};
 APP.printing = (function(){
@@ -74,9 +74,6 @@ APP.printing = (function(){
     </div>`;
   }
 
-  /* ============================================================
-     العام الدراسي
-  ============================================================ */
   function schoolYearLabel(monthKey){
     const [y,m] = monthKey.split('-').map(Number);
     return m >= 7 ? `${y}/${(y+1)}` : `${(y-1)}/${y}`;
@@ -160,17 +157,15 @@ APP.printing = (function(){
   }
 
   /* ============================================================
-     ⭐ الخطة الفردية — إعادة تصميم كاملة (الإصدار 1.3.0)
+     ⭐ الخطة الفردية — الإصدار 1.4.0
      ————————————————————————————————————————————————
-     خوارزمية التخطيط الديناميكي:
-     1) حساب عدد الزيارات (N)
-     2) تثبيت عدد الأعمدة = 3
-     3) حساب عدد الصفوف = ceil(N / 3)
-     4) حساب المساحة المتاحة = ارتفاع A4 - الهوامش - الترويسة - التذييل
-     5) حساب ارتفاع البطاقة = (المساحة المتاحة - (الصفوف-1) × الفجوة) / الصفوف
-     6) تقييد الارتفاع بين 22mm (للحد الأقصى 22 زيارة) و 65mm (لزيارة واحدة)
-     7) تمرير القيم كمتغيرات CSS لتستخدمها شبكة CSS Grid
-     النتيجة: صفحة A4 واحدة دائمًا، أيًّا كان عدد الزيارات.
+     التغييرات الجوهرية:
+     1) لا حساب للارتفاع بالمليمتر — نمرر فقط --rows و --cols
+     2) الـ container يأخذ 100% من مساحة @page (بدون عرض ثابت)
+     3) page-break-inside: avoid على الـ container كاملاً
+     4) الـ grid يستخدم flex:1 + grid-template-rows: repeat(N, 1fr)
+        → المتصفح يوزع المساحة المتبقية تلقائياً بالتساوي
+     5) التذييل داخل نفس الـ container → لا يمكن أن ينتقل لصفحة أخرى
   ============================================================ */
   function supervisorHtml(data, supervisorId){
     const sup = data.supervisors.find(s => String(s.id) === String(supervisorId));
@@ -181,30 +176,17 @@ APP.printing = (function(){
     const rows = data.rows.filter(r => String(r.supervisorId) === String(supervisorId));
     const monthLabel = h().monthLabel(data.monthKey);
 
-    // ⭐ خوارزمية الحساب الديناميكي
+    // ⭐ حساب بسيط: عدد الصفوف والأعمدة فقط
     const visitsCount = Math.max(rows.length, 1);
     const cols = 3;
     const rowsCount = Math.max(1, Math.ceil(visitsCount / cols));
 
-    // أبعاد صفحة A4 بالمليمتر
-    const PAGE_H_MM     = 297;
-    const MARGIN_MM     = 10;
-    const HEADER_H_MM   = 40;   // الترويسة الرسمية
-    const FOOTER_H_MM   = 35;   // التوقيعات
-    const GAP_MM        = 3;    // الفجوة بين البطاقات
-
-    const availableH = PAGE_H_MM - (MARGIN_MM * 2) - HEADER_H_MM - FOOTER_H_MM;
-    let cardH = (availableH - (rowsCount - 1) * GAP_MM) / rowsCount;
-    // تقييد الارتفاع ضمن حدود عملية
-    cardH = Math.max(22, Math.min(65, cardH));
-
-    // بيانات الموجه
     const registryNumber = sup.registryNumber || sup.phone || '---';
     const specialization = sup.role || '---';
 
-    // بناء الترويسة الرسمية
-    let html = `<div class="print-container individual-plan">`;
+    let html = `<div class="print-container individual-plan" style="--rows:${rowsCount}; --cols:${cols};">`;
 
+    // الترويسة
     html += `<header class="ind-header">`;
     html += `<div class="ind-org-name">إدارة الضبعة التعليمية</div>`;
     html += `<div class="ind-plan-title">خطة الموجه لشهر ${esc(monthLabel)}</div>`;
@@ -216,11 +198,10 @@ APP.printing = (function(){
     html += `</div>`;
     html += `</header>`;
 
-    // بناء شبكة الزيارات مع المتغيرات الديناميكية
-    html += `<div class="ind-visits-grid" style="--card-h:${cardH.toFixed(1)}mm; --rows:${rowsCount}; --cols:${cols}; --gap:${GAP_MM}mm;">`;
-
+    // شبكة الزيارات — الارتفاع يُحسب تلقائياً عبر flex + 1fr
+    html += `<div class="ind-visits-grid">`;
     if(!rows.length){
-      html += `<div class="ind-empty" style="grid-column: 1 / -1;">لا توجد زيارات مخططة لهذا الموجه في هذا الشهر.</div>`;
+      html += `<div class="ind-empty">لا توجد زيارات مخططة لهذا الموجه في هذا الشهر.</div>`;
     } else {
       rows.forEach((r) => {
         html += `<div class="ind-visit-box">`;
@@ -233,10 +214,9 @@ APP.printing = (function(){
         html += `</div>`;
       });
     }
-
     html += `</div>`;
 
-    // بناء التذييل (التوقيعات)
+    // التذييل — داخل نفس الـ container
     html += `<footer class="ind-footer">`;
     html += `<div class="ind-sign-block">`;
     html += `<div class="ind-sign-title">المختص</div>`;
