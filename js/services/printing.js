@@ -1,6 +1,7 @@
+
 /* ============================================================
 printing.js — نظام طباعة الخطط
-الإصدار 1.5.0 — حل جذري: CSS Grid مطلق الأبعاد للصفحة الكاملة
+الإصدار 1.6.0 — إصلاح: صفحة واحدة مضمونة لكل موجه
 ============================================================ */
 window.APP = window.APP || {};
 APP.printing = (function(){
@@ -264,4 +265,7 @@ APP.printing = (function(){
   }
 
   return { triggerPrint, normalizePlanData, printGeneralPlan, printSupervisorPlan, printAllSupervisorPlans };
-})();
+
+
+
+
