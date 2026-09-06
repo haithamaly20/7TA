@@ -164,6 +164,7 @@ APP.app = (function(){
     if(el) el.textContent = val;
   }
 
+   initForceSyncBtn();
   function initSettingsPage(){
     const settings = storage.getSettings();
     const titleInput = document.getElementById('settingsSystemTitle');
@@ -230,6 +231,31 @@ APP.app = (function(){
     refreshDashboard();
   }
 
+   function initForceSyncBtn(){
+  const btn = document.getElementById('forceSyncBtn');
+  if(!btn) return;
+  btn.addEventListener('click', async () => {
+    if(!APP.sheetsSync || !APP.sheetsSync.isEnabled()){
+      ui.warning('المزامنة غير مفعّلة', 'تأكد من ملء SCRIPT_URL في js/config.js');
+      return;
+    }
+    if(!navigator.onLine){
+      ui.error('لا يوجد اتصال', 'يتطلب الاتصال بالإنترنت للمزامنة');
+      return;
+    }
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    ui.info('جارٍ المزامنة...', 'يتم إرسال جميع البيانات إلى Google Sheets');
+    const result = await APP.sheetsSync.forceSyncAll();
+    btn.disabled = false;
+    btn.style.opacity = '';
+    if(result.ok){
+      ui.success('تمت المزامنة', 'تم إرسال جميع البيانات إلى Google Sheets بنجاح');
+    } else {
+      ui.error('فشلت المزامنة', result.error || 'حدث خطأ غير متوقع');
+    }
+  });
+}
   return { boot, refreshDashboard, refreshAll };
 })();
 
