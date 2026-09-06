@@ -1,8 +1,8 @@
 /* ============================================================
-   supervisors.js — إدارة الموجهين وتكليفاتهم بالمعاهد
-   ============================================================ */
+supervisors.js — إدارة الموجهين وتكليفاتهم بالمعاهد
+الإصدار 1.3.0 — إضافة حقل "رقم السجل"
+============================================================ */
 window.APP = window.APP || {};
-
 APP.supervisors = (function(){
   const h = APP.helpers;
   const storage = APP.storage;
@@ -13,27 +13,34 @@ APP.supervisors = (function(){
   function init(){
     document.getElementById('btnAddSupervisor').addEventListener('click', ()=>openSupervisorForm());
     const search = document.getElementById('supervisorSearch');
-    search.addEventListener('input', h.debounce(()=>{ state.query = search.value; render(); }, 150));
-
+    search.addEventListener('input', h.debounce(()=>{
+      state.query = search.value;
+      render();
+    }, 150));
     document.getElementById('supervisorStatusFilter').addEventListener('change', (e)=>{
-      state.statusFilter = e.target.value; render();
+      state.statusFilter = e.target.value;
+      render();
     });
-
     document.querySelectorAll('#supervisorsTable thead th[data-sort]').forEach(th=>{
       th.addEventListener('click', ()=>{
         const key = th.dataset.sort;
-        if(state.sortKey === key) state.sortDir *= -1; else { state.sortKey = key; state.sortDir = 1; }
+        if(state.sortKey === key) state.sortDir *= -1;
+        else { state.sortKey = key; state.sortDir = 1; }
         render();
       });
     });
-
     render();
   }
 
   function getFiltered(){
     let list = storage.listSupervisors().slice();
     if(state.query){
-      list = list.filter(s=> h.contains(s.name, state.query) || h.contains(s.role, state.query) || h.contains((s.departments||[]).join(' '), state.query));
+      list = list.filter(s=>
+        h.contains(s.name, state.query) ||
+        h.contains(s.role, state.query) ||
+        h.contains(s.registryNumber || '', state.query) ||
+        h.contains((s.departments||[]).join(' '), state.query)
+      );
     }
     if(state.statusFilter !== 'all'){
       list = list.filter(s=>s.status === state.statusFilter);
@@ -52,7 +59,7 @@ APP.supervisors = (function(){
     document.getElementById('supervisorCount').textContent = `${storage.listSupervisors().length} موجه`;
 
     if(!list.length){
-      tbody.innerHTML = `<tr class="table-empty-row"><td colspan="7">
+      tbody.innerHTML = `<tr class="table-empty-row"><td colspan="9">
         <div class="empty-state"><div class="icon">🧑‍🏫</div><strong>لا يوجد موجهون بعد</strong><span>ابدأ بإضافة أول موجه لإدارة خطته</span></div>
       </td></tr>`;
       return;
@@ -68,6 +75,7 @@ APP.supervisors = (function(){
         <td class="row-num">${idx+1}</td>
         <td><span class="swatch" style="background:${s.color}"></span></td>
         <td><strong>${h.escapeHtml(s.name)}</strong></td>
+        <td>${h.escapeHtml(s.registryNumber || '-')}</td>
         <td>${h.escapeHtml(s.role||'-')}</td>
         <td>${h.escapeHtml((s.departments||[]).join('، ')||'-')}</td>
         <td>${instCount} معهد</td>
@@ -119,7 +127,7 @@ APP.supervisors = (function(){
 
   function openSupervisorForm(id){
     const existing = id ? storage.getSupervisor(id) : null;
-    const departmentsVal = existing ? (existing.departments||[]).join('، ') : '';
+    const departmentsVal = existing ? (existing.departments||[]).join('،') : '';
     const color = existing ? existing.color : h.PALETTE[storage.listSupervisors().length % h.PALETTE.length];
 
     const bodyHtml = `
@@ -129,17 +137,23 @@ APP.supervisors = (function(){
       </div>
       <div class="form-row">
         <div class="form-group">
+          <label>رقم السجل</label>
+          <input type="text" id="fSupRegistry" value="${h.escapeHtml(existing?.registryNumber||'')}" placeholder="مثال: 273978">
+        </div>
+        <div class="form-group">
           <label>الوظيفة</label>
           <input type="text" id="fSupRole" value="${h.escapeHtml(existing?.role||'')}" placeholder="موجه أول لغة عربية">
         </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label>الهاتف (اختياري)</label>
           <input type="tel" id="fSupPhone" value="${h.escapeHtml(existing?.phone||'')}" placeholder="01xxxxxxxxx">
         </div>
-      </div>
-      <div class="form-group">
-        <label>الإدارة أو الإدارات (افصل بينها بفاصلة)</label>
-        <input type="text" id="fSupDepts" value="${h.escapeHtml(departmentsVal)}" placeholder="إدارة الضبعة، إدارة مطروح">
+        <div class="form-group">
+          <label>الإدارة أو الإدارات (افصل بينها بفاصلة)</label>
+          <input type="text" id="fSupDepts" value="${h.escapeHtml(departmentsVal)}" placeholder="إدارة الضبعة، إدارة مطروح">
+        </div>
       </div>
       <div class="form-group">
         <label>اللون المميز</label>
@@ -166,6 +180,7 @@ APP.supervisors = (function(){
           }
           const sup = existing || { id:h.uid('sup'), status:'active', instituteIds:[] };
           sup.name = name;
+          sup.registryNumber = document.getElementById('fSupRegistry').value.trim();
           sup.role = document.getElementById('fSupRole').value.trim();
           sup.phone = document.getElementById('fSupPhone').value.trim();
           sup.departments = document.getElementById('fSupDepts').value.split('،').map(s=>s.trim()).filter(Boolean).length
@@ -233,7 +248,6 @@ APP.supervisors = (function(){
       onOpen:()=>{
         const listEl = document.getElementById('instPickerList');
         const countLabel = document.getElementById('assignCountLabel');
-
         function renderList(){
           const filtered = allInstitutes.filter(i=>h.contains(i.name, query) || h.contains(i.department, query));
           countLabel.textContent = `${assigned.size} من أصل ${allInstitutes.length} معهد محدد`;
@@ -252,12 +266,12 @@ APP.supervisors = (function(){
           `).join('');
           listEl.querySelectorAll('input[type=checkbox]').forEach(cb=>{
             cb.addEventListener('change', ()=>{
-              if(cb.checked) assigned.add(cb.dataset.id); else assigned.delete(cb.dataset.id);
+              if(cb.checked) assigned.add(cb.dataset.id);
+              else assigned.delete(cb.dataset.id);
               countLabel.textContent = `${assigned.size} من أصل ${allInstitutes.length} معهد محدد`;
             });
           });
         }
-
         document.getElementById('assignSearch').addEventListener('input', h.debounce((e)=>{
           query = e.target.value; renderList();
         }, 120));
@@ -267,7 +281,6 @@ APP.supervisors = (function(){
         document.getElementById('assignClearAll').addEventListener('click', ()=>{
           assigned.clear(); renderList();
         });
-
         renderList();
       }
     });
