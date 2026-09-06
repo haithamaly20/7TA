@@ -179,7 +179,7 @@ APP.printing = (function(){
     html += `<div class="print-top-line">إدارة الضبعة الأزهرية — خطة الموجه لشهر ${esc(monthLabel)}</div>`;
     html += `<div class="print-mid-line">`;
     html += `<span class="mid-item">الاسم: ${esc(sup.name)}</span>`;
-    html += `<span class="mid-item">رقم السجل: ${esc(sup.phone || '---')}</span>`;
+   html += `<span class="mid-item">رقم السجل: ${esc(sup.registryNumber || sup.phone || '---')}</span>`;
     html += `<span class="mid-item">موجه: ${esc(sup.role || '---')}</span>`;
     html += `</div>`;
     html += `</div>`;
