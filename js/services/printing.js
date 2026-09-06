@@ -1,4 +1,3 @@
-
 /* ============================================================
 printing.js — نظام طباعة الخطط
 الإصدار 1.6.0 — إصلاح: صفحة واحدة مضمونة لكل موجه
@@ -266,6 +265,4 @@ APP.printing = (function(){
 
   return { triggerPrint, normalizePlanData, printGeneralPlan, printSupervisorPlan, printAllSupervisorPlans };
 
-
-
-
+})();
