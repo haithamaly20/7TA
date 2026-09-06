@@ -108,13 +108,13 @@ body.printing-active #printArea { display: block !important; }
     overflow: hidden;
   }
   .ind-org-name {
-    font-size: 18px;
+    font-size: 23px;
     font-weight: 800;
     letter-spacing: 0.5px;
     margin-bottom: 1.5mm;
   }
   .ind-plan-title {
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 700;
     margin-bottom: 1.5mm;
   }
@@ -129,7 +129,7 @@ body.printing-active #printArea { display: block !important; }
     justify-content: center;
     gap: 5mm;
     flex-wrap: wrap;
-    font-size: 12px;
+    font-size: 15.5px;
     font-weight: 600;
   }
   .ind-info-item strong {
@@ -169,7 +169,7 @@ body.printing-active #printArea { display: block !important; }
     border: 1.5px solid #000;
     border-radius: 2px;
     display: grid;
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto 1fr;
     padding: 1.5mm;
     background: #fff;
     overflow: hidden;
@@ -191,29 +191,31 @@ body.printing-active #printArea { display: block !important; }
     width: calc(100% + 3mm);
   }
   .box-day {
-    font-size: 10.5px;
+    font-size: 13.5px;
     font-weight: 800;
   }
   .box-date {
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 700;
     direction: ltr;
   }
 
   .box-school {
     text-align: center;
-    font-size: 10.5px;
+    font-size: 13.5px;
     font-weight: 700;
-    padding: 1mm 1mm;
-    border-bottom: 1px dashed #888;
-    line-height: 1.3;
+    padding: 2mm 1.5mm;
+    line-height: 1.4;
     word-break: break-word;
     overflow: hidden;
+    /* ⭐ يملأ كامل المساحة المتبقية في المربع */
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .box-stamp {
-    min-height: 0;
-  }
+  /* مساحة الختم مُلغاة — المدرسة تملأ المربع */
+  .box-stamp { display: none; }
 
   /* ——————— التذييل ——————— */
   .ind-footer {
