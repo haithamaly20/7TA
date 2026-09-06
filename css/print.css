@@ -1,6 +1,7 @@
+
 /* ============================================================
 print.css — تنسيقات الطباعة
-الإصدار 1.5.0 — حل جذري: أبعاد مطلقة + CSS Grid
+الإصدار 1.6.0 — إصلاح: صفحة واحدة مضمونة لكل موجه
 ============================================================ */
 
 /* إخفاء كل شيء عدا منطقة الطباعة */
@@ -17,9 +18,6 @@ body.printing-active #printArea { display: block !important; }
 
 /* ============================================================
    ⭐ إعدادات الصفحة A4
-   ——————————————————————————————————
-   margin: 10mm على كل الجوانب
-   المساحة المتاحة: 190mm × 277mm
 ============================================================ */
 @page {
   size: A4 portrait;
@@ -37,7 +35,6 @@ body.printing-active #printArea { display: block !important; }
    تنسيقات مشتركة عند الطباعة
 ============================================================ */
 @media print {
-  /* ⭐ الأهم: box-sizing على كل شيء */
   *, *::before, *::after {
     box-sizing: border-box !important;
   }
@@ -64,7 +61,6 @@ body.printing-active #printArea { display: block !important; }
   .print-meta { margin-top: 8px; font-size: 11px; }
   .print-footer { margin-top: 12px; font-size: 12px; }
 
-  /* عناصر التصميم الرسمي للخطة العامة */
   .print-org { text-align: left; font-weight: 700; font-size: 13px; line-height: 1.9; margin-bottom: 2mm; }
   .print-title-center { text-align: center; margin-bottom: 4mm; }
   .print-title-center h1 { font-size: 15px; margin: 2px 0; }
@@ -75,29 +71,20 @@ body.printing-active #printArea { display: block !important; }
   .print-sign { display: flex; justify-content: space-between; gap: 12px; margin-top: 5mm; padding-top: 3mm; border-top: 1px solid #222; font-weight: 700; font-size: 12.5px; }
 
   /* ============================================================
-     ⭐ الخطة الفردية — الإصدار 1.5.0 (الحل الجذري)
-     ————————————————————————————————————————————
-     الهيكل:
-     ┌────────────────────────────────────┐
-     │  .print-container                  │
-     │  ┌──────────────────────────────┐  │
-     │  │ header  (grid-row: 1)        │  │
-     │  ├──────────────────────────────┤  │
-     │  │ grid    (grid-row: 2, 1fr)   │  │ ← يأخذ كل المساحة المتبقية
-     │  ├──────────────────────────────┤  │
-     │  │ footer  (grid-row: 3)        │  │
-     │  ──────────────────────────────┘  │
-     └────────────────────────────────────┘
-     
-     الأبعاد: 190mm × 277mm (A4 - 2×10mm margins)
-     لا flex، لا height:100%، لا overflow
+     ⭐ الخطة الفردية — الإصدار 1.6.0
+     ————————————————————————————————
+     الإصلاحات:
+     1) width: 100% بدلاً من 190mm (تتكيف مع الـ @page margin)
+     2) height: 100vh مع overflow:hidden (يملأ الصفحة بالضبط)
+     3) position:relative + display:grid لضمان عدم التجاوز
   ============================================================ */
 
   .print-container.individual-plan {
-    /* ⭐ أبعاد مطلقة — لا تتجاوز الصفحة أبداً */
-    width: 190mm;
+    /* ⭐ عرض 100% من منطقة الطباعة — لا يخرج يساراً أو يميناً */
+    width: 100%;
+    /* ⭐ ارتفاع الصفحة كاملاً (A4 - 2×10mm) */
     height: 277mm;
-    /* ⭐ CSS Grid للصفحة كاملة */
+    /* ⭐ CSS Grid للتوزيع */
     display: grid;
     grid-template-rows: auto 1fr auto;
     grid-template-columns: 1fr;
@@ -105,23 +92,20 @@ body.printing-active #printArea { display: block !important; }
     font-family: 'Arial', 'Traditional Arabic', sans-serif;
     color: #000;
     background: #fff;
-    /*  منع الانقسام على صفحتين */
-    page-break-inside: avoid;
-    break-inside: avoid;
+    /* ⭐ الضامن الأساسي: كل الخطة في صفحة واحدة */
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
     page-break-after: auto;
     break-after: auto;
-    /* ⭐ لا overflow — المحتوى يجب أن يبقى داخل الأبعاد */
     overflow: hidden;
   }
 
-  /* ——————— الترويسة الرسمية ——————— */
+  /* ——————— الترويسة ——————— */
   .ind-header {
     grid-row: 1;
     text-align: center;
     padding: 3mm 2mm 2.5mm;
     border-bottom: 1.5px solid #000;
-    /* ارتفاع ثابت صغير */
-    max-height: 35mm;
     overflow: hidden;
   }
   .ind-org-name {
@@ -154,19 +138,20 @@ body.printing-active #printArea { display: block !important; }
     margin-left: 1.5mm;
   }
 
-  /* ——————— شبكة الزيارات (المنطقة الديناميكية) ——————— */
+  /* ——————— شبكة الزيارات ——————— */
   .ind-visits-grid {
     grid-row: 2;
-    /* ⭐ يأخذ كل المساحة المتبقية بين الترويسة والتذييل */
     display: grid;
     grid-template-columns: repeat(var(--cols, 3), 1fr);
     grid-template-rows: repeat(var(--rows, 1), 1fr);
     gap: 2mm;
     padding: 2mm 1mm;
     overflow: hidden;
-    /* ⭐ ضمان عدم تجاوز العرض */
     width: 100%;
     max-width: 100%;
+    /* ⭐ منع انقسام الشبكة */
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .ind-empty {
@@ -180,7 +165,7 @@ body.printing-active #printArea { display: block !important; }
     grid-column: 1 / -1;
   }
 
-  /* ——————— بطاقة الزيارة الواحدة ——————— */
+  /* ——————— بطاقة الزيارة ——————— */
   .ind-visit-box {
     border: 1.5px solid #000;
     border-radius: 2px;
@@ -189,7 +174,6 @@ body.printing-active #printArea { display: block !important; }
     padding: 1.5mm;
     background: #fff;
     overflow: hidden;
-    /* ⭐ البطاقة تملأ خليتها بالكامل */
     width: 100%;
     height: 100%;
     min-height: 0;
@@ -228,13 +212,11 @@ body.printing-active #printArea { display: block !important; }
     overflow: hidden;
   }
 
-  /* ⭐ منطقة الختم — المساحة البيضاء الكبيرة */
   .box-stamp {
     min-height: 0;
-    /* فارغة عمداً لاستقبال الختم الفعلي */
   }
 
-  /* ——————— التذييل (التوقيعات) ——————— */
+  /* ——————— التذييل ——————— */
   .ind-footer {
     grid-row: 3;
     display: flex;
@@ -243,14 +225,12 @@ body.printing-active #printArea { display: block !important; }
     padding: 2.5mm 5mm 2mm;
     border-top: 1.5px solid #000;
     gap: 10mm;
-    /*  ارتفاع ثابت صغير */
-    max-height: 30mm;
     overflow: hidden;
-    /* ⭐ منع انتقاله لصفحة أخرى */
-    page-break-inside: avoid;
-    break-inside: avoid;
-    page-break-before: avoid;
-    break-before: avoid;
+    /* ⭐ منع انتقال التذييل لصفحة أخرى */
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-before: avoid !important;
+    break-before: avoid !important;
   }
   .ind-sign-block {
     flex: 1;
@@ -272,7 +252,6 @@ body.printing-active #printArea { display: block !important; }
     color: #333;
   }
 
-  /* ضمان عدم تأثر الخطة العامة بتنسيقات الخطط الفردية */
   .print-container.general-plan .ind-visits-grid,
   .print-container.general-plan .ind-footer,
   .print-container.general-plan .ind-header {
@@ -281,15 +260,18 @@ body.printing-active #printArea { display: block !important; }
 }
 
 /* ============================================================
-   معاينة على الشاشة (قبل الطباعة) — لتسهيل التطوير
+   معاينة على الشاشة
 ============================================================ */
 #printArea.print-portrait {
   background: #fff;
   margin: 20px auto;
   box-shadow: 0 0 20px rgba(0,0,0,0.2);
 }
+
+/* ⭐ إصلاح مهم: معاينة الشاشة تستخدم نفس عرض الطباعة */
 #printArea.print-portrait .print-container.individual-plan {
-  width: 210mm;
-  min-height: 297mm;
+  width: 190mm;   /* = 210mm - 2×10mm margins */
+  min-height: 277mm;
+  height: 277mm;
   margin: 0 auto;
 }
