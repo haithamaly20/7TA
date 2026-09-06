@@ -1,6 +1,6 @@
 /* ============================================================
 print.css — تنسيقات الطباعة
-الإصدار 1.3.0 — إعادة تصميم صفحة الخطة الفردية بحجم ديناميكي
+الإصدار 1.4.0 — إصلاح تجاوز الهامش + تثبيت التذييل في نفس الصفحة
 ============================================================ */
 
 /* إخفاء كل شيء عدا منطقة الطباعة */
@@ -16,16 +16,17 @@ body.printing-active #printArea { display: block !important; }
 .unplanned-row td { opacity: .7; }
 
 /* ============================================================
-   الاتجاه الافتراضي: A4 رأسي (Portrait) للخطط الفردية
+   ⭐ إعدادات الصفحة A4
+   ——————————————————————————————————
+   margin: 10mm على كل الجوانب = المساحة المتاحة 190×277mm
+   المتصفح هو من يتحكم بالهوامش، ونحن نستخدم 100% من المساحة المتاحة
 ============================================================ */
 @page {
   size: A4 portrait;
   margin: 10mm;
 }
 
-/* ============================================================
-   الخطة العامة — أفقي (Landscape)
-============================================================ */
+/* الخطة العامة — أفقي */
 #printArea.print-landscape { page: landscape; }
 @page landscape {
   size: A4 landscape;
@@ -33,7 +34,7 @@ body.printing-active #printArea { display: block !important; }
 }
 
 /* ============================================================
-   الخطوط للطباعة — خطوط نظام عربية واضحة
+   تنسيقات مشتركة عند الطباعة
 ============================================================ */
 @media print {
   body.printing-active {
@@ -43,13 +44,8 @@ body.printing-active #printArea { display: block !important; }
     print-color-adjust: exact;
   }
   body.printing-active #printArea { width: 100%; }
-}
 
-/* ============================================================
-   تنسيقات مشتركة
-============================================================ */
-@media print {
-  .print-container { direction: rtl; width: 100%; }
+  .print-container { direction: rtl; width: 100%; box-sizing: border-box; }
 
   /* جدول الخطة العامة */
   .print-table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -72,73 +68,91 @@ body.printing-active #printArea { display: block !important; }
   .print-sign { display: flex; justify-content: space-between; gap: 12px; margin-top: 5mm; padding-top: 3mm; border-top: 1px solid #222; font-weight: 700; font-size: 12.5px; }
 
   /* ============================================================
-     ⭐ الخطة الفردية — التصميم الرسمي الجديد (1.3.0)
+     ⭐ الخطة الفردية — الإصدار 1.4.0
      ————————————————————————————————————————————
-     الصفحة A4 كاملة مقسمة إلى 3 مناطق:
-     1) Header  — ارتفاع ثابت ~40mm
-     2) Grid    — ارتفاع ديناميكي (flex: 1)
-     3) Footer  — ارتفاع ثابت ~35mm
+     الهيكل:
+     ┌────────────────────────────────────┐
+     │  .print-container (100% × 100%)    │
+     │  ┌──────────────────────────────┐  │
+     │  │ header  (flex: 0 0 auto)     │  │
+     │  ├──────────────────────────────┤  │
+     │  │ grid    (flex: 1 1 auto)     │  │ ← يأخذ كل المساحة المتبقية
+     │  ├──────────────────────────────┤  │
+     │  │ footer  (flex: 0 0 auto)     │  │
+     │  └──────────────────────────────┘  │
+     └────────────────────────────────────┘
+     
+     page-break-inside: avoid → يمنع انقسام الصفحة
+     width: 100% + box-sizing:border-box → لا تجاوز للهامش
   ============================================================ */
 
   .print-container.individual-plan {
-    width: 190mm;                 /* A4 (210mm) - 2×10mm margins */
-    height: 277mm;                /* A4 (297mm) - 2×10mm margins */
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     direction: rtl;
     font-family: 'Arial', 'Traditional Arabic', sans-serif;
     color: #000;
     background: #fff;
-    box-sizing: border-box;
-    overflow: hidden;             /* ⭐ ضمان عدم تجاوز الصفحة */
+    overflow: hidden;
+    /* ⭐ الأهم: منع انقسام هذا الـ container على صفحتين */
+    page-break-inside: avoid;
+    break-inside: avoid;
+    page-break-after: auto;
+    break-after: auto;
   }
 
   /* ——————— الترويسة الرسمية ——————— */
   .ind-header {
     flex: 0 0 auto;
     text-align: center;
-    padding: 4mm 2mm 3mm;
-    border-bottom: 2px solid #000;
+    padding: 3mm 2mm 2.5mm;
+    border-bottom: 1.5px solid #000;
   }
   .ind-org-name {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 800;
     letter-spacing: 0.5px;
-    margin-bottom: 2mm;
+    margin-bottom: 1.5mm;
   }
   .ind-plan-title {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
-    margin-bottom: 2mm;
+    margin-bottom: 1.5mm;
   }
   .ind-separator {
     height: 1px;
     background: #000;
-    margin: 2mm 10%;
+    margin: 1.5mm 15%;
     opacity: 0.5;
   }
   .ind-sup-info {
     display: flex;
     justify-content: center;
-    gap: 6mm;
+    gap: 5mm;
     flex-wrap: wrap;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 600;
   }
   .ind-info-item strong {
     font-weight: 800;
-    margin-left: 2mm;
+    margin-left: 1.5mm;
   }
 
   /* ——————— شبكة الزيارات (المنطقة الديناميكية) ——————— */
   .ind-visits-grid {
-    flex: 1 1 auto;               /* ⭐ يأخذ كل المساحة المتبقية */
+    /* ⭐ يأخذ كل المساحة المتبقية بين الترويسة والتذييل */
+    flex: 1 1 auto;
+    min-height: 0;
     display: grid;
+    /* ⭐ عدد الأعمدة والصفوف من JS، الارتفاع يُوزَّع تلقائياً */
     grid-template-columns: repeat(var(--cols, 3), 1fr);
-    grid-template-rows: repeat(var(--rows, 1), var(--card-h, 40mm));
-    gap: var(--gap, 3mm);
-    padding: 3mm 1mm;
-    align-content: stretch;
+    grid-template-rows: repeat(var(--rows, 1), 1fr);
+    gap: 2mm;
+    padding: 2mm 1mm;
     overflow: hidden;
   }
 
@@ -150,21 +164,25 @@ body.printing-active #printArea { display: block !important; }
     color: #555;
     padding: 10mm;
     text-align: center;
+    grid-column: 1 / -1;
   }
 
   /* ——————— بطاقة الزيارة الواحدة ——————— */
   .ind-visit-box {
     border: 1.5px solid #000;
-    border-radius: 3px;
+    border-radius: 2px;
     display: flex;
     flex-direction: column;
-    padding: 2mm;
+    padding: 1.5mm;
     background: #fff;
     box-sizing: border-box;
+    overflow: hidden;
+    /* ⭐ البطاقة تملأ خليتها بالكامل */
+    height: 100%;
+    width: 100%;
+    min-height: 0;
     page-break-inside: avoid;
     break-inside: avoid;
-    overflow: hidden;
-    height: 100%;
   }
 
   .box-top {
@@ -175,16 +193,16 @@ body.printing-active #printArea { display: block !important; }
     border-bottom: 1px solid #000;
     flex: 0 0 auto;
     background: #f5f5f5;
-    margin: -2mm -2mm 0 -2mm;
-    width: calc(100% + 4mm);
+    margin: -1.5mm -1.5mm 0 -1.5mm;
+    width: calc(100% + 3mm);
     box-sizing: border-box;
   }
   .box-day {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 800;
   }
   .box-date {
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 700;
     direction: ltr;
   }
@@ -192,30 +210,37 @@ body.printing-active #printArea { display: block !important; }
   .box-school {
     flex: 0 0 auto;
     text-align: center;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
-    padding: 1.5mm 1mm;
+    padding: 1mm 1mm;
     border-bottom: 1px dashed #888;
     line-height: 1.3;
     word-break: break-word;
+    overflow: hidden;
   }
 
   /* ⭐ منطقة الختم — المساحة البيضاء الكبيرة */
   .box-stamp {
     flex: 1 1 auto;
     min-height: 0;
-    /* لا نضع أي محتوى — المساحة فارغة عمداً لاستقبال الختم الفعلي */
+    /* فارغة عمداً لاستقبال الختم الفعلي */
   }
 
   /* ——————— التذييل (التوقيعات) ——————— */
   .ind-footer {
+    /* ⭐ ثابت في الأسفل، لا ينكمش ولا يتمدد */
     flex: 0 0 auto;
     display: flex;
     justify-content: space-around;
     align-items: flex-end;
-    padding: 3mm 5mm 2mm;
-    border-top: 2px solid #000;
+    padding: 2.5mm 5mm 2mm;
+    border-top: 1.5px solid #000;
     gap: 10mm;
+    /* ⭐ منع انتقاله لصفحة أخرى */
+    page-break-inside: avoid;
+    break-inside: avoid;
+    page-break-before: avoid;
+    break-before: avoid;
   }
   .ind-sign-block {
     flex: 1;
@@ -223,16 +248,16 @@ body.printing-active #printArea { display: block !important; }
     max-width: 70mm;
   }
   .ind-sign-title {
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 800;
-    margin-bottom: 4mm;
+    margin-bottom: 3mm;
   }
   .ind-sign-line {
     border-bottom: 1.5px solid #000;
-    margin: 0 5mm 2mm;
+    margin: 0 5mm 1.5mm;
   }
   .ind-sign-label {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 600;
     color: #333;
   }
