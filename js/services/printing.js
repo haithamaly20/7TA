@@ -1,6 +1,6 @@
 /* ============================================================
 printing.js — نظام طباعة الخطط
-الإصدار 1.4.0 — إصلاح تجاوز الهامش + تثبيت التذييل في نفس الصفحة
+الإصدار 1.5.0 — حل جذري: CSS Grid مطلق الأبعاد للصفحة الكاملة
 ============================================================ */
 window.APP = window.APP || {};
 APP.printing = (function(){
@@ -61,7 +61,7 @@ APP.printing = (function(){
       printArea.innerHTML = '';
     };
     window.addEventListener('afterprint', cleanup, { once:true });
-    requestAnimationFrame(() => setTimeout(() => window.print(), 120));
+    requestAnimationFrame(() => setTimeout(() => window.print(), 150));
   }
 
   function header(title, subtitle, monthKey){
@@ -157,15 +157,13 @@ APP.printing = (function(){
   }
 
   /* ============================================================
-     ⭐ الخطة الفردية — الإصدار 1.4.0
+     ⭐ الخطة الفردية — الإصدار 1.5.0 (الحل الجذري)
      ————————————————————————————————————————————————
-     التغييرات الجوهرية:
-     1) لا حساب للارتفاع بالمليمتر — نمرر فقط --rows و --cols
-     2) الـ container يأخذ 100% من مساحة @page (بدون عرض ثابت)
-     3) page-break-inside: avoid على الـ container كاملاً
-     4) الـ grid يستخدم flex:1 + grid-template-rows: repeat(N, 1fr)
-        → المتصفح يوزع المساحة المتبقية تلقائياً بالتساوي
-     5) التذييل داخل نفس الـ container → لا يمكن أن ينتقل لصفحة أخرى
+     التغيير الجوهري:
+     1) لا نستخدم flex أو height:100% (غير موثوق في الطباعة)
+     2) نمرر --rows و --cols فقط
+     3) الـ CSS يتكفل بتوزيع المساحة بـ CSS Grid مطلق الأبعاد
+     4) التذييل داخل نفس الـ container (لا يمكن أن يقفز لصفحة أخرى)
   ============================================================ */
   function supervisorHtml(data, supervisorId){
     const sup = data.supervisors.find(s => String(s.id) === String(supervisorId));
@@ -176,7 +174,6 @@ APP.printing = (function(){
     const rows = data.rows.filter(r => String(r.supervisorId) === String(supervisorId));
     const monthLabel = h().monthLabel(data.monthKey);
 
-    // ⭐ حساب بسيط: عدد الصفوف والأعمدة فقط
     const visitsCount = Math.max(rows.length, 1);
     const cols = 3;
     const rowsCount = Math.max(1, Math.ceil(visitsCount / cols));
@@ -198,7 +195,7 @@ APP.printing = (function(){
     html += `</div>`;
     html += `</header>`;
 
-    // شبكة الزيارات — الارتفاع يُحسب تلقائياً عبر flex + 1fr
+    // شبكة الزيارات
     html += `<div class="ind-visits-grid">`;
     if(!rows.length){
       html += `<div class="ind-empty">لا توجد زيارات مخططة لهذا الموجه في هذا الشهر.</div>`;
@@ -216,7 +213,7 @@ APP.printing = (function(){
     }
     html += `</div>`;
 
-    // التذييل — داخل نفس الـ container
+    // التذييل
     html += `<footer class="ind-footer">`;
     html += `<div class="ind-sign-block">`;
     html += `<div class="ind-sign-title">المختص</div>`;
@@ -234,9 +231,6 @@ APP.printing = (function(){
     return html;
   }
 
-  /* ============================================================
-     دوال الطباعة
-  ============================================================ */
   function printGeneralPlan(monthKey, legacyDays){
     if(Array.isArray(monthKey)){
       const legacyRows = monthKey;
