@@ -81,8 +81,10 @@ APP.planner = (function(){
   }
 
   function render(){
-    const supervisors = activeSupervisors();
-    const days = getPlanDays(); // ⭐ أيام العمل فقط — لا عطلات إطلاقًا
+   const supervisors = activeSupervisors();
+// ⭐ ترتيب أبجدي للموجهين في شبكة الخطة
+supervisors.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+const days = getPlanDays();; // ⭐ أيام العمل فقط — لا عطلات إطلاقًا
     const todayStr = h.todayISO(); // لتلوين عمود "اليوم"
     const wrap = document.getElementById('plannerTableWrap');
     document.getElementById('plannerMonthLabel').textContent = h.monthLabel(currentMonthKey);
@@ -112,8 +114,11 @@ APP.planner = (function(){
     let tbody = '';
     supervisors.forEach(sup=>{
       const dayMap = plan[sup.id] || {};
-      const assignedInstitutes = (sup.instituteIds||[]).map(id=>storage.getInstitute(id)).filter(Boolean);
-      tbody += `<tr>
+const assignedInstitutes = (sup.instituteIds || [])
+  .map(id => storage.getInstitute(id))
+  .filter(Boolean)
+  // ⭐ ترتيب أبجدي للمعاهد داخل قائمة كل موجه
+  .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));      tbody += `<tr>
         <th class="sup-row-header" draggable="true" data-sup-drag="${sup.id}">
           <span class="swatch" style="background:${sup.color}; margin-inline-end:6px;"></span>${h.escapeHtml(sup.name)}
         </th>`;
