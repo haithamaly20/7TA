@@ -110,15 +110,16 @@ APP.printing = (function(){
     const supervisors = data.supervisors;
     const workingDays = h().getMonthDays(data.monthKey, storage.getSettings().weekendDows)
       .filter(d => !d.isWeekend);
-    const plannedDays = workingDays.filter(d =>
-      supervisors.some(sup => (plan[sup.id] || {})[d.day])
-    );
+
+    // ⭐ استخدام data.rows (المحسوبة بشكل موثوق) لاستخراج أرقام الأيام المخططة
+    const plannedDayNums = new Set(data.rows.map(r => String(r.day)));
+    const plannedDays = workingDays.filter(d => plannedDayNums.has(String(d.day)));
     const allDays = plannedDays.length ? plannedDays : workingDays;
 
     if(!supervisors.length){
       return `<div class="print-container general-plan">${generalPlanHeader(data.monthKey)}<div class="print-empty">لا يوجد موجهون.</div></div>`;
     }
-    if(!plannedDays.length){
+    if(!data.rows.length){
       return `<div class="print-container general-plan">${generalPlanHeader(data.monthKey)}<div class="print-empty">لا توجد زيارات مخططة لهذا الشهر.</div>${signatureRow()}</div>`;
     }
 
@@ -142,7 +143,8 @@ APP.printing = (function(){
             <tbody>
               ${allDays.map(d => {
                 const cells = chunk.map(sup => {
-                  const instId = (plan[sup.id] || {})[d.day];
+                  const instId = (plan[String(sup.id)] || plan[sup.id] || {})[String(d.day)]
+                              ?? (plan[String(sup.id)] || plan[sup.id] || {})[d.day];
                   const inst = instId ? storage.getInstitute(instId) : null;
                   return `<td>${inst ? esc(inst.name) : ''}</td>`;
                 }).join('');
