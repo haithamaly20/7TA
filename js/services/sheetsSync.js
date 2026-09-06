@@ -100,7 +100,28 @@ APP.sheetsSync = {
     return this.syncBulk(type,records).catch(err=>{ console.warn(`تعذرت مزامنة ${type}:`,err); return {ok:false,error:err.message}; });
   },
 
-  async saveBackupToDrive(fileName,jsonContent){
+  async saveBackupToDrive(fileName,jsonContent){ return this.enqueue('save_json_backup',{fileName,jsonContent}); },
+
+// ⭐ جديد: مزامنة فورية لكل البيانات (تتخطى الـ debounce)
+async forceSyncAll(){
+  if(!this.isEnabled()) return { ok:false, error:'المزامنة غير مفعّلة' };
+  if(!navigator.onLine) return { ok:false, error:'لا يوجد اتصال بالإنترنت' };
+  const db = APP.storage.getDB();
+  try {
+    await Promise.all([
+      this.syncBulk('supervisors', db.supervisors.map(s => ({ id:s.id, data:s }))),
+      this.syncBulk('institutes', db.institutes.map(i => ({ id:i.id, data:i }))),
+      this.syncBulk('plans', [{ id:'plans', data: db.plans }]),
+      this.syncBulk('settings', [{ id:'settings', data: db.settings }])
+    ]);
+    this.consecutiveFailures = 0;
+    this.disabledUntil = 0;
+    return { ok:true };
+  } catch(err){
+    return { ok:false, error: err.message || String(err) };
+  }
+}
+};{
     return this.enqueue('save_json_backup',{fileName,jsonContent});
   }
 };
