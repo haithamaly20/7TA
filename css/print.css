@@ -1,26 +1,20 @@
 /* ============================================================
-   print.css — تنسيقات الطباعة فقط (تُفعَّل تلقائياً عند الطباعة)
-   الإصدار 1.1.1
-   ============================================================ */
+print.css — تنسيقات الطباعة فقط
+الإصدار 1.2.0 — إصلاح الطباعة الفردية (نظام المربعات)
+============================================================ */
 
 #printArea{ display:none; }
 body.printing-active > *:not(#printArea){ display:none !important; }
 body.printing-active #printArea{ display:block !important; }
+
 .print-page-break{ break-after:page; page-break-after:always; }
 .print-page-break:last-child{ break-after:auto; page-break-after:auto; }
+
 .print-empty{ padding:30px; text-align:center; font-size:18px; }
 .unplanned-row td{ opacity:.7; }
 
-/* الاتجاه الافتراضي: طولي (Portrait) — يُستخدم للخطط الفردية */
 @page{ margin:12mm; size:auto; }
 
-/* ============================================================
-   الإصلاح 1.1.1 — الطباعة الأفقية (Landscape):
-   printing.js يضع الصنف print-landscape على #printArea عند
-   طباعة الخطة العامة؛ الخاصية page:landscape هنا هي التي
-   تُفعّل قاعدة @page المسماة فعلياً في المتصفح (Chrome/Edge).
-   بدون هذا الزوج كانت الخطة العامة تُطبع طوليًا رغم الإشارة.
-   ============================================================ */
 #printArea.print-landscape{ page:landscape; }
 @page landscape{ size:A4 landscape; margin:10mm; }
 
@@ -38,121 +32,109 @@ body.printing-active #printArea{ display:block !important; }
 }
 
 /* ============================================================
-   1.1.2 — عناصر التصميم الرسمي للخطة العامة
-   ============================================================ */
+عناصر التصميم الرسمي للخطة العامة
+============================================================ */
 .print-org{ text-align:left; font-weight:700; font-size:13px; line-height:1.9; margin-bottom:2mm; }
 .print-title-center{ text-align:center; margin-bottom:4mm; }
 .print-title-center h1{ font-size:15px; margin:2px 0; }
 .print-title-center h2{ font-size:13.5px; margin:2px 0; font-weight:700; }
 .print-table.plan-grid th,.print-table.plan-grid td{ padding:2px 5px; font-size:11px; }
 .print-table.plan-grid .day-col{ white-space:nowrap; font-weight:700; width:95px; }
-.print-sign{
-  display:flex; justify-content:space-between; gap:12px;
-  margin-top:5mm; padding-top:3mm; border-top:1px solid #222;
-  font-weight:700; font-size:12.5px;
-}
-
+.print-sign{ display:flex; justify-content:space-between; gap:12px; margin-top:5mm; padding-top:3mm; border-top:1px solid #222; font-weight:700; font-size:12.5px; }
 
 /* ============================================================
-تعديلات الخطة الفردية (نظام المربعات) - الإصدار 1.2.2
+⭐ الخطة الفردية — نظام المربعات (1.2.0)
 ============================================================ */
 
-/* 1. الترويسة المخصصة */
-.print-header-custom {
-  text-align: center;
-  margin-bottom: 25px;
-  border-bottom: 2px solid #000;
-  padding-bottom: 15px;
+/* الترويسة المخصصة */
+.print-header-custom{
+  text-align:center;
+  margin-bottom:20px;
+  border-bottom:2px solid #000;
+  padding-bottom:12px;
 }
-.print-top-line {
-  font-size: 18px;
-  font-weight: 800;
-  margin-bottom: 12px;
-  letter-spacing: 0.5px;
+.print-top-line{
+  font-size:17px;
+  font-weight:800;
+  margin-bottom:10px;
 }
-.print-mid-line {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  flex-wrap: wrap;
-  font-size: 14px;
-  font-weight: 700;
+.print-mid-line{
+  display:flex;
+  justify-content:center;
+  gap:16px;
+  flex-wrap:wrap;
+  font-size:13px;
+  font-weight:700;
 }
-.print-mid-line .mid-item {
-  background: #f8f9fa;
-  padding: 6px 16px;
-  border-radius: 6px;
-  border: 1px solid #dee2e6;
-  white-space: nowrap;
-}
-
-/* 2. شبكة المربعات (تتقسم تلقائيًا حسب عدد الزيارات) */
-.print-visits-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 15px;
-  margin: 25px 0;
-}
-.print-visit-box {
-  border: 2px solid #000;
-  border-radius: 8px;
-  padding: 15px 10px;
-  text-align: center;
-  min-height: 130px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  page-break-inside: avoid; /* يمنع قص المربع بين صفحتين */
-  background: #fff;
-}
-.print-visit-box .box-header {
-  font-size: 12px;
-  color: #555;
-  font-weight: 700;
-  margin-bottom: 8px;
-  border-bottom: 1px dashed #ccc;
-  padding-bottom: 4px;
-}
-.print-visit-box .box-day {
-  font-size: 18px;
-  font-weight: 800;
-  margin-bottom: 4px;
-}
-.print-visit-box .box-date {
-  font-size: 13px;
-  color: #333;
-  margin-bottom: 10px;
-}
-.print-visit-box .box-institute {
-  font-size: 14px;
-  font-weight: 700;
-  border-top: 1px solid #000;
-  padding-top: 10px;
-  margin-top: auto; /* يدفع النص لأسفل المربع */
-  line-height: 1.4;
+.print-mid-line .mid-item{
+  background:#f0f0f0;
+  padding:5px 14px;
+  border-radius:6px;
+  border:1px solid #ccc;
+  white-space:nowrap;
 }
 
-/* 3. التذييل المخصص */
-.print-footer-custom {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 50px;
-  padding-top: 20px;
-  border-top: 2px solid #000;
-  font-size: 16px;
-  font-weight: 800;
+/* شبكة المربعات */
+.print-visits-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
+  gap:12px;
+  margin:20px 0;
 }
-.print-footer-custom .footer-right {
-  text-align: right;
-  min-width: 150px;
+.print-visit-box{
+  border:2px solid #000;
+  border-radius:8px;
+  padding:12px 8px;
+  text-align:center;
+  min-height:120px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  page-break-inside:avoid;
+  background:#fff;
 }
-.print-footer-custom .footer-left {
-  text-align: left;
-  min-width: 150px;
+.print-visit-box .box-header{
+  font-size:11px;
+  color:#555;
+  font-weight:700;
+  margin-bottom:6px;
+  border-bottom:1px dashed #ccc;
+  padding-bottom:3px;
+}
+.print-visit-box .box-day{
+  font-size:16px;
+  font-weight:800;
+  margin-bottom:3px;
+}
+.print-visit-box .box-date{
+  font-size:12px;
+  color:#333;
+  margin-bottom:8px;
+}
+.print-visit-box .box-institute{
+  font-size:13px;
+  font-weight:700;
+  border-top:1px solid #000;
+  padding-top:8px;
+  margin-top:auto;
+  line-height:1.4;
 }
 
-/* ضمان عدم تأثر الخطة العامة بهذه التعديلات */
-.print-container.general-plan .print-visits-grid,
-.print-container.general-plan .print-footer-custom {
-  display: none;
+/* التذييل المخصص */
+.print-footer-custom{
+  display:flex;
+  justify-content:space-between;
+  margin-top:40px;
+  padding-top:16px;
+  border-top:2px solid #000;
+  font-size:15px;
+  font-weight:800;
+}
+.print-footer-custom .footer-right{
+  text-align:right;
+  min-width:120px;
+}
+.print-footer-custom .footer-left{
+  text-align:left;
+  min-width:120px;
 }
