@@ -1,6 +1,6 @@
 /* ============================================================
 print.css — تنسيقات الطباعة
-الإصدار 1.4.0 — إصلاح تجاوز الهامش + تثبيت التذييل في نفس الصفحة
+الإصدار 1.5.0 — حل جذري: أبعاد مطلقة + CSS Grid
 ============================================================ */
 
 /* إخفاء كل شيء عدا منطقة الطباعة */
@@ -18,8 +18,8 @@ body.printing-active #printArea { display: block !important; }
 /* ============================================================
    ⭐ إعدادات الصفحة A4
    ——————————————————————————————————
-   margin: 10mm على كل الجوانب = المساحة المتاحة 190×277mm
-   المتصفح هو من يتحكم بالهوامش، ونحن نستخدم 100% من المساحة المتاحة
+   margin: 10mm على كل الجوانب
+   المساحة المتاحة: 190mm × 277mm
 ============================================================ */
 @page {
   size: A4 portrait;
@@ -37,15 +37,22 @@ body.printing-active #printArea { display: block !important; }
    تنسيقات مشتركة عند الطباعة
 ============================================================ */
 @media print {
+  /* ⭐ الأهم: box-sizing على كل شيء */
+  *, *::before, *::after {
+    box-sizing: border-box !important;
+  }
+
   body.printing-active {
     background: #fff !important;
     font-family: 'Arial', 'Traditional Arabic', 'Simplified Arabic', sans-serif;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    margin: 0;
+    padding: 0;
   }
   body.printing-active #printArea { width: 100%; }
 
-  .print-container { direction: rtl; width: 100%; box-sizing: border-box; }
+  .print-container { direction: rtl; width: 100%; }
 
   /* جدول الخطة العامة */
   .print-table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -68,49 +75,54 @@ body.printing-active #printArea { display: block !important; }
   .print-sign { display: flex; justify-content: space-between; gap: 12px; margin-top: 5mm; padding-top: 3mm; border-top: 1px solid #222; font-weight: 700; font-size: 12.5px; }
 
   /* ============================================================
-     ⭐ الخطة الفردية — الإصدار 1.4.0
+     ⭐ الخطة الفردية — الإصدار 1.5.0 (الحل الجذري)
      ————————————————————————————————————————————
      الهيكل:
      ┌────────────────────────────────────┐
-     │  .print-container (100% × 100%)    │
+     │  .print-container                  │
      │  ┌──────────────────────────────┐  │
-     │  │ header  (flex: 0 0 auto)     │  │
+     │  │ header  (grid-row: 1)        │  │
      │  ├──────────────────────────────┤  │
-     │  │ grid    (flex: 1 1 auto)     │  │ ← يأخذ كل المساحة المتبقية
+     │  │ grid    (grid-row: 2, 1fr)   │  │ ← يأخذ كل المساحة المتبقية
      │  ├──────────────────────────────┤  │
-     │  │ footer  (flex: 0 0 auto)     │  │
-     │  └──────────────────────────────┘  │
+     │  │ footer  (grid-row: 3)        │  │
+     │  ──────────────────────────────┘  │
      └────────────────────────────────────┘
      
-     page-break-inside: avoid → يمنع انقسام الصفحة
-     width: 100% + box-sizing:border-box → لا تجاوز للهامش
+     الأبعاد: 190mm × 277mm (A4 - 2×10mm margins)
+     لا flex، لا height:100%، لا overflow
   ============================================================ */
 
   .print-container.individual-plan {
-    width: 100%;
-    height: 100%;
-    min-height: 100%;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
+    /* ⭐ أبعاد مطلقة — لا تتجاوز الصفحة أبداً */
+    width: 190mm;
+    height: 277mm;
+    /* ⭐ CSS Grid للصفحة كاملة */
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: 1fr;
     direction: rtl;
     font-family: 'Arial', 'Traditional Arabic', sans-serif;
     color: #000;
     background: #fff;
-    overflow: hidden;
-    /* ⭐ الأهم: منع انقسام هذا الـ container على صفحتين */
+    /*  منع الانقسام على صفحتين */
     page-break-inside: avoid;
     break-inside: avoid;
     page-break-after: auto;
     break-after: auto;
+    /* ⭐ لا overflow — المحتوى يجب أن يبقى داخل الأبعاد */
+    overflow: hidden;
   }
 
   /* ——————— الترويسة الرسمية ——————— */
   .ind-header {
-    flex: 0 0 auto;
+    grid-row: 1;
     text-align: center;
     padding: 3mm 2mm 2.5mm;
     border-bottom: 1.5px solid #000;
+    /* ارتفاع ثابت صغير */
+    max-height: 35mm;
+    overflow: hidden;
   }
   .ind-org-name {
     font-size: 18px;
@@ -144,16 +156,17 @@ body.printing-active #printArea { display: block !important; }
 
   /* ——————— شبكة الزيارات (المنطقة الديناميكية) ——————— */
   .ind-visits-grid {
+    grid-row: 2;
     /* ⭐ يأخذ كل المساحة المتبقية بين الترويسة والتذييل */
-    flex: 1 1 auto;
-    min-height: 0;
     display: grid;
-    /* ⭐ عدد الأعمدة والصفوف من JS، الارتفاع يُوزَّع تلقائياً */
     grid-template-columns: repeat(var(--cols, 3), 1fr);
     grid-template-rows: repeat(var(--rows, 1), 1fr);
     gap: 2mm;
     padding: 2mm 1mm;
     overflow: hidden;
+    /* ⭐ ضمان عدم تجاوز العرض */
+    width: 100%;
+    max-width: 100%;
   }
 
   .ind-empty {
@@ -171,15 +184,14 @@ body.printing-active #printArea { display: block !important; }
   .ind-visit-box {
     border: 1.5px solid #000;
     border-radius: 2px;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
     padding: 1.5mm;
     background: #fff;
-    box-sizing: border-box;
     overflow: hidden;
     /* ⭐ البطاقة تملأ خليتها بالكامل */
-    height: 100%;
     width: 100%;
+    height: 100%;
     min-height: 0;
     page-break-inside: avoid;
     break-inside: avoid;
@@ -191,11 +203,9 @@ body.printing-active #printArea { display: block !important; }
     align-items: center;
     padding: 1mm 1.5mm;
     border-bottom: 1px solid #000;
-    flex: 0 0 auto;
     background: #f5f5f5;
     margin: -1.5mm -1.5mm 0 -1.5mm;
     width: calc(100% + 3mm);
-    box-sizing: border-box;
   }
   .box-day {
     font-size: 10.5px;
@@ -208,7 +218,6 @@ body.printing-active #printArea { display: block !important; }
   }
 
   .box-school {
-    flex: 0 0 auto;
     text-align: center;
     font-size: 10.5px;
     font-weight: 700;
@@ -221,21 +230,22 @@ body.printing-active #printArea { display: block !important; }
 
   /* ⭐ منطقة الختم — المساحة البيضاء الكبيرة */
   .box-stamp {
-    flex: 1 1 auto;
     min-height: 0;
     /* فارغة عمداً لاستقبال الختم الفعلي */
   }
 
   /* ——————— التذييل (التوقيعات) ——————— */
   .ind-footer {
-    /* ⭐ ثابت في الأسفل، لا ينكمش ولا يتمدد */
-    flex: 0 0 auto;
+    grid-row: 3;
     display: flex;
     justify-content: space-around;
     align-items: flex-end;
     padding: 2.5mm 5mm 2mm;
     border-top: 1.5px solid #000;
     gap: 10mm;
+    /*  ارتفاع ثابت صغير */
+    max-height: 30mm;
+    overflow: hidden;
     /* ⭐ منع انتقاله لصفحة أخرى */
     page-break-inside: avoid;
     break-inside: avoid;
