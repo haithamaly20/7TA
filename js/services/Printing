@@ -1,0 +1,616 @@
+/* ============================================================
+   printing.js — نظام الطباعة الكامل
+   الإصدار 2.1.0
+   ------------------------------------------------------------
+   نظامان مستقلان تماماً — لا يشتركان في أي دالة:
+
+   1) printGeneralPlan(monthKey, days)
+      الخطة العامة — A4 أفقي
+      أسطر = أيام نشطة فقط | أعمدة = موجهون
+      ★ القاعدة الذهبية: اليوم يُنشأ فقط إذا كان فيه خطة واحدة على الأقل
+
+   2) printSupervisorPlan(supervisorId, monthKey, days)
+      الخطة الفردية لموجه واحد — A4 عمودي — بطاقات زيارة
+
+   3) printAllSupervisorPlans(monthKey, days)
+      كل الموجهين في نافذة واحدة بفواصل صفحات
+
+   ثوابت التصميم:
+   ✔ لا بيانات hardcoded — كل شيء من APP.storage
+   ✔ لا CSS يخفي صفوفاً — الصفوف الفارغة لا تُبنى أصلاً
+   ✔ الخطة العامة والفردية لا تشتركان في أي دالة أو متغير
+   ✔ المتصفح يفتح نافذة جديدة — لا تعارض مع واجهة التطبيق
+   ✔ رأس الأزهر الشريف + العام الدراسي ديناميكي
+   ============================================================ */
+
+window.APP = window.APP || {};
+
+APP.printing = (function () {
+
+  /* ============================================================
+     أدوات مساعدة داخلية — مستقلة عن APP.helpers
+     (ضمان عمل الطباعة حتى لو تأخر تحميل helpers.js)
+  ============================================================ */
+
+  const ARABIC_MONTHS = [
+    'يناير','فبراير','مارس','أبريل','مايو','يونيو',
+    'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'
+  ];
+
+  /** اسم الشهر بالعربية من "YYYY-MM" */
+  function monthName(monthKey) {
+    const m = parseInt(monthKey.split('-')[1], 10);
+    return ARABIC_MONTHS[m - 1] || '';
+  }
+
+  /** السنة الميلادية من "YYYY-MM" */
+  function monthYear(monthKey) {
+    return monthKey.split('-')[0];
+  }
+
+  /**
+   * العام الدراسي من شهر الخطة
+   * يوليو–ديسمبر → بداية عام دراسي جديد
+   * يناير–يونيو  → تابع للعام الدراسي السابق
+   * مثال: أكتوبر 2025 → "2025/2026م"
+   *        مارس 2026   → "2025/2026م"
+   */
+  function academicYear(monthKey) {
+    const [y, m] = monthKey.split('-').map(Number);
+    const start = (m >= 7) ? y : y - 1;
+    return start + '/' + (start + 1) + 'م';
+  }
+
+  /** Escape HTML لمنع XSS وكسر الـ HTML */
+  function esc(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /** فتح نافذة طباعة جديدة وكتابة HTML إليها */
+  function openPrintWindow(html) {
+    const win = window.open('', '_blank', 'width=1100,height=820,scrollbars=yes');
+    if (!win) {
+      if (window.APP && APP.ui && APP.ui.error) {
+        APP.ui.error(
+          'تعذّر فتح نافذة الطباعة',
+          'يرجى السماح بالنوافذ المنبثقة (Pop-ups) في المتصفح ثم المحاولة مرة أخرى'
+        );
+      } else {
+        alert('يرجى السماح بالنوافذ المنبثقة (Pop-ups) في المتصفح للتمكن من الطباعة.');
+      }
+      return;
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  }
+
+  /** إشعارات داخلية */
+  function warn(title, msg) {
+    if (window.APP && APP.ui && APP.ui.warning) APP.ui.warning(title, msg);
+    else console.warn('[printing]', title, msg);
+  }
+  function errNotify(title, msg) {
+    if (window.APP && APP.ui && APP.ui.error) APP.ui.error(title, msg);
+    else console.error('[printing]', title, msg);
+  }
+
+  /** رقم السجل الوظيفي مع دعم أسماء الحقول المختلفة */
+  function regNum(supervisor) {
+    return supervisor.registryNumber
+        || supervisor.registrationNumber
+        || supervisor.regNumber
+        || '';
+  }
+
+
+  /* ============================================================
+     ════════════════════════════════════════════════════════════
+     الجزء الأول — الخطة العامة (بيانات + HTML)
+     ════════════════════════════════════════════════════════════
+  ============================================================ */
+
+  /**
+   * buildGeneralPlanData
+   * ────────────────────
+   * يجمع البيانات من storage ويعيد بنية نقية — لا HTML هنا.
+   *
+   * ★ القاعدة الذهبية مُطبَّقة هنا:
+   *   يوم لا فيه أي خطة لأي موجه → لا يدخل rows إطلاقاً.
+   *
+   * @returns {{ supervisors, rows, monthKey }}
+   *   rows = [{ day, dowName, cells:{ supId → instName } }, ...]
+   */
+  function buildGeneralPlanData(monthKey, days) {
+    const storage     = APP.storage;
+    const plan        = storage.getMonthPlan(monthKey);
+    const supervisors = storage.listSupervisors().filter(s => s.status === 'active');
+    const workingDays = (days || []).filter(d => !d.isWeekend);
+
+    // ① اجمع أرقام الأيام التي فيها خطة لأي موجه
+    const activeDaySet = new Set();
+    supervisors.forEach(sup => {
+      const dayMap = plan[sup.id] || {};
+      Object.keys(dayMap).forEach(ds => {
+        const dn = Number(ds);
+        if (workingDays.some(d => d.day === dn)) activeDaySet.add(dn);
+      });
+    });
+
+    // ② رتّب تصاعدياً
+    const activeDays = [...activeDaySet].sort((a, b) => a - b);
+
+    // ③ ابنِ الصفوف
+    const rows = activeDays.map(dayNum => {
+      const dayInfo = workingDays.find(d => d.day === dayNum) || { dowName: '' };
+      const cells   = {};
+      supervisors.forEach(sup => {
+        const instId = (plan[sup.id] || {})[dayNum];
+        cells[sup.id] = instId ? (storage.getInstitute(instId) || {}).name || '' : '';
+      });
+      return { day: dayNum, dowName: dayInfo.dowName, cells };
+    });
+
+    return { supervisors, rows, monthKey };
+  }
+
+
+  /**
+   * renderGeneralPlanHTML
+   * ─────────────────────
+   * يأخذ البيانات ويعيد HTML كاملاً للطباعة — لا storage هنا.
+   */
+  function renderGeneralPlanHTML(data) {
+    const { supervisors, rows, monthKey } = data;
+    const month  = monthName(monthKey);
+    const year   = monthYear(monthKey);
+    const acYear = academicYear(monthKey);
+
+    const thCols = supervisors.map(s => {
+      const role = s.role ? `<br><small style="font-weight:400;font-size:8pt;">${esc(s.role)}</small>` : '';
+      return `<th>${esc(s.name)}${role}</th>`;
+    }).join('');
+
+    const tbRows = rows.map(row => {
+      const tds = supervisors.map(s => `<td>${esc(row.cells[s.id] || '')}</td>`).join('');
+      return `<tr>
+        <td class="day-col">${esc(row.dowName)}<br><span class="day-num">${row.day}</span></td>
+        ${tds}
+      </tr>`;
+    }).join('');
+
+    const emptyRow = rows.length === 0
+      ? `<tr><td colspan="${supervisors.length + 1}" style="text-align:center;padding:20px;color:#666;">
+           لا توجد خطط مسجلة لهذا الشهر
+         </td></tr>`
+      : '';
+
+    return `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>الخطة العامة — ${esc(month)} ${esc(year)}</title>
+<style>
+@page { size: A4 landscape; margin: 10mm 12mm; }
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:'Arial','Traditional Arabic','Simplified Arabic',sans-serif;
+  direction:rtl; color:#000; background:#fff;
+  font-size:11pt; line-height:1.5;
+}
+/* ─── رأس الصفحة ─── */
+.page-header {
+  text-align:center; border-bottom:2.5px solid #000;
+  padding-bottom:5mm; margin-bottom:4mm;
+}
+.bism    { font-size:9pt; color:#555; margin-bottom:1.5mm; }
+.org-1   { font-size:15pt; font-weight:800; margin-bottom:1.5mm; }
+.org-2   { font-size:11pt; font-weight:700; margin-bottom:3mm; }
+.title   { font-size:13.5pt; font-weight:800; margin-bottom:1.5mm; }
+.acyear  { font-size:11pt; font-weight:700; color:#222; }
+/* ─── جدول ─── */
+table { width:100%; border-collapse:collapse; table-layout:fixed; }
+th,td {
+  border:1px solid #111; padding:3.5px 3px;
+  text-align:center; font-size:9.5pt;
+  word-wrap:break-word; overflow-wrap:break-word; vertical-align:middle;
+}
+thead th {
+  background:#d8d8d8; font-weight:800;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+.day-col {
+  font-weight:700; white-space:nowrap;
+  width:50px; min-width:50px; background:#efefef;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+.day-col-hdr { width:50px; min-width:50px; }
+.day-num { font-size:10.5pt; font-weight:800; }
+tbody tr:nth-child(even) td {
+  background:#f8f8f8;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+thead { display:table-header-group; }
+tbody tr { page-break-inside:avoid; break-inside:avoid; }
+/* ─── تذييل ─── */
+.page-footer {
+  display:flex; justify-content:space-between;
+  margin-top:6mm; padding-top:3mm; border-top:1.5px solid #000;
+  font-weight:700; font-size:10pt;
+}
+.footer-item { text-align:center; flex:1; }
+@media print { body { margin:0; } }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="bism">بسم الله الرحمن الرحيم</div>
+  <div class="org-1">الأزهر الشريف</div>
+  <div class="org-2">الإدارة المركزية لمنطقة مطروح الأزهرية — إدارة الضبعة الأزهرية</div>
+  <div class="title">الخطة العامة لموجهي إدارة الضبعة الأزهرية</div>
+  <div class="title">لشهر ${esc(month)} ${esc(year)}</div>
+  <div class="acyear">للعام الدراسي ${esc(acYear)}</div>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th class="day-col-hdr">التاريخ</th>
+      ${thCols}
+    </tr>
+  </thead>
+  <tbody>
+    ${tbRows}
+    ${emptyRow}
+  </tbody>
+</table>
+
+<div class="page-footer">
+  <div class="footer-item">المختص</div>
+  <div class="footer-item">مدير إدارة الضبعة الأزهرية</div>
+  <div class="footer-item">التوجيه الفني</div>
+  <div class="footer-item">يعتمد / مدير الإدارة المركزية</div>
+</div>
+
+<script>
+  window.addEventListener('load', function(){ window.focus(); window.print(); });
+<\/script>
+</body>
+</html>`;
+  }
+
+
+  /* ============================================================
+     ════════════════════════════════════════════════════════════
+     الجزء الثاني — الخطة الفردية (بيانات + HTML)
+     ════════════════════════════════════════════════════════════
+  ============================================================ */
+
+  /**
+   * buildSupervisorPlanData
+   * ───────────────────────
+   * يجمع أيام موجه واحد النشطة فقط — لا HTML هنا.
+   * @returns {Array} [{ day, dowName, instName }, ...] — أيام نشطة فقط
+   */
+  function buildSupervisorPlanData(supervisorId, monthKey, days) {
+    const storage    = APP.storage;
+    const plan       = storage.getMonthPlan(monthKey);
+    const dayMap     = plan[supervisorId] || {};
+    const workingDays = (days || []).filter(d => !d.isWeekend);
+
+    return workingDays
+      .map(d => {
+        const instId  = dayMap[d.day];
+        const inst    = instId ? storage.getInstitute(instId) : null;
+        return { day: d.day, dowName: d.dowName, instName: inst ? inst.name : '' };
+      })
+      .filter(r => r.instName); // أيام نشطة فقط
+  }
+
+
+  /** CSS مشترك للخطط الفردية (يُستخدم في renderIndividualPlanHTML وprintAllSupervisorPlans) */
+  function individualCSS(cols, rowsN) {
+    // cols/rowsN تُمرَّر كـ inline style على .ind-visits-grid؛ هذا هو الـ CSS الأساسي
+    return `
+@page { size: A4 portrait; margin: 10mm; }
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:'Arial','Traditional Arabic','Simplified Arabic',sans-serif;
+  direction:rtl; color:#000; background:#fff;
+}
+.individual-plan {
+  width:100%; height:277mm;
+  display:grid; grid-template-rows:auto 1fr auto;
+  page-break-inside:avoid; break-inside:avoid; overflow:hidden;
+}
+.page-break { page-break-after:always; break-after:page; }
+/* ─── رأس ─── */
+.ind-header {
+  text-align:center; padding:3mm 2mm 2.5mm; border-bottom:2px solid #000;
+}
+.ind-bism       { font-size:9pt; color:#555; margin-bottom:1mm; }
+.ind-org-name   { font-size:17pt; font-weight:800; margin-bottom:1.5mm; }
+.ind-org-sub    { font-size:10.5pt; font-weight:700; margin-bottom:1.5mm; }
+.ind-plan-title { font-size:13.5pt; font-weight:800; margin-bottom:2mm; }
+.ind-separator  { height:1px; background:#000; margin:1.5mm 12%; opacity:.35; }
+.ind-sup-info   {
+  display:flex; justify-content:center; gap:8mm; flex-wrap:wrap;
+  font-size:11.5pt; font-weight:600; margin-top:2mm;
+}
+.ind-info-item strong { font-weight:800; margin-left:1mm; }
+/* ─── شبكة البطاقات ─── */
+.ind-visits-grid {
+  display:grid; gap:2mm; padding:2mm 1mm;
+  overflow:hidden; align-content:start;
+}
+.ind-empty {
+  display:flex; align-items:center; justify-content:center;
+  font-size:13pt; color:#555; padding:15mm; grid-column:1/-1;
+}
+/* ─── بطاقة الزيارة ─── */
+.ind-visit-box {
+  border:1.5px solid #000; border-radius:2px;
+  display:grid; grid-template-rows:auto 1fr auto;
+  background:#fff; overflow:hidden;
+  page-break-inside:avoid; break-inside:avoid;
+}
+.box-top {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:1mm 2mm; border-bottom:1px solid #000;
+  background:#efefef;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+.box-day  { font-size:10.5pt; font-weight:800; }
+.box-date { font-size:11pt;   font-weight:800; }
+.box-school {
+  text-align:center; font-size:10.5pt; font-weight:700;
+  padding:2mm 1.5mm; line-height:1.4; word-break:break-word;
+  display:flex; align-items:center; justify-content:center;
+}
+.box-stamp { border-top:1px dashed #aaa; min-height:9mm; }
+/* ─── تذييل ─── */
+.ind-footer {
+  display:flex; justify-content:space-around; align-items:flex-end;
+  padding:2.5mm 5mm 2mm; border-top:2px solid #000; gap:5mm;
+  page-break-inside:avoid; break-inside:avoid;
+}
+.ind-sign-block { flex:1; text-align:center; max-width:65mm; }
+.ind-sign-title { font-size:11pt; font-weight:800; margin-bottom:5mm; }
+.ind-sign-line  { border-bottom:1.5px solid #000; margin:0 5mm 2mm; }
+.ind-sign-label { font-size:9pt; font-weight:600; color:#333; }
+@media print { body { margin:0; } }`;
+  }
+
+
+  /**
+   * buildVisitBoxesHTML
+   * ───────────────────
+   * يبني HTML بطاقات الزيارة من مصفوفة الصفوف
+   */
+  function buildVisitBoxesHTML(rows) {
+    if (!rows.length) {
+      return `<div class="ind-empty">لا توجد زيارات مسجلة لهذا الشهر</div>`;
+    }
+    return rows.map(r => `
+      <div class="ind-visit-box">
+        <div class="box-top">
+          <span class="box-day">${esc(r.dowName)}</span>
+          <span class="box-date">${r.day}</span>
+        </div>
+        <div class="box-school">${esc(r.instName)}</div>
+        <div class="box-stamp"></div>
+      </div>`).join('');
+  }
+
+
+  /**
+   * buildIndividualHeader
+   * ─────────────────────
+   * رأس صفحة الخطة الفردية (مشترك بين الفردية والكل)
+   */
+  function buildIndividualHeader(supervisor, monthKey) {
+    const month  = monthName(monthKey);
+    const year   = monthYear(monthKey);
+    const acYear = academicYear(monthKey);
+    const rn     = regNum(supervisor);
+    return `
+    <div class="ind-header">
+      <div class="ind-bism">بسم الله الرحمن الرحيم</div>
+      <div class="ind-org-name">الأزهر الشريف</div>
+      <div class="ind-org-sub">الإدارة المركزية لمنطقة مطروح الأزهرية — إدارة الضبعة الأزهرية</div>
+      <div class="ind-plan-title">خطة متابعة الموجه الشهرية</div>
+      <div class="ind-separator"></div>
+      <div class="ind-sup-info">
+        <span class="ind-info-item"><strong>اسم الموجه:</strong>${esc(supervisor.name)}</span>
+        ${rn ? `<span class="ind-info-item"><strong>رقم السجل:</strong>${esc(rn)}</span>` : ''}
+        <span class="ind-info-item"><strong>شهر:</strong>${esc(month)} ${esc(year)}</span>
+        <span class="ind-info-item"><strong>العام الدراسي:</strong>${esc(acYear)}</span>
+      </div>
+    </div>`;
+  }
+
+
+  /**
+   * buildIndividualFooter
+   * ─────────────────────
+   * تذييل صفحة الخطة الفردية (مشترك)
+   */
+  function buildIndividualFooter(supervisor) {
+    return `
+    <div class="ind-footer">
+      <div class="ind-sign-block">
+        <div class="ind-sign-title">المختص / إعداد</div>
+        <div class="ind-sign-line"></div>
+        <div class="ind-sign-label">${esc(supervisor.name)}</div>
+      </div>
+      <div class="ind-sign-block">
+        <div class="ind-sign-title">يعتمد / مدير الإدارة</div>
+        <div class="ind-sign-line"></div>
+        <div class="ind-sign-label"></div>
+      </div>
+      <div class="ind-sign-block">
+        <div class="ind-sign-title">التوجيه الفني</div>
+        <div class="ind-sign-line"></div>
+        <div class="ind-sign-label"></div>
+      </div>
+    </div>`;
+  }
+
+
+  /**
+   * renderIndividualPlanHTML
+   * ─────────────────────────
+   * يبني HTML خطة موجه واحد — A4 عمودي.
+   * لا storage مباشرة — تستقبل البيانات جاهزة.
+   */
+  function renderIndividualPlanHTML(supervisor, rows, monthKey) {
+    const total = rows.length;
+    const cols  = total <= 15 ? 3 : 4;
+    const rowsN = Math.ceil(total / cols) || 1;
+
+    return `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>خطة ${esc(supervisor.name)} — ${esc(monthName(monthKey))} ${esc(monthYear(monthKey))}</title>
+<style>${individualCSS(cols, rowsN)}</style>
+</head>
+<body>
+  <div class="individual-plan">
+    ${buildIndividualHeader(supervisor, monthKey)}
+    <div class="ind-visits-grid"
+         style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rowsN},1fr);">
+      ${buildVisitBoxesHTML(rows)}
+    </div>
+    ${buildIndividualFooter(supervisor)}
+  </div>
+<script>
+  window.addEventListener('load', function(){ window.focus(); window.print(); });
+<\/script>
+</body>
+</html>`;
+  }
+
+
+  /* ============================================================
+     ════════════════════════════════════════════════════════════
+     الواجهة العامة — الدوال الثلاث التي يستدعيها reports.js
+     ════════════════════════════════════════════════════════════
+  ============================================================ */
+
+  /**
+   * printGeneralPlan
+   * ─────────────────
+   * طباعة الخطة العامة لجميع الموجهين — A4 أفقي.
+   *
+   * @param {string} monthKey  مثال: "2025-10"
+   * @param {Array}  days      من h.getMonthDays() — تشمل أيام العطلة
+   */
+  function printGeneralPlan(monthKey, days) {
+    const supervisors = APP.storage.listSupervisors().filter(s => s.status === 'active');
+    if (!supervisors.length) {
+      warn('لا يوجد موجهون نشطون', 'يرجى إضافة موجهين وتفعيلهم أولاً');
+      return;
+    }
+
+    const data = buildGeneralPlanData(monthKey, days);
+    if (!data.rows.length) {
+      warn('لا توجد خطط مسجلة', 'لم تُسجَّل أي زيارات لهذا الشهر بعد');
+      return;
+    }
+
+    openPrintWindow(renderGeneralPlanHTML(data));
+  }
+
+
+  /**
+   * printSupervisorPlan
+   * ────────────────────
+   * طباعة الخطة الفردية لموجه واحد — A4 عمودي.
+   *
+   * @param {string} supervisorId
+   * @param {string} monthKey
+   * @param {Array}  days
+   */
+  function printSupervisorPlan(supervisorId, monthKey, days) {
+    const supervisor = APP.storage.getSupervisor(supervisorId);
+    if (!supervisor) {
+      errNotify('موجه غير موجود', 'تعذّر العثور على بيانات الموجه المحدد');
+      return;
+    }
+
+    const rows = buildSupervisorPlanData(supervisorId, monthKey, days);
+    // نطبع حتى لو فارغة — ستظهر رسالة "لا توجد زيارات" داخل الصفحة
+    openPrintWindow(renderIndividualPlanHTML(supervisor, rows, monthKey));
+  }
+
+
+  /**
+   * printAllSupervisorPlans
+   * ─────────────────────────
+   * طباعة خطط جميع الموجهين النشطين — نافذة واحدة، كل موجه صفحة A4 عمودية.
+   *
+   * @param {string} monthKey
+   * @param {Array}  days
+   */
+  function printAllSupervisorPlans(monthKey, days) {
+    const supervisors = APP.storage.listSupervisors().filter(s => s.status === 'active');
+    if (!supervisors.length) {
+      warn('لا يوجد موجهون نشطون', 'يرجى إضافة موجهين وتفعيلهم أولاً');
+      return;
+    }
+
+    const month  = monthName(monthKey);
+    const year   = monthYear(monthKey);
+
+    const pages = supervisors.map((sup, idx) => {
+      const rows  = buildSupervisorPlanData(sup.id, monthKey, days);
+      const total = rows.length;
+      const cols  = total <= 15 ? 3 : 4;
+      const rowsN = Math.ceil(total / cols) || 1;
+      const isLast = idx === supervisors.length - 1;
+
+      return `
+      <div class="individual-plan${isLast ? '' : ' page-break'}">
+        ${buildIndividualHeader(sup, monthKey)}
+        <div class="ind-visits-grid"
+             style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rowsN},1fr);">
+          ${buildVisitBoxesHTML(rows)}
+        </div>
+        ${buildIndividualFooter(sup)}
+      </div>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>خطط جميع الموجهين — ${esc(month)} ${esc(year)}</title>
+<style>${individualCSS()}</style>
+</head>
+<body>
+  ${pages}
+<script>
+  window.addEventListener('load', function(){ window.focus(); window.print(); });
+<\/script>
+</body>
+</html>`;
+
+    openPrintWindow(html);
+  }
+
+
+  /* ── تصدير الواجهة العامة ── */
+  return {
+    printGeneralPlan,
+    printSupervisorPlan,
+    printAllSupervisorPlans
+  };
+
+})();
