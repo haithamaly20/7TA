@@ -639,12 +639,17 @@
         </div>
 
         <div id="settingsTab" class="tab-content">
-            <div class="sheets-setup" style="margin-bottom:20px;">
-                <label for="sheetsApiUrl">رابط Google Apps Script (اختياري):</label>
-                <input type="text" id="sheetsApiUrl" placeholder="الصق الرابط هنا">
-                <button onclick="showSetupInstructions()" class="btn btn-primary" style="width:100%;margin-top:8px;"><span class="ui-icon" data-icon="book" aria-hidden="true"></span> تعليمات الإعداد</button>
+            <div class="sheets-setup" style="margin-bottom:20px; background:#e8f5e9; border-color:#4caf50;">
+                <label for="sheetsApiUrl" style="color:#2e7d32;">رابط Google Apps Script (مثبت تلقائياً):</label>
+                <input type="text" id="sheetsApiUrl" readonly style="background:#f0fff0; color:#2e7d32; font-size:12px; cursor:default;">
+                <p style="color:#388e3c; font-size:13px; margin:6px 0 0;">✅ الرابط مثبت في النظام — لا حاجة لأي إعداد إضافي. التطبيق متصل بالشبكة دائماً.</p>
+                <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+                    <button id="btnSyncFromNet" onclick="refreshSupervisorsFromNetwork()" class="btn btn-success" style="flex:1;"><span class="ui-icon" data-icon="refresh" aria-hidden="true"></span> تحديث بيانات الموجهين من الشبكة</button>
+                    <button onclick="showSetupInstructions()" class="btn btn-secondary" style="flex:1;"><span class="ui-icon" data-icon="book" aria-hidden="true"></span> تعليمات الإعداد</button>
+                </div>
+                <p id="lastSyncInfo" style="color:#666; font-size:12px; margin-top:8px;"></p>
             </div>
-            <button id="btnSync" class="btn btn-success" style="width: 100%; margin-bottom: 20px;"><span class="ui-icon" data-icon="upload" aria-hidden="true"></span> رفع إلى Google Sheets</button>
+            <button id="btnSync" class="btn btn-success" style="width: 100%; margin-bottom: 20px;"><span class="ui-icon" data-icon="upload" aria-hidden="true"></span> رفع الخطة إلى Google Sheets</button>
             <div class="pwa-box">
                 <strong><span class="ui-icon" data-icon="download" aria-hidden="true"></span> نسخة التطبيق PWA</strong>
                 <div id="pwaStatus" class="offline-badge">جاري فحص حالة الاتصال والتثبيت...</div>
@@ -957,6 +962,36 @@
 
         function initDashboard() {
             loadSupervisorsOverrides();
+
+            // عرض آخر وقت تحديث للموجهين
+            const ts = localStorage.getItem(REMOTE_SUPERVISORS_TS);
+            const infoEl = document.getElementById('lastSyncInfo');
+            if (infoEl && ts) {
+                infoEl.textContent = 'آخر مزامنة للموجهين: ' + new Date(ts).toLocaleString('ar-EG');
+            }
+
+            // جلب بيانات الموجهين من الشبكة في الخلفية (إذا لم تُجلب من قبل)
+            const hasCache = !!localStorage.getItem(REMOTE_SUPERVISORS_KEY);
+            if (!hasCache) {
+                // جلب أول مرة: نطبق البيانات ثم نُعيد رسم الجدول
+                fetchSupervisorsFromSheets(false).then(result => {
+                    if (result.ok && result.source === 'network') {
+                        renderTable();
+                        updateOtherTabs();
+                        if (infoEl) {
+                            const ts2 = localStorage.getItem(REMOTE_SUPERVISORS_TS);
+                            infoEl.textContent = 'آخر مزامنة للموجهين: ' + (ts2 ? new Date(ts2).toLocaleString('ar-EG') : '');
+                        }
+                    }
+                });
+            } else {
+                // البيانات موجودة محلياً — طبّقها بهدوء (بدون loading overlay)
+                try {
+                    const cached = localStorage.getItem(REMOTE_SUPERVISORS_KEY);
+                    if (cached) applySupervisorsFromRemote(JSON.parse(cached));
+                } catch(e) {}
+            }
+
             const monthSelect = document.getElementById('monthSelect');
             const yearSelect = document.getElementById('yearSelect');
 
@@ -1527,6 +1562,15 @@
             document.querySelectorAll('.inst-checkbox:checked').forEach(cb => assigned.push(cb.value));
             sup.assignedInstitutes = assigned;
             saveSupervisorsOverrides();
+            // تحديث نسخة الكاش المحلية
+            try {
+                const remoteCache = SUPERVISORS.map(s=>({
+                    id: s.id, name: s.name, specialty: s.specialty,
+                    recordNumber: s.recordNumber||'', allowedAdmins: s.allowedAdmins,
+                    workDays: s.workDays||[0,1,2,3,4], assignedInstitutes: s.assignedInstitutes||[]
+                }));
+                localStorage.setItem(REMOTE_SUPERVISORS_KEY, JSON.stringify(remoteCache));
+            } catch(e) {}
             closeSupervisorModal();
             renderTable();
             updateOtherTabs();
@@ -1919,15 +1963,97 @@
             setTimeout(() => { iframe.contentWindow.print(); setTimeout(() => document.body.removeChild(iframe), 1000); }, 200);
         }
 
-        let SHEETS_API_URL = localStorage.getItem('sheets_api_url') || '';
+        // ---- رابط Google Apps Script ثابت ----
+        const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxKfFXMasn8LPgyCBfHKXxoDJH-qcnL52oApaZg6ga8MWP04I6lZPGwcB1sVXTBxec_/exec';
+
         function initGoogleSheets() {
+            // عرض الرابط في الإعدادات للمرجعية فقط
             const apiInput = document.getElementById('sheetsApiUrl');
             if (apiInput) {
                 apiInput.value = SHEETS_API_URL;
-                apiInput.addEventListener('change', () => {
-                    SHEETS_API_URL = apiInput.value.trim();
-                    localStorage.setItem('sheets_api_url', SHEETS_API_URL);
-                });
+                apiInput.readOnly = true;
+                apiInput.style.background = '#f0f7ff';
+                apiInput.style.color = '#555';
+                apiInput.title = 'الرابط مثبت في النظام ولا يحتاج تعديل';
+            }
+        }
+
+        // ---- جلب بيانات الموجهين من Google Sheets وحفظها محلياً ----
+        const REMOTE_SUPERVISORS_KEY = 'dabaa_remote_supervisors_v1';
+        const REMOTE_SUPERVISORS_TS  = 'dabaa_remote_supervisors_ts';
+
+        async function fetchSupervisorsFromSheets(forceRefresh) {
+            // إذا كانت البيانات محفوظة محلياً وليس طلب تحديث إجباري → استخدمها مباشرة
+            const cached = localStorage.getItem(REMOTE_SUPERVISORS_KEY);
+            if (cached && !forceRefresh) {
+                try {
+                    const data = JSON.parse(cached);
+                    if (Array.isArray(data) && data.length > 0) {
+                        applySupervisorsFromRemote(data);
+                        return { ok: true, source: 'cache' };
+                    }
+                } catch(e) {}
+            }
+
+            // جلب من الشبكة
+            try {
+                showLoading('جاري جلب بيانات الموجهين من الشبكة...');
+                const resp = await fetch(SHEETS_API_URL + '?action=read&type=supervisors', { method: 'GET' });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const json = await resp.json();
+                hideLoading();
+
+                // يتوقع الـ API أن يرجع { ok: true, records: [...] } أو { ok: true, data: [...] }
+                const records = json.records || json.data || json.supervisors || [];
+                if (Array.isArray(records) && records.length > 0) {
+                    localStorage.setItem(REMOTE_SUPERVISORS_KEY, JSON.stringify(records));
+                    localStorage.setItem(REMOTE_SUPERVISORS_TS, new Date().toISOString());
+                    applySupervisorsFromRemote(records);
+                    return { ok: true, source: 'network' };
+                }
+                return { ok: false, reason: 'empty' };
+            } catch(e) {
+                hideLoading();
+                console.warn('fetchSupervisorsFromSheets:', e.message);
+                return { ok: false, reason: e.message };
+            }
+        }
+
+        // تطبيق بيانات الموجهين القادمة من الشبكة على مصفوفة SUPERVISORS
+        function applySupervisorsFromRemote(records) {
+            // records: مصفوفة من كائنات { id, name, specialty, recordNumber, allowedAdmins, workDays, assignedInstitutes }
+            // نقوم بدمجها مع overrides المحلية (الأولوية للشبكة للحقول الأساسية فقط)
+            for (const rec of records) {
+                const sup = SUPERVISORS.find(s => s.id === rec.id);
+                if (sup) {
+                    if (rec.name)        sup.name        = rec.name;
+                    if (rec.specialty)   sup.specialty   = rec.specialty;
+                    if (rec.recordNumber !== undefined) sup.recordNumber = rec.recordNumber || '';
+                    if (Array.isArray(rec.allowedAdmins) && rec.allowedAdmins.length)
+                        sup.allowedAdmins = rec.allowedAdmins;
+                    if (Array.isArray(rec.workDays) && rec.workDays.length)
+                        sup.workDays = rec.workDays;
+                    if (Array.isArray(rec.assignedInstitutes))
+                        sup.assignedInstitutes = rec.assignedInstitutes.map(normalizeInstituteName).filter(Boolean);
+                }
+            }
+            // حفظ التحديث كـ overrides محلية حتى تستمر بعد إعادة التحميل
+            saveSupervisorsOverrides();
+        }
+
+        async function refreshSupervisorsFromNetwork() {
+            showLoading('جاري تحديث بيانات الموجهين...');
+            const result = await fetchSupervisorsFromSheets(true);
+            hideLoading();
+            if (result.ok) {
+                renderTable();
+                updateOtherTabs();
+                renderManagementTab();
+                const ts = localStorage.getItem(REMOTE_SUPERVISORS_TS);
+                const tsStr = ts ? new Date(ts).toLocaleString('ar-EG') : '';
+                alert('✅ تم تحديث بيانات الموجهين من الشبكة بنجاح!\n' + (tsStr ? 'وقت التحديث: ' + tsStr : ''));
+            } else {
+                alert('تعذر جلب البيانات من الشبكة:\n' + (result.reason || 'خطأ غير معروف') + '\n\nسيتم الاستمرار بالبيانات المحلية المحفوظة.');
             }
         }
 
@@ -2702,14 +2828,22 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                     <td><button class="btn btn-danger" onclick="removeInstituteRow(this)"><span class="ui-icon" data-icon="trash"></span></button></td>
                 </tr>`)).join('')}</tbody></table>`;
         }
-        function saveManagementSupervisors(){
+        async function saveManagementSupervisors(){
             document.querySelectorAll('#manageSupervisors tbody tr').forEach(row=>{
                 const s=SUPERVISORS.find(x=>x.id===row.dataset.sid); if(!s) return;
                 s.name=row.querySelector('[data-field="name"]').value.trim()||s.name;
                 s.specialty=row.querySelector('[data-field="specialty"]').value.trim();
                 s.recordNumber=row.querySelector('[data-field="record"]').value.trim();
             });
-            saveSupervisorsOverrides(); renderTable(); updateOtherTabs(); renderManagementTab();
+            saveSupervisorsOverrides();
+            // تحديث نسخة الكاش المحلية بالبيانات الجديدة
+            const remoteCache = SUPERVISORS.map(s=>({
+                id: s.id, name: s.name, specialty: s.specialty,
+                recordNumber: s.recordNumber||'', allowedAdmins: s.allowedAdmins,
+                workDays: s.workDays||[0,1,2,3,4], assignedInstitutes: s.assignedInstitutes||[]
+            }));
+            localStorage.setItem(REMOTE_SUPERVISORS_KEY, JSON.stringify(remoteCache));
+            renderTable(); updateOtherTabs(); renderManagementTab();
             alert('تم حفظ بيانات الموجهين');
         }
         function addInstituteRow(){
