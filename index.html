@@ -541,7 +541,10 @@
         <div class="app-header">
             <h1><span class="ui-icon" data-icon="clipboard" aria-hidden="true"></span> الخطة العامة لموجهي إدارة الضبعة</h1>
             <p>نظام إدارة الزيارات الإشرافية</p>
-            <div class="current-month-badge" id="activeMonthBadge"><span class="ui-icon" data-icon="calendar" aria-hidden="true"></span> <span id="activeMonthLabel">—</span></div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:8px;">
+                <div class="current-month-badge" id="activeMonthBadge"><span class="ui-icon" data-icon="calendar" aria-hidden="true"></span> <span id="activeMonthLabel">—</span></div>
+                <span id="syncIndicator" class="sync-badge" style="display:none;"></span>
+            </div>
         </div>
 
         <div class="tabs">
@@ -580,9 +583,10 @@
                 <div class="legend-item"><div class="legend-color hamam"></div><span>إدارة الحمام</span></div>
             </div>
 
-            <p style="text-align:center; color:#666; font-size:13px; margin-bottom:10px;">
+            <p style="text-align:center; color:#666; font-size:13px; margin-bottom:6px;">
                 <span class="ui-icon" data-icon="bulb" aria-hidden="true"></span> تعديل بيانات الموجهين والمعاهد يتم من تبويب <strong>إدارة الموجهين والمعاهد</strong> فقط.
             </p>
+            <p id="planSyncStatus" style="text-align:center;color:#888;font-size:12px;margin-bottom:10px;"></p>
 
             <h2 id="planTitle"></h2>
             <div id="planTableContainer"></div>
@@ -644,12 +648,13 @@
                 <input type="text" id="sheetsApiUrl" readonly style="background:#f0fff0; color:#2e7d32; font-size:12px; cursor:default;">
                 <p style="color:#388e3c; font-size:13px; margin:6px 0 0;">✅ الرابط مثبت في النظام — لا حاجة لأي إعداد إضافي. التطبيق متصل بالشبكة دائماً.</p>
                 <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
-                    <button id="btnSyncFromNet" onclick="refreshSupervisorsFromNetwork()" class="btn btn-success" style="flex:1;"><span class="ui-icon" data-icon="refresh" aria-hidden="true"></span> تحديث بيانات الموجهين من الشبكة</button>
+                    <button onclick="fetchPlanFromSheets()" class="btn btn-primary" style="flex:1;"><span class="ui-icon" data-icon="refresh" aria-hidden="true"></span> جلب الخطة من الشبكة الآن</button>
+                    <button id="btnSyncFromNet" onclick="refreshSupervisorsFromNetwork()" class="btn btn-success" style="flex:1;"><span class="ui-icon" data-icon="refresh" aria-hidden="true"></span> تحديث بيانات الموجهين</button>
                     <button onclick="showSetupInstructions()" class="btn btn-secondary" style="flex:1;"><span class="ui-icon" data-icon="book" aria-hidden="true"></span> تعليمات الإعداد</button>
                 </div>
                 <p id="lastSyncInfo" style="color:#666; font-size:12px; margin-top:8px;"></p>
             </div>
-            <button id="btnSync" class="btn btn-success" style="width: 100%; margin-bottom: 20px;"><span class="ui-icon" data-icon="upload" aria-hidden="true"></span> رفع الخطة إلى Google Sheets</button>
+            <button id="btnSync" class="btn btn-success" style="width: 100%; margin-bottom: 20px;"><span class="ui-icon" data-icon="upload" aria-hidden="true"></span> رفع الخطة يدوياً إلى Google Sheets</button>
             <div class="pwa-box">
                 <strong><span class="ui-icon" data-icon="download" aria-hidden="true"></span> نسخة التطبيق PWA</strong>
                 <div id="pwaStatus" class="offline-badge">جاري فحص حالة الاتصال والتثبيت...</div>
@@ -1018,15 +1023,21 @@
             loadPlan();
             renderTable();
             updateTitle();
+            updateSyncStatus();
+            // جلب الخطة من Sheets عند فتح التطبيق
+            fetchPlanFromSheets();
         }
 
         function onMonthYearChange() {
             currentMonth = parseInt(document.getElementById('monthSelect').value);
             currentYear = parseInt(document.getElementById('yearSelect').value);
             loadPlan(); renderTable(); updateTitle();
+            updateSyncStatus();
             try { ArchiveUI.updateBadge(); } catch(e) {}
             const singleTab = document.getElementById('singleTab');
             if (singleTab && singleTab.classList.contains('active') && typeof renderSinglePlan === 'function') renderSinglePlan();
+            // جلب خطة الشهر الجديد من Sheets
+            fetchPlanFromSheets();
         }
 
         function updateTitle() {
@@ -1044,8 +1055,130 @@
             normalizePlanInstitutes(currentPlan);
             normalizeSupervisorInstitutes();
             localStorage.setItem(getStorageKey(), JSON.stringify(currentPlan));
-            // حفظ تلقائي في سجل الأشهر (لا يُعطل الوظيفة الأصلية)
+            // حفظ تلقائي في سجل الأشهر
             try { MonthlyArchive.saveCurrentMonth(); } catch(e) {}
+            // رفع تلقائي للخطة إلى Google Sheets (بدون انتظار — في الخلفية)
+            schedulePlanSync();
+        }
+
+        // ---- رفع الخطة تلقائياً بعد كل تعديل (debounce 2 ثانية) ----
+        let _planSyncTimer = null;
+        function schedulePlanSync() {
+            if (_planSyncTimer) clearTimeout(_planSyncTimer);
+            _planSyncTimer = setTimeout(() => {
+                _planSyncTimer = null;
+                pushPlanToSheets().catch(e => console.warn('auto-sync plan:', e.message));
+            }, 2000);
+        }
+
+        // رفع خطة الشهر الحالي فقط إلى Sheets (صامت — بدون alert)
+        async function pushPlanToSheets() {
+            if (!navigator.onLine) return;
+            try {
+                setSyncIndicator('syncing');
+                const planRows = getWorkingDays(currentMonth, currentYear).map(day => {
+                    const assignment = {};
+                    SUPERVISORS.forEach(s => {
+                        assignment[s.name] = (currentPlan[day.date] && currentPlan[day.date][s.id]) || '';
+                    });
+                    return {
+                        id: 'plan_' + day.date,
+                        type: 'plans',
+                        data: {
+                            date: day.date,
+                            dayName: day.dayName,
+                            dayNumber: day.dayNumber,
+                            month: MONTHS_AR[currentMonth - 1],
+                            year: currentYear,
+                            assignment: assignment
+                        }
+                    };
+                });
+                await bulkSyncType('plans', planRows);
+                setSyncIndicator('ok');
+                // تحديث وقت آخر رفع
+                const now = new Date().toISOString();
+                localStorage.setItem('dabaa_plan_last_push_' + currentYear + '_' + currentMonth, now);
+                updateSyncStatus();
+            } catch(e) {
+                setSyncIndicator('error');
+                console.warn('pushPlanToSheets error:', e.message);
+            }
+        }
+
+        // ---- جلب الخطة من Sheets عند فتح التطبيق ----
+        async function fetchPlanFromSheets() {
+            if (!navigator.onLine) return;
+            try {
+                setSyncIndicator('syncing');
+                const resp = await fetch(
+                    SHEETS_API_URL + '?action=read&type=plans&month=' +
+                    encodeURIComponent(MONTHS_AR[currentMonth - 1]) + '&year=' + currentYear,
+                    { method: 'GET' }
+                );
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const json = await resp.json();
+                const records = json.records || json.data || json.plans || [];
+                if (!Array.isArray(records) || records.length === 0) {
+                    setSyncIndicator('ok');
+                    return;
+                }
+                // بناء currentPlan من السجلات
+                const remotePlan = {};
+                for (const rec of records) {
+                    const d = rec.data || rec;
+                    if (!d.date || !d.assignment) continue;
+                    const dayPlan = {};
+                    for (const sup of SUPERVISORS) {
+                        const val = d.assignment[sup.name];
+                        if (val) dayPlan[sup.id] = normalizeInstituteName(val);
+                    }
+                    if (Object.keys(dayPlan).length > 0) remotePlan[d.date] = dayPlan;
+                }
+                if (Object.keys(remotePlan).length > 0) {
+                    currentPlan = remotePlan;
+                    normalizePlanInstitutes(currentPlan);
+                    localStorage.setItem(getStorageKey(), JSON.stringify(currentPlan));
+                    try { MonthlyArchive.saveCurrentMonth(); } catch(e) {}
+                    renderTable();
+                    updateOtherTabs();
+                }
+                setSyncIndicator('ok');
+                const now = new Date().toISOString();
+                localStorage.setItem('dabaa_plan_last_fetch_' + currentYear + '_' + currentMonth, now);
+                updateSyncStatus();
+            } catch(e) {
+                setSyncIndicator('error');
+                console.warn('fetchPlanFromSheets:', e.message);
+            }
+        }
+
+        // ---- مؤشر حالة المزامنة ----
+        function setSyncIndicator(state) {
+            const el = document.getElementById('syncIndicator');
+            if (!el) return;
+            const map = {
+                syncing: { text: '🔄 جاري المزامنة...', cls: 'sync-syncing' },
+                ok:      { text: '✅ تمت المزامنة',     cls: 'sync-ok' },
+                error:   { text: '⚠️ تعذرت المزامنة',   cls: 'sync-error' },
+                offline: { text: '📴 غير متصل',         cls: 'sync-offline' }
+            };
+            const s = map[state] || map.ok;
+            el.textContent = s.text;
+            el.className = 'sync-badge ' + s.cls;
+            el.style.display = 'inline-flex';
+            if (state === 'ok') setTimeout(() => { if (el.className.includes('sync-ok')) el.style.display = 'none'; }, 4000);
+        }
+
+        function updateSyncStatus() {
+            const pushKey = 'dabaa_plan_last_push_' + currentYear + '_' + currentMonth;
+            const fetchKey = 'dabaa_plan_last_fetch_' + currentYear + '_' + currentMonth;
+            const el = document.getElementById('planSyncStatus');
+            if (!el) return;
+            const push  = localStorage.getItem(pushKey);
+            const fetch = localStorage.getItem(fetchKey);
+            const fmt = ts => ts ? new Date(ts).toLocaleString('ar-EG') : '—';
+            el.innerHTML = `آخر رفع: <b>${fmt(push)}</b> &nbsp;|&nbsp; آخر جلب: <b>${fmt(fetch)}</b>`;
         }
 
         function migrateInstituteNamesOnce() {
@@ -2230,6 +2363,11 @@ Who has access: Anyone
         .offline-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700; margin-top:8px; background:#eef2f7; color:#56616f; }
         .offline-badge.online { background:#e7f8ee; color:#16723a; }
         .offline-badge.offline { background:#fff4c7; color:#8a5a00; }
+        .sync-badge { display:inline-flex; align-items:center; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700; }
+        .sync-syncing { background:#e3f2fd; color:#1565c0; }
+        .sync-ok      { background:#e8f5e9; color:#2e7d32; }
+        .sync-error   { background:#fff3e0; color:#e65100; }
+        .sync-offline { background:#f5f5f5; color:#757575; }
         @media (max-width: 900px) { .manage-grid { grid-template-columns:1fr; } }
         @media print { .manage-panel,.pwa-box { display:none !important; } }
 
@@ -2895,7 +3033,9 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 status.textContent=online?'متصل بالإنترنت — التطبيق جاهز للعمل':'وضع عدم الاتصال — البيانات المحلية متاحة';
                 status.className='offline-badge '+(online?'online':'offline');
             };
-            update(); window.addEventListener('online',update); window.addEventListener('offline',update);
+            update();
+            window.addEventListener('online', () => { update(); fetchPlanFromSheets(); });
+            window.addEventListener('offline', () => { update(); setSyncIndicator('offline'); });
             if('serviceWorker' in navigator){
                 navigator.serviceWorker.register('./sw.js').then(()=>update()).catch(e=>console.warn('SW registration failed',e));
             }
