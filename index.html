@@ -1868,8 +1868,8 @@
                 ${activeDays.map(day => `
                     <tr style="height:${rowHeightMM}mm;">
                         <td class="date-cell" style="padding:${cellPadV}px 2px;white-space:nowrap;">
+                            <span style="font-size:${dayNumSize}px;font-weight:bold;color:#2c5f8d;white-space:nowrap;">${day.dayNumber} </span>
                             <div class="day-name" style="font-size:${dayNameSize}px;display:inline;white-space:nowrap;">${day.dayName}</div>
-                            <span style="font-size:${dayNumSize}px;font-weight:bold;color:#2c5f8d;white-space:nowrap;"> ${day.dayNumber}</span>
                         </td>
                         ${sups.map(s => `<td style="font-size:${fontSize}px;padding:${cellPadV}px 3px;">${formatGeneralPrintInstituteName(currentPlan[day.date] && currentPlan[day.date][s.id])}</td>`).join('')}
                     </tr>
@@ -1907,7 +1907,7 @@
         th, td { border: 1px solid #333; text-align: center; vertical-align: middle; word-wrap: break-word; overflow: hidden; }
         th { background-color: #2c5f8d; color: white; }
         .spec { opacity: 0.88; }
-        .date-col { width: 50px; background-color: #f0f0f0; }
+        .date-col { width: 78px; background-color: #f0f0f0; }
         .date-cell { background-color: #f9f9f9; }
         .day-name { font-weight: bold; }
         .day-num  { font-weight: bold; }
