@@ -1273,6 +1273,17 @@
             container.appendChild(table);
         }
 
+        // حساب عدد مرات زيارة كل معهد لموجه معين في الشهر الحالي (باستثناء يوم بعينه)
+        function countInstituteVisits(supervisorId, excludeDay) {
+            const counts = {};
+            Object.entries(currentPlan).forEach(([d, dayPlan]) => {
+                if (d === excludeDay) return;
+                const val = dayPlan[supervisorId];
+                if (val) counts[val] = (counts[val] || 0) + 1;
+            });
+            return counts;
+        }
+
         function buildSelect(day, supervisorId) {
             const select = document.createElement('select');
             select.dataset.day = day;
@@ -1296,20 +1307,23 @@
             ];
 
             const allowedGroups = allAdminGroups.filter(group => allowedAdmins.includes(group.admin));
-
             const currentValue = (currentPlan[day] && currentPlan[day][supervisorId]) || '';
+
+            // عداد الزيارات السابقة لهذا الموجه في الشهر (بدون اليوم الحالي)
+            const visitCounts = countInstituteVisits(supervisorId, day);
 
             allowedGroups.forEach(group => {
                 const optgroup = document.createElement('optgroup');
                 optgroup.label = `── ${group.name} ──`;
                 group.institutes.forEach(inst => {
-                    // معهد محجوز من موجه آخر في نفس اليوم: أخفه كليًا
-                    // استثناء: إذا كان هو اختيار هذا الموجه الحالي (حالة التعديل)
                     if (blockedMap[inst.name] && inst.name !== currentValue) return;
                     const opt = document.createElement('option');
                     opt.value = inst.name;
                     opt.dataset.admin = group.admin;
-                    opt.textContent = inst.name;
+                    const count = visitCounts[inst.name] || 0;
+                    // أضف العداد فقط إذا زار المعهد من قبل
+                    opt.textContent = count > 0 ? `${inst.name}  (${count}×)` : inst.name;
+                    if (count > 0) opt.style.color = count >= 3 ? '#c62828' : '#e65100';
                     optgroup.appendChild(opt);
                 });
                 if (optgroup.childElementCount > 0) select.appendChild(optgroup);
@@ -1533,10 +1547,13 @@
                 ...INSTITUTES.matrouh.map(i => ({ name: i.name, admin: 'matrouh' })),
                 ...INSTITUTES.hamam.map(i => ({ name: i.name, admin: 'hamam' }))
             ];
-            if (sup.assignedInstitutes && sup.assignedInstitutes.length > 0) {
-                return all.filter(i => sup.assignedInstitutes.includes(i.name));
-            }
             const allowed = sup.allowedAdmins || ['dabaa'];
+            if (sup.assignedInstitutes && sup.assignedInstitutes.length > 0) {
+                // اعرض المعاهد المُعيّنة + أي معهد جديد تابع لإدارة مسموح بها (لم يُضف للقائمة بعد)
+                return all.filter(i =>
+                    sup.assignedInstitutes.includes(i.name) || allowed.includes(i.admin)
+                );
+            }
             return all.filter(i => allowed.includes(i.admin));
         }
 
@@ -1642,15 +1659,22 @@
                 { id: 'hamam', list: INSTITUTES.hamam }
             ];
             const hasSpecific = sup.assignedInstitutes && sup.assignedInstitutes.length > 0;
+            const allowed = sup.allowedAdmins || ['dabaa'];
             admins.forEach(a => {
                 const listEl = document.getElementById('inst_list_' + a.id);
+                const isAdminAllowed = allowed.includes(a.id);
                 listEl.innerHTML = a.list.map(inst => {
-                    const checked = hasSpecific
-                        ? sup.assignedInstitutes.includes(inst.name)
-                        : (sup.allowedAdmins || ['dabaa']).includes(a.id);
-                    return `<div class="checkbox-item inst-item">
+                    let checked, isNew = false;
+                    if (hasSpecific) {
+                        checked = sup.assignedInstitutes.includes(inst.name);
+                        // معهد جديد = مسموح بإدارته لكن غير موجود في القائمة المحفوظة
+                        if (!checked && isAdminAllowed) isNew = true;
+                    } else {
+                        checked = isAdminAllowed;
+                    }
+                    return `<div class="checkbox-item inst-item" ${isNew ? 'style="background:#fff8e1;border-radius:6px;"' : ''}>
                         <input type="checkbox" class="inst-checkbox" data-admin="${a.id}" value="${inst.name}" ${checked ? 'checked' : ''}>
-                        <label>${inst.name}</label>
+                        <label style="${isNew ? 'color:#e65100;font-weight:600;' : ''}">${inst.name}${isNew ? ' <span title="معهد جديد لم يُعيَّن بعد">🆕</span>' : ''}</label>
                     </div>`;
                 }).join('');
                 listEl.style.display = document.getElementById('admin_' + a.id).checked ? 'grid' : 'none';
@@ -3013,14 +3037,42 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                     if(newName && newName!==oldName) renameMap[oldName]=newName;
                 }
             }));
+            // حساب المعاهد الجديدة لكل إدارة (التي لم تكن موجودة قبل الحفظ)
+            const oldNames = {
+                dabaa:   new Set(INSTITUTES.dabaa.map(x=>x.name)),
+                matrouh: new Set(INSTITUTES.matrouh.map(x=>x.name)),
+                hamam:   new Set(INSTITUTES.hamam.map(x=>x.name))
+            };
+
             INSTITUTES.dabaa=next.dabaa; INSTITUTES.matrouh=next.matrouh; INSTITUTES.hamam=next.hamam;
+
             Object.keys(currentPlan||{}).forEach(day=>Object.keys(currentPlan[day]||{}).forEach(sid=>{
                 const v=currentPlan[day][sid]; if(renameMap[v]) currentPlan[day][sid]=normalizeInstituteName(renameMap[v]);
             }));
             SUPERVISORS.forEach(s=>{ if(Array.isArray(s.assignedInstitutes)) s.assignedInstitutes=s.assignedInstitutes.map(v=>renameMap[v]||v); });
+
+            // ---- إضافة المعاهد الجديدة تلقائياً لكل موجه يملك إذن الإدارة ----
+            let autoAddedCount = 0;
+            ['dabaa','matrouh','hamam'].forEach(adminKey => {
+                const newInsts = next[adminKey].filter(x => !oldNames[adminKey].has(x.name));
+                if (newInsts.length === 0) return;
+                SUPERVISORS.forEach(sup => {
+                    if (!Array.isArray(sup.assignedInstitutes) || sup.assignedInstitutes.length === 0) return;
+                    const allowed = sup.allowedAdmins || ['dabaa'];
+                    if (!allowed.includes(adminKey)) return;
+                    newInsts.forEach(inst => {
+                        const n = normalizeInstituteName(inst.name);
+                        if (!sup.assignedInstitutes.includes(n)) {
+                            sup.assignedInstitutes.push(n);
+                            autoAddedCount++;
+                        }
+                    });
+                });
+            });
+
             saveInstitutesOverrides(); savePlan(); saveSupervisorsOverrides();
             renderTable(); updateOtherTabs(); renderManagementTab();
-            alert('تم حفظ تعديلات المعاهد');
+            alert('تم حفظ تعديلات المعاهد' + (autoAddedCount > 0 ? `\n✅ تم إضافة ${autoAddedCount} معهد جديد تلقائياً للموجهين المختصين` : ''));
         }
 
         // ---------- PWA ----------
