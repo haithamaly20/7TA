@@ -134,7 +134,6 @@
         .wk-3 { background-color: #f3e5f5; }
         .wk-4 { background-color: #fdeee0; }
 
-
         /* ====== سجل الأشهر CSS ====== */
         .archive-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10001; justify-content: center; align-items: center; padding: 20px; }
         .archive-modal.open { display: flex; }
@@ -163,7 +162,6 @@
         .arch-btn-del { background: #ffeaea; color: #c0392b; }
         .arch-btn-del:hover { background: #e74c3c; color: white; transform: translateY(-1px); }
 
-        /* نافذة إنشاء شهر جديد */
         .new-month-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 10002; justify-content: center; align-items: center; padding: 20px; }
         .new-month-modal.open { display: flex; }
         .new-month-panel { background: white; border-radius: 16px; width: 100%; max-width: 420px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.38); animation: modalSlideIn 0.28s ease; }
@@ -184,7 +182,6 @@
         .arch-btn-cancel { background: #f5f5f5; color: #555; }
         .arch-btn-cancel:hover { background: #ddd; }
 
-        /* نافذة تأكيد الانتقال */
         .confirm-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 10003; justify-content: center; align-items: center; padding: 20px; }
         .confirm-modal.open { display: flex; }
         .confirm-panel { background: white; border-radius: 16px; width: 100%; max-width: 380px; padding: 28px; box-shadow: 0 20px 60px rgba(0,0,0,0.38); animation: modalSlideIn 0.28s ease; text-align: center; }
@@ -197,8 +194,40 @@
         .arch-btn-go { background: #f39c12; color: white; }
         .arch-btn-go:hover { background: #d68910; }
 
-        /* مؤشر الشهر الحالي في الرأس */
         .current-month-badge { background: rgba(255,255,255,0.18); border-radius: 20px; padding: 5px 14px; font-size: 13px; margin-top: 6px; display: inline-block; }
+        
+        /* ====== Search & Dashboard & Empty Cells CSS ====== */
+        .plan-table td.cell-empty {
+            background: #fff3cd !important;
+            box-shadow: inset 0 0 0 2px #f0ad4e;
+        }
+        .plan-table td.cell-empty select {
+            background: #fff8e1 !important;
+            border-color: #f0ad4e !important;
+        }
+        .plan-table td.search-highlight {
+            background-color: #d4edda !important;
+            box-shadow: inset 0 0 0 2px #28a745;
+        }
+        .plan-table td.search-highlight select {
+            background-color: #e8f5e9 !important;
+            border-color: #28a745 !important;
+            font-weight: bold;
+        }
+        .dashboard-stats {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            background: linear-gradient(135deg, #f0f7ff 0%, #e3f2fd 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            border: 1px solid #d7e0ec;
+        }
+        .stat-box { text-align: center; color: #2c5f8d; }
+        .stat-box span { display: block; font-size: 13px; color: #666; font-weight: normal; }
+
         @media (max-width: 768px) {
             body { padding: 10px; } .container { border-radius: 10px; } .app-header { padding: 20px 15px; } .app-header h1 { font-size: 20px; }
             .tabs { flex-direction: column; } .tab { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid #ddd; }
@@ -209,293 +238,58 @@
         }
         @media print {
             body { background: white; padding: 0; } .container { box-shadow: none; }
-            .tabs, .controls, .card-actions, .btn, .admin-legend, .sheets-setup, .modal, .loading-overlay, .archive-modal, .new-month-modal, .confirm-modal { display: none !important; }
+            .tabs, .controls, .card-actions, .btn, .admin-legend, .sheets-setup, .modal, .loading-overlay, .archive-modal, .new-month-modal, .confirm-modal, .dashboard-stats { display: none !important; }
             .tab-content { padding: 0; display: block !important; }
         }
     
-        /* =========================================================
-           Windows 11 + iPad 3D / Fluent Visual Layer
-           بصري فقط — لا يغيّر JavaScript أو الوظائف
-           ========================================================= */
         :root{
-            --win-blue:#0a84ff;
-            --win-blue-dark:#0067c0;
-            --glass:rgba(255,255,255,.78);
-            --glass-strong:rgba(255,255,255,.92);
-            --line:rgba(80,100,130,.16);
-            --text:#182230;
-            --muted:#667085;
-            --shadow-3d:0 18px 45px rgba(31,55,86,.16),0 3px 10px rgba(31,55,86,.08);
-            --shadow-soft:0 8px 24px rgba(31,55,86,.12);
+            --win-blue:#0a84ff; --win-blue-dark:#0067c0; --glass:rgba(255,255,255,.78); --glass-strong:rgba(255,255,255,.92); --line:rgba(80,100,130,.16); --text:#182230; --muted:#667085; --shadow-3d:0 18px 45px rgba(31,55,86,.16),0 3px 10px rgba(31,55,86,.08); --shadow-soft:0 8px 24px rgba(31,55,86,.12);
         }
-
-        body{
-            background:
-              radial-gradient(circle at 12% 8%,rgba(10,132,255,.13),transparent 28%),
-              radial-gradient(circle at 88% 15%,rgba(120,100,255,.10),transparent 25%),
-              linear-gradient(135deg,#eef5ff 0%,#f6f8fc 48%,#edf3fb 100%);
-            color:var(--text);
-            padding:24px;
-        }
-
-        .container{
-            background:rgba(255,255,255,.72);
-            border:1px solid rgba(255,255,255,.85);
-            border-radius:28px;
-            box-shadow:0 28px 70px rgba(31,55,86,.18),0 2px 8px rgba(31,55,86,.08);
-            backdrop-filter:blur(22px) saturate(135%);
-            -webkit-backdrop-filter:blur(22px) saturate(135%);
-        }
-
-        .app-header{
-            position:relative;
-            overflow:hidden;
-            background:linear-gradient(135deg,#087cf0 0%,#1468c7 52%,#0755a8 100%);
-            padding:30px 34px 26px;
-            box-shadow:inset 0 -1px rgba(255,255,255,.22),0 10px 28px rgba(0,88,180,.22);
-        }
-        .app-header::before,.app-header::after{
-            content:"";position:absolute;border-radius:50%;pointer-events:none;
-            background:rgba(255,255,255,.09);
-        }
-        .app-header::before{width:220px;height:220px;left:-70px;top:-125px;}
-        .app-header::after{width:300px;height:300px;right:-120px;bottom:-210px;}
-        .app-header h1{position:relative;font-size:30px;letter-spacing:.1px;text-shadow:0 2px 5px rgba(0,0,0,.18);}
-        .app-header p{position:relative;font-size:14px;}
-        .current-month-badge{
-            position:relative;background:rgba(255,255,255,.16);
-            border:1px solid rgba(255,255,255,.25);
-            box-shadow:inset 0 1px rgba(255,255,255,.2),0 5px 14px rgba(0,0,0,.10);
-            backdrop-filter:blur(10px);
-        }
-
-        .tabs{
-            gap:6px;padding:8px 10px;
-            background:rgba(246,249,253,.92);
-            border-bottom:1px solid var(--line);
-            box-shadow:0 2px 10px rgba(31,55,86,.05);
-        }
-        .tab{
-            border-radius:14px;
-            background:transparent;
-            color:#536174;
-            padding:13px 16px;
-            position:relative;
-            transition:transform .2s,background .2s,box-shadow .2s,color .2s;
-        }
-        .tab:hover{
-            background:rgba(255,255,255,.8);
-            transform:translateY(-1px);
-            box-shadow:0 5px 14px rgba(31,55,86,.08);
-        }
-        .tab.active{
-            background:rgba(255,255,255,.98);
-            color:#086fdc;
-            border-bottom:0;
-            box-shadow:0 5px 15px rgba(31,55,86,.10),inset 0 -2px #0a84ff;
-        }
-
+        body{ background: radial-gradient(circle at 12% 8%,rgba(10,132,255,.13),transparent 28%), radial-gradient(circle at 88% 15%,rgba(120,100,255,.10),transparent 25%), linear-gradient(135deg,#eef5ff 0%,#f6f8fc 48%,#edf3fb 100%); color:var(--text); padding:24px; }
+        .container{ background:rgba(255,255,255,.72); border:1px solid rgba(255,255,255,.85); border-radius:28px; box-shadow:0 28px 70px rgba(31,55,86,.18),0 2px 8px rgba(31,55,86,.08); backdrop-filter:blur(22px) saturate(135%); -webkit-backdrop-filter:blur(22px) saturate(135%); }
+        .app-header{ position:relative; overflow:hidden; background:linear-gradient(135deg,#087cf0 0%,#1468c7 52%,#0755a8 100%); padding:30px 34px 26px; box-shadow:inset 0 -1px rgba(255,255,255,.22),0 10px 28px rgba(0,88,180,.22); }
+        .app-header::before,.app-header::after{ content:"";position:absolute;border-radius:50%;pointer-events:none; background:rgba(255,255,255,.09); }
+        .app-header::before{width:220px;height:220px;left:-70px;top:-125px;} .app-header::after{width:300px;height:300px;right:-120px;bottom:-210px;}
+        .app-header h1{position:relative;font-size:30px;letter-spacing:.1px;text-shadow:0 2px 5px rgba(0,0,0,.18);} .app-header p{position:relative;font-size:14px;}
+        .current-month-badge{ position:relative;background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.25); box-shadow:inset 0 1px rgba(255,255,255,.2),0 5px 14px rgba(0,0,0,.10); backdrop-filter:blur(10px); }
+        .tabs{ gap:6px;padding:8px 10px; background:rgba(246,249,253,.92); border-bottom:1px solid var(--line); box-shadow:0 2px 10px rgba(31,55,86,.05); }
+        .tab{ border-radius:14px; background:transparent; color:#536174; padding:13px 16px; position:relative; transition:transform .2s,background .2s,box-shadow .2s,color .2s; }
+        .tab:hover{ background:rgba(255,255,255,.8); transform:translateY(-1px); box-shadow:0 5px 14px rgba(31,55,86,.08); }
+        .tab.active{ background:rgba(255,255,255,.98); color:#086fdc; border-bottom:0; box-shadow:0 5px 15px rgba(31,55,86,.10),inset 0 -2px #0a84ff; }
         .tab-content{padding:28px;}
-        .controls{
-            background:rgba(255,255,255,.62);
-            border:1px solid rgba(255,255,255,.9);
-            border-radius:20px;
-            padding:18px;
-            gap:12px;
-            box-shadow:var(--shadow-soft);
-            backdrop-filter:blur(14px);
-        }
+        .controls{ background:rgba(255,255,255,.62); border:1px solid rgba(255,255,255,.9); border-radius:20px; padding:18px; gap:12px; box-shadow:var(--shadow-soft); backdrop-filter:blur(14px); }
         .control-group label{color:#344054;}
-        select,.modal-content input[type="text"],.nm-row select,.nm-row input,.archive-search{
-            background:rgba(255,255,255,.9);
-            border:1px solid #d7e0ec;
-            border-radius:12px;
-            min-height:40px;
-            box-shadow:inset 0 1px 2px rgba(30,55,85,.04),0 2px 6px rgba(30,55,85,.05);
-            transition:border-color .2s,box-shadow .2s,transform .2s;
-        }
-        select:focus,.modal-content input[type="text"]:focus,.nm-row select:focus,.nm-row input:focus,.archive-search:focus{
-            border-color:#0a84ff;
-            box-shadow:0 0 0 3px rgba(10,132,255,.13),0 5px 12px rgba(31,55,86,.08);
-        }
-
-        .btn,.arch-btn,.nm-mode-btn,.archive-close{
-            border:1px solid rgba(255,255,255,.42);
-            border-radius:13px;
-            box-shadow:0 7px 15px rgba(31,55,86,.13),inset 0 1px rgba(255,255,255,.28);
-            transition:transform .18s,box-shadow .18s,filter .18s;
-        }
-        .btn:hover,.arch-btn:hover,.nm-mode-btn:hover{
-            transform:translateY(-2px);
-            box-shadow:0 11px 22px rgba(31,55,86,.18),inset 0 1px rgba(255,255,255,.35);
-            filter:saturate(1.04);
-        }
-        .btn:active,.arch-btn:active,.nm-mode-btn:active{
-            transform:translateY(1px) scale(.985);
-            box-shadow:0 3px 7px rgba(31,55,86,.15),inset 0 2px 4px rgba(0,0,0,.08);
-        }
-        .btn-primary,.arch-btn-open,.arch-btn-save-go{
-            background:linear-gradient(180deg,#1591ff 0%,#0877df 100%);
-        }
-        .btn-success,.arch-btn-create{background:linear-gradient(180deg,#34c759 0%,#1eaa4d 100%);}
-        .btn-danger{background:linear-gradient(180deg,#ff5b52 0%,#df3f38 100%);}
-        .btn-warning,.arch-btn-go{background:linear-gradient(180deg,#ffb52e 0%,#ed9210 100%);}
-        .btn-print{background:linear-gradient(180deg,#a86bd0 0%,#8645b0 100%);}
-        .btn-secondary{background:linear-gradient(180deg,#aeb9c4 0%,#87939f 100%);}
-        .btn-test{background:linear-gradient(180deg,#ff9f43 0%,#e87313 100%);}
-
-        #planTitle,.workdays-display{
-            background:linear-gradient(180deg,rgba(235,246,255,.95),rgba(247,251,255,.95));
-            border:1px solid #d7e9fb;
-            border-radius:16px;
-            box-shadow:inset 0 1px rgba(255,255,255,.9),var(--shadow-soft);
-        }
-
-        .admin-legend{
-            background:rgba(255,255,255,.64);
-            border:1px solid rgba(255,255,255,.9);
-            border-radius:18px;
-            box-shadow:var(--shadow-soft);
-        }
-        .legend-color{
-            border-radius:8px;
-            box-shadow:inset 0 1px rgba(255,255,255,.75),0 2px 5px rgba(31,55,86,.12);
-        }
-
-        .plan-table{
-            border-radius:18px;
-            overflow:hidden;
-            box-shadow:var(--shadow-3d);
-        }
-        .plan-table thead{
-            background:linear-gradient(180deg,#167ee7 0%,#075db5 100%);
-        }
-        .plan-table th{border-color:rgba(255,255,255,.2);}
-        .plan-table td{background:rgba(255,255,255,.94);border-color:#dfe6ef;}
-        .plan-table .date-col,.plan-table .date-cell{background:linear-gradient(180deg,#f1f8ff,#e9f3fc);}
-        .plan-table select{border-radius:10px;box-shadow:inset 0 1px 2px rgba(0,0,0,.04);}
-
-        .cards-grid{gap:22px;}
-        .supervisor-card,.institute-card{
-            background:rgba(255,255,255,.88);
-            border:1px solid rgba(255,255,255,.95);
-            border-radius:20px;
-            box-shadow:var(--shadow-3d);
-            backdrop-filter:blur(12px);
-        }
-        .supervisor-card:hover,.institute-card:hover{
-            transform:translateY(-6px) scale(1.005);
-            box-shadow:0 25px 50px rgba(31,55,86,.19),0 5px 12px rgba(31,55,86,.08);
-        }
-        .card-header{
-            background:linear-gradient(135deg,#1385ed,#075db3);
-            padding:17px;
-            box-shadow:inset 0 1px rgba(255,255,255,.2);
-        }
-        .specialty-badge,.visits-count-badge{
-            border:1px solid rgba(255,255,255,.2);
-            box-shadow:inset 0 1px rgba(255,255,255,.22);
-            backdrop-filter:blur(8px);
-        }
-        .card-stats,.card-actions{background:rgba(247,250,253,.9);border-color:#e4eaf1;}
-        .visit-item{border-color:#edf1f5;border-radius:10px;}
-        .visit-item:hover{background:#f3f8fd;transform:translateX(-2px);}
-
-        .sheets-setup{
-            background:linear-gradient(180deg,#fff9df,#fff4c5);
-            border:1px solid #f1d36a;
-            border-radius:18px;
-            box-shadow:var(--shadow-soft);
-        }
-
-        .modal,.archive-modal,.new-month-modal,.confirm-modal{
-            background:rgba(15,28,45,.42);
-            backdrop-filter:blur(10px);
-            -webkit-backdrop-filter:blur(10px);
-        }
-        .modal-content,.archive-panel,.new-month-panel,.confirm-panel{
-            background:rgba(250,252,255,.94);
-            border:1px solid rgba(255,255,255,.95);
-            border-radius:22px;
-            box-shadow:0 30px 80px rgba(0,0,0,.28),0 5px 15px rgba(31,55,86,.12);
-            backdrop-filter:blur(24px) saturate(130%);
-            -webkit-backdrop-filter:blur(24px) saturate(130%);
-        }
-
-        .archive-panel{max-width:600px;}
-        .archive-header{
-            background:linear-gradient(135deg,#1385ed,#075db3);
-            padding:22px 26px;
-            box-shadow:inset 0 1px rgba(255,255,255,.22),0 8px 20px rgba(0,75,155,.18);
-        }
-        .archive-close{
-            background:rgba(255,255,255,.16);
-            width:38px;height:38px;
-        }
-        .archive-toolbar{background:rgba(255,255,255,.52);border-color:#e6ebf2;}
-        .archive-card{
-            background:rgba(255,255,255,.88);
-            border:1px solid #e0e8f2;
-            border-radius:17px;
-            padding:15px 17px;
-            box-shadow:0 6px 16px rgba(31,55,86,.08),inset 0 1px rgba(255,255,255,.9);
-        }
-        .archive-card:hover{
-            border-color:#72b8ff;
-            transform:translateY(-2px);
-            box-shadow:0 13px 25px rgba(31,55,86,.13);
-        }
-        .archive-card.current-month{
-            border-color:#48c56a;
-            background:linear-gradient(180deg,#f3fff7,#eafff1);
-        }
-        .archive-card-icon{
-            width:48px;height:48px;display:flex;align-items:center;justify-content:center;
-            border-radius:14px;
-            background:linear-gradient(145deg,#ffffff,#e9f1fa);
-            box-shadow:5px 5px 12px rgba(31,55,86,.12),inset 1px 1px rgba(255,255,255,.95);
-            font-size:26px;
-        }
-        .arch-btn{min-height:38px;}
-        .nm-mode-btn{
-            background:linear-gradient(180deg,#fff,#edf3fa);
-        }
-        .nm-mode-btn.active{
-            background:linear-gradient(180deg,#eaf5ff,#d9edff);
-            border-color:#0a84ff;
-            box-shadow:0 6px 15px rgba(10,132,255,.14),inset 0 1px white;
-        }
-
-        .loading-overlay{
-            background:rgba(15,28,45,.45);
-            backdrop-filter:blur(10px);
-        }
-        .loading-spinner{
-            box-shadow:0 10px 30px rgba(0,0,0,.18);
-        }
-
-        /* لمسة أيقونات iPad مع الإبقاء على رموز HTML الحالية كما هي */
-        .btn,.tab,.archive-close,.arch-btn,.nm-mode-btn{
-            font-family:'Segoe UI','Segoe UI Emoji','Apple Color Emoji',sans-serif;
-            -webkit-font-smoothing:antialiased;
-        }
-        .btn::first-letter,.tab::first-letter,.archive-close::first-letter,.arch-btn::first-letter,.nm-mode-btn::first-letter{
-            filter:drop-shadow(0 2px 2px rgba(0,0,0,.18));
-        }
-
-        @media (max-width:768px){
-            body{padding:10px;}
-            .container{border-radius:22px;}
-            .tabs{padding:6px;}
-            .tab{border-radius:12px;}
-            .tab-content{padding:16px;}
-            .controls{border-radius:17px;padding:14px;}
-            .btn{border-radius:13px;}
-            .cards-grid{gap:15px;}
-            .supervisor-card,.institute-card{border-radius:18px;}
-            .archive-panel,.modal-content,.new-month-panel,.confirm-panel{border-radius:20px;}
-        }
-
+        select,.modal-content input[type="text"],.nm-row select,.nm-row input,.archive-search{ background:rgba(255,255,255,.9); border:1px solid #d7e0ec; border-radius:12px; min-height:40px; box-shadow:inset 0 1px 2px rgba(30,55,85,.04),0 2px 6px rgba(30,55,85,.05); transition:border-color .2s,box-shadow .2s,transform .2s; }
+        select:focus,.modal-content input[type="text"]:focus,.nm-row select:focus,.nm-row input:focus,.archive-search:focus{ border-color:#0a84ff; box-shadow:0 0 0 3px rgba(10,132,255,.13),0 5px 12px rgba(31,55,86,.08); }
+        .btn,.arch-btn,.nm-mode-btn,.archive-close{ border:1px solid rgba(255,255,255,.42); border-radius:13px; box-shadow:0 7px 15px rgba(31,55,86,.13),inset 0 1px rgba(255,255,255,.28); transition:transform .18s,box-shadow .18s,filter .18s; }
+        .btn:hover,.arch-btn:hover,.nm-mode-btn:hover{ transform:translateY(-2px); box-shadow:0 11px 22px rgba(31,55,86,.18),inset 0 1px rgba(255,255,255,.35); filter:saturate(1.04); }
+        .btn:active,.arch-btn:active,.nm-mode-btn:active{ transform:translateY(1px) scale(.985); box-shadow:0 3px 7px rgba(31,55,86,.15),inset 0 2px 4px rgba(0,0,0,.08); }
+        .btn-primary,.arch-btn-open,.arch-btn-save-go{ background:linear-gradient(180deg,#1591ff 0%,#0877df 100%); }
+        .btn-success,.arch-btn-create{background:linear-gradient(180deg,#34c759 0%,#1eaa4d 100%);} .btn-danger{background:linear-gradient(180deg,#ff5b52 0%,#df3f38 100%);} .btn-warning,.arch-btn-go{background:linear-gradient(180deg,#ffb52e 0%,#ed9210 100%);} .btn-print{background:linear-gradient(180deg,#a86bd0 0%,#8645b0 100%);} .btn-secondary{background:linear-gradient(180deg,#aeb9c4 0%,#87939f 100%);} .btn-test{background:linear-gradient(180deg,#ff9f43 0%,#e87313 100%);}
+        #planTitle,.workdays-display{ background:linear-gradient(180deg,rgba(235,246,255,.95),rgba(247,251,255,.95)); border:1px solid #d7e9fb; border-radius:16px; box-shadow:inset 0 1px rgba(255,255,255,.9),var(--shadow-soft); }
+        .admin-legend{ background:rgba(255,255,255,.64); border:1px solid rgba(255,255,255,.9); border-radius:18px; box-shadow:var(--shadow-soft); }
+        .legend-color{ border-radius:8px; box-shadow:inset 0 1px rgba(255,255,255,.75),0 2px 5px rgba(31,55,86,.12); }
+        .plan-table{ border-radius:18px; overflow:hidden; box-shadow:var(--shadow-3d); }
+        .plan-table thead{ background:linear-gradient(180deg,#167ee7 0%,#075db5 100%); }
+        .plan-table th{border-color:rgba(255,255,255,.2);} .plan-table td{background:rgba(255,255,255,.94);border-color:#dfe6ef;} .plan-table .date-col,.plan-table .date-cell{background:linear-gradient(180deg,#f1f8ff,#e9f3fc);} .plan-table select{border-radius:10px;box-shadow:inset 0 1px 2px rgba(0,0,0,.04);}
+        .cards-grid{gap:22px;} .supervisor-card,.institute-card{ background:rgba(255,255,255,.88); border:1px solid rgba(255,255,255,.95); border-radius:20px; box-shadow:var(--shadow-3d); backdrop-filter:blur(12px); }
+        .supervisor-card:hover,.institute-card:hover{ transform:translateY(-6px) scale(1.005); box-shadow:0 25px 50px rgba(31,55,86,.19),0 5px 12px rgba(31,55,86,.08); }
+        .card-header{ background:linear-gradient(135deg,#1385ed,#075db3); padding:17px; box-shadow:inset 0 1px rgba(255,255,255,.2); }
+        .specialty-badge,.visits-count-badge{ border:1px solid rgba(255,255,255,.2); box-shadow:inset 0 1px rgba(255,255,255,.22); backdrop-filter:blur(8px); }
+        .card-stats,.card-actions{background:rgba(247,250,253,.9);border-color:#e4eaf1;} .visit-item{border-color:#edf1f5;border-radius:10px;} .visit-item:hover{background:#f3f8fd;transform:translateX(-2px);}
+        .sheets-setup{ background:linear-gradient(180deg,#fff9df,#fff4c5); border:1px solid #f1d36a; border-radius:18px; box-shadow:var(--shadow-soft); }
+        .modal,.archive-modal,.new-month-modal,.confirm-modal{ background:rgba(15,28,45,.42); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+        .modal-content,.archive-panel,.new-month-panel,.confirm-panel{ background:rgba(250,252,255,.94); border:1px solid rgba(255,255,255,.95); border-radius:22px; box-shadow:0 30px 80px rgba(0,0,0,.28),0 5px 15px rgba(31,55,86,.12); backdrop-filter:blur(24px) saturate(130%); -webkit-backdrop-filter:blur(24px) saturate(130%); }
+        .archive-panel{max-width:600px;} .archive-header{ background:linear-gradient(135deg,#1385ed,#075db3); padding:22px 26px; box-shadow:inset 0 1px rgba(255,255,255,.22),0 8px 20px rgba(0,75,155,.18); } .archive-close{ background:rgba(255,255,255,.16); width:38px;height:38px; }
+        .archive-toolbar{background:rgba(255,255,255,.52);border-color:#e6ebf2;} .archive-card{ background:rgba(255,255,255,.88); border:1px solid #e0e8f2; border-radius:17px; padding:15px 17px; box-shadow:0 6px 16px rgba(31,55,86,.08),inset 0 1px rgba(255,255,255,.9); }
+        .archive-card:hover{ border-color:#72b8ff; transform:translateY(-2px); box-shadow:0 13px 25px rgba(31,55,86,.13); }
+        .archive-card.current-month{ border-color:#48c56a; background:linear-gradient(180deg,#f3fff7,#eafff1); }
+        .archive-card-icon{ width:48px;height:48px;display:flex;align-items:center;justify-content:center; border-radius:14px; background:linear-gradient(145deg,#ffffff,#e9f1fa); box-shadow:5px 5px 12px rgba(31,55,86,.12),inset 1px 1px rgba(255,255,255,.95); font-size:26px; }
+        .arch-btn{min-height:38px;} .nm-mode-btn{ background:linear-gradient(180deg,#fff,#edf3fa); } .nm-mode-btn.active{ background:linear-gradient(180deg,#eaf5ff,#d9edff); border-color:#0a84ff; box-shadow:0 6px 15px rgba(10,132,255,.14),inset 0 1px white; }
+        .loading-overlay{ background:rgba(15,28,45,.45); backdrop-filter:blur(10px); } .loading-spinner{ box-shadow:0 10px 30px rgba(0,0,0,.18); }
+        .btn,.tab,.archive-close,.arch-btn,.nm-mode-btn{ font-family:'Segoe UI','Segoe UI Emoji','Apple Color Emoji',sans-serif; -webkit-font-smoothing:antialiased; }
+        .btn::first-letter,.tab::first-letter,.archive-close::first-letter,.arch-btn::first-letter,.nm-mode-btn::first-letter{ filter:drop-shadow(0 2px 2px rgba(0,0,0,.18)); }
+        @media (max-width:768px){ body{padding:10px;} .container{border-radius:22px;} .tabs{padding:6px;} .tab{border-radius:12px;} .tab-content{padding:16px;} .controls{border-radius:17px;padding:14px;} .btn{border-radius:13px;} .cards-grid{gap:15px;} .supervisor-card,.institute-card{border-radius:18px;} .archive-panel,.modal-content,.new-month-panel,.confirm-panel{border-radius:20px;} }
 
 /* ===== Embedded Fluent/iPad SVG icon system — no emoji ===== */
 .ui-icon{display:inline-block;width:1.18em;height:1.18em;min-width:1.18em;vertical-align:-.22em;margin-inline:.16em;position:relative;filter:drop-shadow(0 2px 2px rgba(30,70,120,.22));}
@@ -505,7 +299,6 @@
 .btn .ui-icon,.tab .ui-icon,.archive-close .ui-icon,.arch-btn .ui-icon,.nm-mode-btn .ui-icon{width:1.2em;height:1.2em;}
 .app-header h1 .ui-icon{width:1.15em;height:1.15em;}
 .current-month-badge .ui-icon{color:inherit;}
-/* Hide the old emoji-font assumptions from the previous visual layer */
 .btn,.tab,.archive-close,.arch-btn,.nm-mode-btn{font-family:'Segoe UI','Tahoma',sans-serif;}
 
 .ui-icon[data-icon="clipboard"]::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%203h6a2%202%200%200%201%202%202v14H7V5a2%202%200%200%201%202-2Z%22/%3E%3Cpath%20d%3D%22M10%203a2%202%200%200%201%204%200v2h-4V3Z%22/%3E%3Cpath%20d%3D%22M10%209h4M10%2013h4M10%2017h3%22/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%203h6a2%202%200%200%201%202%202v14H7V5a2%202%200%200%201%202-2Z%22/%3E%3Cpath%20d%3D%22M10%203a2%202%200%200%201%204%200v2h-4V3Z%22/%3E%3Cpath%20d%3D%22M10%209h4M10%2013h4M10%2017h3%22/%3E%3C/svg%3E");}
@@ -567,15 +360,19 @@
                     <label for="yearSelect">السنة:</label>
                     <select id="yearSelect"></select>
                 </div>
-                <button id="btnClearAll" class="btn btn-danger"><span class="ui-icon" data-icon="trash" aria-hidden="true"></span> مسح الكل</button>
                 <button id="btnExport" class="btn btn-primary" onclick="exportPlan()"><span class="ui-icon" data-icon="download" aria-hidden="true"></span> JSON</button>
                 <button class="btn btn-success" onclick="exportPlanXLSX()"><span class="ui-icon" data-icon="download" aria-hidden="true"></span> Excel XLSX</button>
-                <button class="btn btn-print" onclick="exportPlanPDF()"><span class="ui-icon" data-icon="printer" aria-hidden="true"></span> PDF</button>
                 <button id="btnImport" class="btn btn-primary" onclick="importPlan()"><span class="ui-icon" data-icon="upload" aria-hidden="true"></span> استيراد</button>
                 <button id="btnPrint" class="btn btn-print"><span class="ui-icon" data-icon="printer" aria-hidden="true"></span> طباعة</button>
-<!-- <span class="ui-icon" data-icon="check" aria-hidden="true"></span> زر البيانات التجريبية -->
-                <button id="btnTestData" class="btn btn-test" onclick="generateAugust2026TestData()"><span class="ui-icon" data-icon="flask" aria-hidden="true"></span> بيانات تجريبية (أغسطس 2026)</button>
+                <button class="btn btn-success" onclick="pushPlanToSheets()"><span class="ui-icon" data-icon="upload" aria-hidden="true"></span> مزامنة ورفع للشبكة</button>
+                
+                <div class="control-group" style="margin-right:auto;">
+                    <input type="text" id="planSearch" placeholder="🔍 بحث باسم المعهد..." style="padding: 8px 15px; border-radius: 6px; border: 2px solid #ddd; font-size: 14px; min-height:40px;">
+                    <button class="btn btn-secondary" onclick="document.getElementById('planSearch').value=''; highlightSearch('');">مسح البحث</button>
+                </div>
             </div>
+
+            <div class="dashboard-stats" id="quickStats" style="display:flex; justify-content:space-around; background:#f0f7ff; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; color:#2c5f8d;"></div>
 
             <div class="admin-legend">
                 <div class="legend-item"><div class="legend-color dabaa"></div><span>إدارة الضبعة</span></div>
@@ -643,33 +440,29 @@
         </div>
 
         <div id="settingsTab" class="tab-content">
-            <div class="sheets-setup" style="margin-bottom:20px; background:#e8f5e9; border-color:#4caf50;">
-                <label for="sheetsApiUrl" style="color:#2e7d32;">رابط Google Apps Script (مثبت تلقائياً):</label>
-                <input type="text" id="sheetsApiUrl" readonly style="background:#f0fff0; color:#2e7d32; font-size:12px; cursor:default;">
-                <p style="color:#388e3c; font-size:13px; margin:6px 0 0;">✅ الرابط مثبت في النظام — لا حاجة لأي إعداد إضافي. التطبيق متصل بالشبكة دائماً.</p>
-                <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
-                    <button onclick="fetchPlanFromSheets()" class="btn btn-primary" style="flex:1;"><span class="ui-icon" data-icon="refresh" aria-hidden="true"></span> جلب الخطة من الشبكة الآن</button>
-                    <button id="btnSyncFromNet" onclick="refreshSupervisorsFromNetwork()" class="btn btn-success" style="flex:1;"><span class="ui-icon" data-icon="refresh" aria-hidden="true"></span> تحديث بيانات الموجهين</button>
-                    <button onclick="showSetupInstructions()" class="btn btn-secondary" style="flex:1;"><span class="ui-icon" data-icon="book" aria-hidden="true"></span> تعليمات الإعداد</button>
+            <div class="pwa-box" style="margin-bottom:20px; text-align:center;">
+                <h3><span class="ui-icon" data-icon="sync"></span> مزامنة البيانات</h3>
+                <p style="color:#667085;font-size:13px;margin-bottom:15px;">قم برفع بياناتك للشبكة أو جلبها لضمان عدم فقدها.</p>
+                <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                    <button onclick="syncToSheets()" class="btn btn-success"><span class="ui-icon" data-icon="upload"></span> رفع الخطة للشبكة</button>
+                    <button onclick="fetchPlanFromSheets()" class="btn btn-primary"><span class="ui-icon" data-icon="download"></span> جلب الخطة من الشبكة</button>
+                    <button id="btnSyncFromNet" onclick="refreshSupervisorsFromNetwork()" class="btn btn-warning"><span class="ui-icon" data-icon="users"></span> تحديث بيانات الموجهين</button>
+                    <button onclick="showSetupInstructions()" class="btn btn-secondary"><span class="ui-icon" data-icon="book"></span> تعليمات الإعداد</button>
                 </div>
-                <p id="lastSyncInfo" style="color:#666; font-size:12px; margin-top:8px;"></p>
+                <p id="lastSyncInfo" style="color:#666; font-size:12px; margin-top:10px;"></p>
             </div>
-            <button id="btnSync" class="btn btn-success" style="width: 100%; margin-bottom: 20px;"><span class="ui-icon" data-icon="upload" aria-hidden="true"></span> رفع الخطة يدوياً إلى Google Sheets</button>
+            
             <div class="pwa-box">
                 <strong><span class="ui-icon" data-icon="download" aria-hidden="true"></span> نسخة التطبيق PWA</strong>
                 <div id="pwaStatus" class="offline-badge">جاري فحص حالة الاتصال والتثبيت...</div>
                 <button id="installPwaBtn" class="btn btn-primary" style="width:100%;margin-top:10px;display:none;">
                     <span class="ui-icon" data-icon="download" aria-hidden="true"></span> تثبيت التطبيق
                 </button>
-                <p style="margin-top:10px;color:#667085;font-size:12px;line-height:1.7;">
-                    بعد استضافة الملفات على HTTPS يمكن تثبيت التطبيق وتشغيله دون إنترنت. البيانات المحلية والخطط المحفوظة تبقى متاحة دون اتصال.
-                </p>
             </div>
         </div>
     </div>
 
-
-    <!-- ====== سجل الأشهر: نافذة الأرشيف ====== -->
+    <!-- ====== Modals & Overlays ====== -->
     <div class="archive-modal" id="archiveModal">
       <div class="archive-panel">
         <div class="archive-header">
@@ -684,26 +477,16 @@
       </div>
     </div>
 
-    <!-- ====== سجل الأشهر: نافذة إنشاء شهر جديد ====== -->
     <div class="new-month-modal" id="newMonthModal">
       <div class="new-month-panel">
         <h3><span class="ui-icon" data-icon="plus" aria-hidden="true"></span> إنشاء شهر جديد</h3>
-        <div class="nm-row">
-          <label>الشهر</label>
-          <select id="nmMonthSelect"></select>
-        </div>
-        <div class="nm-row">
-          <label>السنة</label>
-          <input type="number" id="nmYearInput" min="2020" max="2035" value="2026">
-        </div>
+        <div class="nm-row"><label>الشهر</label><select id="nmMonthSelect"></select></div>
+        <div class="nm-row"><label>السنة</label><input type="number" id="nmYearInput" min="2020" max="2035" value="2026"></div>
         <div class="nm-mode-btns">
           <button class="nm-mode-btn active" id="nmModeEmpty" onclick="ArchiveUI.setNewMonthMode('empty')"><span class="ui-icon" data-icon="file" aria-hidden="true"></span> شهر فارغ</button>
           <button class="nm-mode-btn" id="nmModeCopy" onclick="ArchiveUI.setNewMonthMode('copy')"><span class="ui-icon" data-icon="clipboard" aria-hidden="true"></span> نسخ من شهر سابق</button>
         </div>
-        <div class="nm-copy-row" id="nmCopyRow">
-          <label>نسخ من</label>
-          <select id="nmCopySource"></select>
-        </div>
+        <div class="nm-copy-row" id="nmCopyRow"><label>نسخ من</label><select id="nmCopySource"></select></div>
         <div class="nm-actions">
           <button class="arch-btn arch-btn-create" onclick="ArchiveUI.createNewMonth()"><span class="ui-icon" data-icon="check" aria-hidden="true"></span> إنشاء</button>
           <button class="arch-btn arch-btn-cancel" onclick="ArchiveUI.closeNewMonthModal()"><span class="ui-icon" data-icon="close" aria-hidden="true"></span> إلغاء</button>
@@ -711,7 +494,6 @@
       </div>
     </div>
 
-    <!-- ====== سجل الأشهر: نافذة تأكيد الانتقال ====== -->
     <div class="confirm-modal" id="archiveConfirmModal">
       <div class="confirm-panel">
         <h3><span class="ui-icon" data-icon="warning" aria-hidden="true"></span> تعديلات غير محفوظة</h3>
@@ -778,20 +560,16 @@
             { id: 's7', name: 'السعيد عمارة', specialty: 'لغة انجليزية', recordNumber: '', allowedAdmins: ['dabaa'] },
             { id: 's8', name: 'محمد شحاته', specialty: 'لغة عربية', recordNumber: '', allowedAdmins: ['dabaa'] },
             { id: 's9', name: 'عبير احمد', specialty: 'شرعي', recordNumber: '', allowedAdmins: ['dabaa'] },
-			{ id: 's10', name: 'رجب عبد النبي', specialty: 'تغذية', recordNumber: '', allowedAdmins: ['dabaa'] },
-			{ id: 's11', name: 'ايناس صلاح عبد القادر', specialty: 'احياء', recordNumber: '', allowedAdmins: ['dabaa'] },
+            { id: 's10', name: 'رجب عبد النبي', specialty: 'تغذية', recordNumber: '', allowedAdmins: ['dabaa'] },
+            { id: 's11', name: 'ايناس صلاح عبد القادر', specialty: 'احياء', recordNumber: '', allowedAdmins: ['dabaa'] },
             { id: 's12', name: 'عادل جلال', specialty: 'معامل', recordNumber: '', allowedAdmins: ['dabaa'] }
         ];
 
-        
         const INSTITUTES = {
             dabaa: [
-                { name: 'التوحيد بالجفيره', isSalfGroup: false },
-                { name: 'السلف الصالح', isSalfGroup: true },
-                { name: 'فوكة', isSalfGroup: false },
-                { name: 'فتيات الضبعه', isSalfGroup: false },
-                { name: 'بنين الضبعه', isSalfGroup: false },
-                { name: 'الفرقان بالزيتون', isSalfGroup: true },
+                { name: 'التوحيد بالجفيره', isSalfGroup: false }, { name: 'السلف الصالح', isSalfGroup: true },
+                { name: 'فوكة', isSalfGroup: false }, { name: 'فتيات الضبعه', isSalfGroup: false },
+                { name: 'بنين الضبعه', isSalfGroup: false }, { name: 'الفرقان بالزيتون', isSalfGroup: true },
                 { name: 'الضبعه الابتدائي', isSalfGroup: false }, { name: 'جلال', isSalfGroup: false },
                 { name: 'المبروك', isSalfGroup: false }, { name: 'غزاله الابتدائية', isSalfGroup: false },
                 { name: 'اولاد صميدة', isSalfGroup: false }, { name: 'حسبنك الابتدائي', isSalfGroup: false },
@@ -825,20 +603,12 @@
             return GROUP_INSTITUTES.find(g => instituteName.includes(g.pattern)) || null;
         }
 
-        // توحيد أسماء المعاهد في كامل التطبيق.
         function normalizeInstituteName(name) {
             if (name == null) return name;
             const value = String(name).replace(/\s+/g, ' ').trim();
             if (!value) return value;
-
-            // قواعد التوحيد المطلوبة فقط.
             if (value.includes('السلف الصالح')) return 'السلف الصالح';
-
-            if (/الفرقان\s+بالزيتون(?:\s|$)/.test(value)
-                || /(?:^|\s)الفرقان\s*ب(?:\s|$)/.test(value)) {
-                return 'الفرقان بالزيتون';
-            }
-
+            if (/الفرقان\s+بالزيتون(?:\s|$)/.test(value) || /(?:^|\s)الفرقان\s*ب(?:\s|$)/.test(value)) return 'الفرقان بالزيتون';
             return value;
         }
 
@@ -858,9 +628,7 @@
         function normalizeSupervisorInstitutes() {
             for (const sup of SUPERVISORS) {
                 if (Array.isArray(sup.assignedInstitutes)) {
-                    sup.assignedInstitutes = [...new Set(
-                        sup.assignedInstitutes.map(normalizeInstituteName).filter(Boolean)
-                    )];
+                    sup.assignedInstitutes = [...new Set(sup.assignedInstitutes.map(normalizeInstituteName).filter(Boolean))];
                 }
             }
         }
@@ -885,7 +653,6 @@
             return workingDays;
         }
 
-        // تنسيق خاص بالطباعة العامة فقط.
         function formatGeneralPrintInstituteName(name) {
             let value = normalizeInstituteName(name) || '';
             if (value === 'الضبعه الابتدائي') return value;
@@ -903,7 +670,6 @@
             const dayPlan = currentPlan[day] || {};
             const bookedByOthers = {};
             const bookedGroups = {};
-
             for (const [sId, instituteName] of Object.entries(dayPlan)) {
                 if (sId === supervisorId) continue;
                 const normalized = normalizeInstituteName(instituteName);
@@ -911,24 +677,17 @@
                 const group = getGroupForInstitute(normalized);
                 if (group) bookedGroups[group.id] = sId;
             }
-
             const allInstitutes = [...INSTITUTES.dabaa, ...INSTITUTES.matrouh, ...INSTITUTES.hamam].map(inst => inst.name);
-
             for (const instName of allInstitutes) {
-                let isBlocked = false;
-                let blockerId = null;
-
+                let isBlocked = false, blockerId = null;
                 if (bookedByOthers[instName]) {
-                    isBlocked = true;
-                    blockerId = bookedByOthers[instName];
+                    isBlocked = true; blockerId = bookedByOthers[instName];
                 } else {
                     const group = getGroupForInstitute(instName);
                     if (group && bookedGroups[group.id]) {
-                        isBlocked = true;
-                        blockerId = bookedGroups[group.id];
+                        isBlocked = true; blockerId = bookedGroups[group.id];
                     }
                 }
-
                 if (isBlocked) {
                     const blocker = SUPERVISORS.find(s => s.id === blockerId);
                     blockedList.push({ institute: instName, blockedBy: blocker ? blocker.name : 'موجه آخر' });
@@ -938,8 +697,9 @@
         }
 
         let currentPlan = {};
-        let currentMonth = 9;
-        let currentYear = 2026;
+        let todayDate = new Date();
+        let currentMonth = todayDate.getMonth() + 1; 
+        let currentYear = todayDate.getFullYear();
 
         function loadSupervisorsOverrides() {
             const stored = localStorage.getItem(SUPERVISORS_OVERRIDES_KEY);
@@ -967,18 +727,12 @@
 
         function initDashboard() {
             loadSupervisorsOverrides();
-
-            // عرض آخر وقت تحديث للموجهين
             const ts = localStorage.getItem(REMOTE_SUPERVISORS_TS);
             const infoEl = document.getElementById('lastSyncInfo');
-            if (infoEl && ts) {
-                infoEl.textContent = 'آخر مزامنة للموجهين: ' + new Date(ts).toLocaleString('ar-EG');
-            }
+            if (infoEl && ts) infoEl.textContent = 'آخر مزامنة للموجهين: ' + new Date(ts).toLocaleString('ar-EG');
 
-            // جلب بيانات الموجهين من الشبكة في الخلفية (إذا لم تُجلب من قبل)
             const hasCache = !!localStorage.getItem(REMOTE_SUPERVISORS_KEY);
             if (!hasCache) {
-                // جلب أول مرة: نطبق البيانات ثم نُعيد رسم الجدول
                 fetchSupervisorsFromSheets(false).then(result => {
                     if (result.ok && result.source === 'network') {
                         renderTable();
@@ -990,7 +744,6 @@
                     }
                 });
             } else {
-                // البيانات موجودة محلياً — طبّقها بهدوء (بدون loading overlay)
                 try {
                     const cached = localStorage.getItem(REMOTE_SUPERVISORS_KEY);
                     if (cached) applySupervisorsFromRemote(JSON.parse(cached));
@@ -1016,15 +769,14 @@
 
             monthSelect.addEventListener('change', onMonthYearChange);
             yearSelect.addEventListener('change', onMonthYearChange);
-            document.getElementById('btnClearAll').addEventListener('click', clearAll);
             document.getElementById('btnPrint').addEventListener('click', printGeneralPlan);
-            document.getElementById('btnSync').addEventListener('click', syncToSheets);
+            
+            document.getElementById('planSearch').addEventListener('input', (e) => highlightSearch(e.target.value));
 
             loadPlan();
             renderTable();
             updateTitle();
             updateSyncStatus();
-            // جلب الخطة من Sheets عند فتح التطبيق
             fetchPlanFromSheets();
         }
 
@@ -1036,7 +788,6 @@
             try { ArchiveUI.updateBadge(); } catch(e) {}
             const singleTab = document.getElementById('singleTab');
             if (singleTab && singleTab.classList.contains('active') && typeof renderSinglePlan === 'function') renderSinglePlan();
-            // جلب خطة الشهر الجديد من Sheets
             fetchPlanFromSheets();
         }
 
@@ -1055,75 +806,48 @@
             normalizePlanInstitutes(currentPlan);
             normalizeSupervisorInstitutes();
             localStorage.setItem(getStorageKey(), JSON.stringify(currentPlan));
-            // حفظ تلقائي في سجل الأشهر
             try { MonthlyArchive.saveCurrentMonth(); } catch(e) {}
-            // رفع تلقائي للخطة إلى Google Sheets (بدون انتظار — في الخلفية)
             schedulePlanSync();
+            updateQuickStats(); // Update stats on save
         }
 
-        // ---- رفع الخطة تلقائياً بعد كل تعديل (debounce 2 ثانية) ----
         let _planSyncTimer = null;
         function schedulePlanSync() {
             if (_planSyncTimer) clearTimeout(_planSyncTimer);
             _planSyncTimer = setTimeout(() => {
                 _planSyncTimer = null;
                 pushPlanToSheets().catch(e => console.warn('auto-sync plan:', e.message));
-            }, 2000);
+            }, 3000);
         }
 
-        // رفع خطة الشهر الحالي فقط إلى Sheets (صامت — بدون alert)
         async function pushPlanToSheets() {
-            if (!navigator.onLine) return;
+            if (!navigator.onLine) { setSyncIndicator('offline'); return; }
             try {
                 setSyncIndicator('syncing');
                 const planRows = getWorkingDays(currentMonth, currentYear).map(day => {
                     const assignment = {};
-                    SUPERVISORS.forEach(s => {
-                        assignment[s.name] = (currentPlan[day.date] && currentPlan[day.date][s.id]) || '';
-                    });
-                    return {
-                        id: 'plan_' + day.date,
-                        type: 'plans',
-                        data: {
-                            date: day.date,
-                            dayName: day.dayName,
-                            dayNumber: day.dayNumber,
-                            month: MONTHS_AR[currentMonth - 1],
-                            year: currentYear,
-                            assignment: assignment
-                        }
-                    };
+                    SUPERVISORS.forEach(s => { assignment[s.name] = (currentPlan[day.date] && currentPlan[day.date][s.id]) || ''; });
+                    return { id: 'plan_' + day.date, type: 'plans', data: { date: day.date, dayName: day.dayName, dayNumber: day.dayNumber, month: MONTHS_AR[currentMonth - 1], year: currentYear, assignment: assignment } };
                 });
                 await bulkSyncType('plans', planRows);
                 setSyncIndicator('ok');
-                // تحديث وقت آخر رفع
                 const now = new Date().toISOString();
                 localStorage.setItem('dabaa_plan_last_push_' + currentYear + '_' + currentMonth, now);
                 updateSyncStatus();
-            } catch(e) {
-                setSyncIndicator('error');
-                console.warn('pushPlanToSheets error:', e.message);
-            }
+            } catch(e) { setSyncIndicator('error'); console.warn('pushPlanToSheets error:', e.message); }
         }
 
-        // ---- جلب الخطة من Sheets عند فتح التطبيق ----
         async function fetchPlanFromSheets() {
-            if (!navigator.onLine) return;
+            if (!navigator.onLine) { setSyncIndicator('offline'); return; }
+            const localData = localStorage.getItem(getStorageKey());
+            const hasLocalData = localData && Object.keys(JSON.parse(localData)).length > 0;
             try {
                 setSyncIndicator('syncing');
-                const resp = await fetch(
-                    SHEETS_API_URL + '?action=read&type=plans&month=' +
-                    encodeURIComponent(MONTHS_AR[currentMonth - 1]) + '&year=' + currentYear,
-                    { method: 'GET' }
-                );
+                const resp = await fetch(SHEETS_API_URL + '?action=read&type=plans&month=' + encodeURIComponent(MONTHS_AR[currentMonth - 1]) + '&year=' + currentYear, { method: 'GET' });
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const json = await resp.json();
                 const records = json.records || json.data || json.plans || [];
-                if (!Array.isArray(records) || records.length === 0) {
-                    setSyncIndicator('ok');
-                    return;
-                }
-                // بناء currentPlan من السجلات
+                if (!Array.isArray(records) || records.length === 0) { setSyncIndicator('ok'); return; }
                 const remotePlan = {};
                 for (const rec of records) {
                     const d = rec.data || rec;
@@ -1135,25 +859,25 @@
                     }
                     if (Object.keys(dayPlan).length > 0) remotePlan[d.date] = dayPlan;
                 }
-                if (Object.keys(remotePlan).length > 0) {
+                if (hasLocalData) {
+                    console.log('Local data exists. Overriding remote fetch to prevent data loss.');
+                    setSyncIndicator('ok');
+                    pushPlanToSheets();
+                } else if (Object.keys(remotePlan).length > 0) {
                     currentPlan = remotePlan;
                     normalizePlanInstitutes(currentPlan);
                     localStorage.setItem(getStorageKey(), JSON.stringify(currentPlan));
                     try { MonthlyArchive.saveCurrentMonth(); } catch(e) {}
                     renderTable();
                     updateOtherTabs();
+                    setSyncIndicator('ok');
                 }
-                setSyncIndicator('ok');
                 const now = new Date().toISOString();
                 localStorage.setItem('dabaa_plan_last_fetch_' + currentYear + '_' + currentMonth, now);
                 updateSyncStatus();
-            } catch(e) {
-                setSyncIndicator('error');
-                console.warn('fetchPlanFromSheets:', e.message);
-            }
+            } catch(e) { setSyncIndicator('error'); console.warn('fetchPlanFromSheets:', e.message); }
         }
 
-        // ---- مؤشر حالة المزامنة ----
         function setSyncIndicator(state) {
             const el = document.getElementById('syncIndicator');
             if (!el) return;
@@ -1184,7 +908,6 @@
         function migrateInstituteNamesOnce() {
             const KEY = 'dabaa_institute_names_normalized_v1';
             if (localStorage.getItem(KEY) === '1') return;
-
             for (let year = 2024; year <= 2030; year++) {
                 for (let month = 1; month <= 12; month++) {
                     const storageKey = `plan_${year}_${month}`;
@@ -1197,22 +920,18 @@
                     } catch (e) {}
                 }
             }
-
             try {
                 const raw = localStorage.getItem(SUPERVISORS_OVERRIDES_KEY);
                 if (raw) {
                     const overrides = JSON.parse(raw);
                     for (const sup of Object.values(overrides)) {
                         if (sup && Array.isArray(sup.assignedInstitutes)) {
-                            sup.assignedInstitutes = [...new Set(
-                                sup.assignedInstitutes.map(normalizeInstituteName).filter(Boolean)
-                            )];
+                            sup.assignedInstitutes = [...new Set(sup.assignedInstitutes.map(normalizeInstituteName).filter(Boolean))];
                         }
                     }
                     localStorage.setItem(SUPERVISORS_OVERRIDES_KEY, JSON.stringify(overrides));
                 }
             } catch (e) {}
-
             localStorage.setItem(KEY, '1');
         }
 
@@ -1225,6 +944,39 @@
             if (singleTab && singleTab.classList.contains('active') && typeof renderSinglePlan === 'function') renderSinglePlan();
         }
 
+        function updateQuickStats() {
+            const workingDays = getWorkingDays(currentMonth, currentYear);
+            const totalCells = workingDays.length * SUPERVISORS.length;
+            let filledCells = 0;
+            for (const day in currentPlan) {
+                for (const sup in currentPlan[day]) {
+                    if (currentPlan[day][sup]) filledCells++;
+                }
+            }
+            const emptyCells = totalCells - filledCells;
+            const statsEl = document.getElementById('quickStats');
+            if (statsEl) {
+                statsEl.innerHTML = `
+                    <div class="stat-box">إجمالي الخانات: <span>${totalCells}</span></div>
+                    <div class="stat-box" style="color:#27ae60;">مكتمل: <span>${filledCells}</span></div>
+                    <div class="stat-box" style="color:#e74c3c;">فارغ: <span>${emptyCells}</span></div>
+                `;
+            }
+        }
+
+        function highlightSearch(query) {
+            const q = query.trim().toLowerCase();
+            const cells = document.querySelectorAll('#planTableContainer td');
+            cells.forEach(td => td.classList.remove('search-highlight'));
+            if (!q) return;
+            const selects = document.querySelectorAll('#planTableContainer select');
+            selects.forEach(sel => {
+                if (sel.value && sel.value.toLowerCase().includes(q)) {
+                    sel.closest('td').classList.add('search-highlight');
+                }
+            });
+        }
+
         function renderTable() {
             const container = document.getElementById('planTableContainer');
             container.innerHTML = '';
@@ -1233,7 +985,6 @@
                 container.innerHTML = '<p class="empty-msg">لا توجد أيام عمل في هذا الشهر</p>';
                 return;
             }
-
             const table = document.createElement('table');
             table.className = 'plan-table';
             const thead = document.createElement('thead');
@@ -1242,8 +993,8 @@
             SUPERVISORS.forEach(s => {
                 const th = document.createElement('th');
                 th.className = 'supervisor-header';
-                    th.innerHTML = `<div class="sup-name">${formatGeneralPrintSupervisorName(s.name)}</div><div class="spec">${s.specialty}</div>${s.recordNumber ? `<div class="record-num">سجل: ${s.recordNumber}</div>` : ''}`;
-                    headerRow.appendChild(th);
+                th.innerHTML = `<div class="sup-name">${formatGeneralPrintSupervisorName(s.name)}</div><div class="spec">${s.specialty}</div>${s.recordNumber ? `<div class="record-num">سجل: ${s.recordNumber}</div>` : ''}`;
+                headerRow.appendChild(th);
             });
             thead.appendChild(headerRow);
             table.appendChild(thead);
@@ -1271,9 +1022,9 @@
             });
             table.appendChild(tbody);
             container.appendChild(table);
+            updateQuickStats();
         }
 
-        // حساب عدد مرات زيارة كل معهد لموجه معين في الشهر الحالي (باستثناء يوم بعينه)
         function countInstituteVisits(supervisorId, excludeDay) {
             const counts = {};
             Object.entries(currentPlan).forEach(([d, dayPlan]) => {
@@ -1308,8 +1059,6 @@
 
             const allowedGroups = allAdminGroups.filter(group => allowedAdmins.includes(group.admin));
             const currentValue = (currentPlan[day] && currentPlan[day][supervisorId]) || '';
-
-            // عداد الزيارات السابقة لهذا الموجه في الشهر (بدون اليوم الحالي)
             const visitCounts = countInstituteVisits(supervisorId, day);
 
             allowedGroups.forEach(group => {
@@ -1321,7 +1070,6 @@
                     opt.value = inst.name;
                     opt.dataset.admin = group.admin;
                     const count = visitCounts[inst.name] || 0;
-                    // أضف العداد فقط إذا زار المعهد من قبل
                     opt.textContent = count > 0 ? `${inst.name}  (${count}×)` : inst.name;
                     if (count > 0) opt.style.color = count >= 3 ? '#c62828' : '#e65100';
                     optgroup.appendChild(opt);
@@ -1329,9 +1077,6 @@
                 if (optgroup.childElementCount > 0) select.appendChild(optgroup);
             });
 
-            // إظهار القيمة الحالية حتى لو كانت من إدارة غير مسموح بها للموجه.
-            // هذا مهم لبيانات الاختبار الشاملة حتى لا تتحول الخانة إلى فارغة
-            // عند عرض معهد تم وضعه عمدًا لاختبار التقارير والطباعة.
             if (currentValue && !Array.from(select.options).some(opt => opt.value === currentValue)) {
                 const currentOptGroup = document.createElement('optgroup');
                 currentOptGroup.label = '── القيمة الحالية (اختبار) ──';
@@ -1362,8 +1107,6 @@
         function applySelectColor(select) {
             const selectedOption = select.options[select.selectedIndex];
             let admin = selectedOption ? selectedOption.dataset.admin : '';
-            // إذا كانت القيمة الحالية من إدارة غير مسموح بها للموجه، قد لا تحمل
-            // الـ option بيانات الإدارة؛ نستخرج الإدارة مباشرة من اسم المعهد.
             if (!admin && select.value) admin = getInstituteAdmin(select.value);
             select.classList.remove('admin-dabaa', 'admin-matrouh', 'admin-hamam');
             if (admin) select.classList.add(`admin-${admin}`);
@@ -1374,7 +1117,6 @@
             const day = select.dataset.day;
             const supervisorId = select.dataset.supervisor;
             const value = normalizeInstituteName(select.value);
-
             if (!currentPlan[day]) currentPlan[day] = {};
             if (value) {
                 currentPlan[day][supervisorId] = value;
@@ -1388,6 +1130,9 @@
             refreshDaySelects(day);
             refreshSingleDaySelects(day);
             updateOtherTabs();
+            // Keep search highlighting active if user is searching
+            const searchVal = document.getElementById('planSearch').value;
+            if (searchVal) highlightSearch(searchVal);
         }
 
         function refreshDaySelects(day) {
@@ -1405,14 +1150,6 @@
             delete currentPlan[day];
             savePlan();
             refreshDaySelects(day);
-            updateOtherTabs();
-        }
-
-        function clearAll() {
-            if (!confirm('هل أنت متأكد من مسح الخطة بالكامل لهذا الشهر؟')) return;
-            currentPlan = {};
-            savePlan();
-            renderTable();
             updateOtherTabs();
         }
 
@@ -1453,92 +1190,6 @@
             input.click();
         }
 
-        // ==========================================
-        // <span class="ui-icon" data-icon="check" aria-hidden="true"></span> توليد بيانات تجريبية لأغسطس 2026
-        // ==========================================
-        function generateAugust2026TestData() {
-            if (Object.keys(currentPlan).length > 0) {
-                if (!confirm('سيتم استبدال الخطة الحالية ببيانات تجريبية لشهر أغسطس 2026. هل أنت متأكد؟')) return;
-            }
-
-            // التبديل لأغسطس 2026
-            currentMonth = 8;
-            currentYear = 2026;
-            document.getElementById('monthSelect').value = currentMonth;
-            document.getElementById('yearSelect').value = currentYear;
-
-            const workingDays = getWorkingDays(8, 2026);
-            const newPlan = {};
-
-            // بيانات اختبار شاملة: يجب أن يظهر كل معهد فعليًا مرة واحدة على الأقل خلال أغسطس.
-            // بيانات الاختبار قد تضع المعهد أمام أي موجه عمدًا لاختبار العرض والطباعة والتقارير،
-            // مع تغطية جميع المعاهد، بما فيها المعاهد المدمجة.
-            const allInstituteNames = [
-                ...INSTITUTES.dabaa.map(i => ({ name: i.name, admin: 'dabaa' })),
-                ...INSTITUTES.matrouh.map(i => ({ name: i.name, admin: 'matrouh' })),
-                ...INSTITUTES.hamam.map(i => ({ name: i.name, admin: 'hamam' }))
-            ];
-
-            // نوزّع قائمة المعاهد دوريًا على أيام العمل والموجهين، مع منع تكرار المعهد
-            // في اليوم نفسه. بهذه الطريقة تغطي بيانات أغسطس جميع المعاهد بدل اختيار عينة ثابتة.
-            let instituteCursor = 0;
-            workingDays.forEach((day) => {
-                newPlan[day.date] = {};
-                const usedToday = new Set();
-                const usedGroupsToday = new Set();
-
-                // نمر على الموجهين، ونبحث من موضع المؤشر عن أول معهد لم يُستخدم اليوم.
-                SUPERVISORS.forEach((sup) => {
-                    let selectedInstitute = null;
-                    for (let offset = 0; offset < allInstituteNames.length; offset++) {
-                        const index = (instituteCursor + offset) % allInstituteNames.length;
-                        const candidate = allInstituteNames[index];
-                        if (usedToday.has(candidate.name)) continue;
-                        const group = getGroupForInstitute(candidate.name);
-                        if (group && usedGroupsToday.has(group.id)) continue;
-                        selectedInstitute = candidate;
-                        instituteCursor = (index + 1) % allInstituteNames.length;
-                        break;
-                    }
-
-                    if (selectedInstitute) {
-                        newPlan[day.date][sup.id] = selectedInstitute.name;
-                        usedToday.add(selectedInstitute.name);
-                        const group = getGroupForInstitute(selectedInstitute.name);
-                        if (group) usedGroupsToday.add(group.id);
-                    }
-                });
-            });
-
-            // ضمان التغطية الكاملة: في حال لم تكفِ التوزيعة الأولى لأي سبب، نضع المعاهد
-            // غير الظاهرة في أول خانات متاحة في أيام أغسطس، مع عدم تكرار الاسم في اليوم نفسه.
-            const covered = new Set(Object.values(newPlan).flatMap(day => Object.values(day)).map(normalizeInstituteName));
-            const missing = allInstituteNames.filter(inst => !covered.has(normalizeInstituteName(inst.name)));
-            let missingIndex = 0;
-            for (const inst of missing) {
-                let placed = false;
-                for (const day of workingDays) {
-                    const dayPlan = newPlan[day.date];
-                    if (Object.values(dayPlan).some(name => normalizeInstituteName(name) === normalizeInstituteName(inst.name))) continue;
-                    const emptySupervisor = SUPERVISORS.find(sup => !dayPlan[sup.id]);
-                    if (emptySupervisor) {
-                        dayPlan[emptySupervisor.id] = inst.name;
-                        placed = true;
-                        break;
-                    }
-                }
-                if (!placed) break;
-                missingIndex++;
-            }
-
-            currentPlan = newPlan;
-            savePlan();
-            renderTable();
-            updateTitle();
-            updateOtherTabs();
-            alert(`<span class="ui-icon" data-icon="check" aria-hidden="true"></span> تم توليد بيانات تجريبية كاملة لشهر أغسطس 2026\nعدد أيام العمل: ${workingDays.length}\nعدد المعاهد المختبرة: ${allInstituteNames.length}\nيمكنك الآن تجربة الطباعة!`);
-        }
-
         const WEEK_COLORS_COUNT = 5;
 
         function getSupervisorInstitutes(sup) {
@@ -1549,10 +1200,7 @@
             ];
             const allowed = sup.allowedAdmins || ['dabaa'];
             if (sup.assignedInstitutes && sup.assignedInstitutes.length > 0) {
-                // اعرض المعاهد المُعيّنة + أي معهد جديد تابع لإدارة مسموح بها (لم يُضف للقائمة بعد)
-                return all.filter(i =>
-                    sup.assignedInstitutes.includes(i.name) || allowed.includes(i.admin)
-                );
+                return all.filter(i => sup.assignedInstitutes.includes(i.name) || allowed.includes(i.admin));
             }
             return all.filter(i => allowed.includes(i.admin));
         }
@@ -1667,7 +1315,6 @@
                     let checked, isNew = false;
                     if (hasSpecific) {
                         checked = sup.assignedInstitutes.includes(inst.name);
-                        // معهد جديد = مسموح بإدارته لكن غير موجود في القائمة المحفوظة
                         if (!checked && isAdminAllowed) isNew = true;
                     } else {
                         checked = isAdminAllowed;
@@ -1719,7 +1366,6 @@
             document.querySelectorAll('.inst-checkbox:checked').forEach(cb => assigned.push(cb.value));
             sup.assignedInstitutes = assigned;
             saveSupervisorsOverrides();
-            // تحديث نسخة الكاش المحلية
             try {
                 const remoteCache = SUPERVISORS.map(s=>({
                     id: s.id, name: s.name, specialty: s.specialty,
@@ -1833,130 +1479,101 @@
         }
 
         function buildGeneralPlanHTML(workingDays) {
-    const monthName = MONTHS_AR[currentMonth - 1];
-    const supervisors1 = SUPERVISORS.slice(0, 6);
-    const supervisors2 = SUPERVISORS.slice(6);
+            const monthName = MONTHS_AR[currentMonth - 1];
+            const supervisors1 = SUPERVISORS.slice(0, 6);
+            const supervisors2 = SUPERVISORS.slice(6);
 
-    const buildTable = (sups) => {
-        // ── فلترة: أبقِ فقط الأيام التي فيها خطة لأي موجه من هذه المجموعة ──
-        const activeDays = workingDays.filter(day =>
-            sups.some(s => currentPlan[day.date] && currentPlan[day.date][s.id])
-        );
-        if (activeDays.length === 0) return '<p style="text-align:center;padding:10px;">لا توجد خطط مسجلة</p>';
+            const buildTable = (sups) => {
+                const activeDays = workingDays.filter(day => sups.some(s => currentPlan[day.date] && currentPlan[day.date][s.id]));
+                if (activeDays.length === 0) return '<p style="text-align:center;padding:10px;">لا توجد خطط مسجلة</p>';
+                const rowCount = activeDays.length;
+                const availableMM = 245;
+                const rowHeightMM = Math.max(5.5, Math.min(13, availableMM / rowCount));
+                const baseFontSize = Math.max(9, Math.min(17, Math.floor(rowHeightMM * 1.05)));
+                const fontSize    = Math.round(baseFontSize * 1.2 * 10) / 10;
+                const thFontSize  = Math.round(Math.max(9, Math.min(15, baseFontSize)) * 1.2 * 10) / 10;
+                const dayNumSize  = Math.round(Math.max(9, Math.min(16, baseFontSize)) * 1.2 * 10) / 10;
+                const dayNameSize = Math.round(Math.max(9, Math.min(14, baseFontSize)) * 1.2 * 10) / 10;
+                const cellPadV    = Math.max(0, Math.min(2, Math.floor(rowHeightMM * 0.12)));
 
-        // ── ضبط الحجم تلقائياً حتى تظهر كل أيام الزيارات في صفحة A4 واحدة ──
-        const rowCount = activeDays.length;
-        // مساحة آمنة للجدول بعد الهيدر والتذييل؛ كلما زادت الأيام صغر الخط والصف.
-        const availableMM = 245;
-        const rowHeightMM = Math.max(5.5, Math.min(13, availableMM / rowCount));
-        const baseFontSize = Math.max(9, Math.min(17, Math.floor(rowHeightMM * 1.05)));
-        const fontSize    = Math.round(baseFontSize * 1.2 * 10) / 10;
-        const thFontSize  = Math.round(Math.max(9, Math.min(15, baseFontSize)) * 1.2 * 10) / 10;
-        const dayNumSize  = Math.round(Math.max(9, Math.min(16, baseFontSize)) * 1.2 * 10) / 10;
-        const dayNameSize = Math.round(Math.max(9, Math.min(14, baseFontSize)) * 1.2 * 10) / 10;
-        const cellPadV    = Math.max(0, Math.min(2, Math.floor(rowHeightMM * 0.12)));
+                return `
+                <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                    <thead>
+                        <tr>
+                            <th class="date-col" style="font-size:${thFontSize}px;">التاريخ</th>
+                            ${sups.map(s => `<th style="font-size:${thFontSize}px;"><div>${formatGeneralPrintSupervisorName(s.name)}</div><div class="spec" style="font-size:${thFontSize - 1}px;">${s.specialty}</div></th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${activeDays.map(day => `
+                            <tr style="height:${rowHeightMM}mm;">
+                                <td class="date-cell" style="padding:${cellPadV}px 2px;white-space:nowrap;">
+                                    <span style="font-size:${dayNumSize}px;font-weight:bold;color:#2c5f8d;white-space:nowrap;">${day.dayNumber} </span>
+                                    <div class="day-name" style="font-size:${dayNameSize}px;display:inline;white-space:nowrap;">${day.dayName}</div>
+                                </td>
+                                ${sups.map(s => `<td style="font-size:${fontSize}px;padding:${cellPadV}px 3px;">${formatGeneralPrintInstituteName(currentPlan[day.date] && currentPlan[day.date][s.id])}</td>`).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>`;
+            };
 
-        return `
-        <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-            <thead>
-                <tr>
-                    <th class="date-col" style="font-size:${thFontSize}px;">التاريخ</th>
-                    ${sups.map(s => `<th style="font-size:${thFontSize}px;"><div>${formatGeneralPrintSupervisorName(s.name)}</div><div class="spec" style="font-size:${thFontSize - 1}px;">${s.specialty}</div></th>`).join('')}
-                </tr>
-            </thead>
-            <tbody>
-                ${activeDays.map(day => `
-                    <tr style="height:${rowHeightMM}mm;">
-                        <td class="date-cell" style="padding:${cellPadV}px 2px;white-space:nowrap;">
-                            <span style="font-size:${dayNumSize}px;font-weight:bold;color:#2c5f8d;white-space:nowrap;">${day.dayNumber} </span>
-                            <div class="day-name" style="font-size:${dayNameSize}px;display:inline;white-space:nowrap;">${day.dayName}</div>
-                        </td>
-                        ${sups.map(s => `<td style="font-size:${fontSize}px;padding:${cellPadV}px 3px;">${formatGeneralPrintInstituteName(currentPlan[day.date] && currentPlan[day.date][s.id])}</td>`).join('')}
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>`;
-    };
-
-    return `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>الخطة العامة</title>
-    <style>
-        @page { size: A4 portrait; margin: 6mm; }
-        html, body { margin: 0; padding: 0; height: 100%; }
-        body { font-family: Arial, sans-serif; font-weight: 500; direction: rtl; font-size: 32px; }
-        .page {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            box-sizing: border-box;
-            page-break-after: always;
+            return `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>الخطة العامة</title>
+            <style>
+                @page { size: A4 portrait; margin: 6mm; }
+                html, body { margin: 0; padding: 0; height: 100%; }
+                body { font-family: Arial, sans-serif; font-weight: 500; direction: rtl; font-size: 32px; }
+                .page { display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; page-break-after: always; }
+                .page:last-child { page-break-after: auto; }
+                .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3mm; border-bottom: 2px solid #333; padding-bottom: 2mm; flex-shrink: 0; }
+                .header-right { text-align: right; font-size: 15px; line-height: 1.45; font-weight: 800; }
+                .title { text-align: center; font-size: 18px; font-weight: 800; flex: 1; }
+                .table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+                table { width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; }
+                th, td { border: 1px solid #333; text-align: center; vertical-align: middle; word-wrap: break-word; overflow: hidden; }
+                th { background-color: #2c5f8d; color: white; }
+                .spec { opacity: 0.88; }
+                .date-col { width: 78px; background-color: #f0f0f0; }
+                .date-cell { background-color: #f9f9f9; }
+                .day-name { font-weight: bold; }
+                .day-num  { font-weight: bold; }
+                .footer { flex-shrink: 0; margin-top: 3mm; padding-top: 2mm; border-top: 2px solid #333; display: flex; justify-content: space-around; font-size: 15px; font-weight: 800; }
+                .footer-item { text-align: center; }
+                .footer-item.no-line .footer-line { display: none; }
+                .footer-line { border-bottom: 1px solid #333; width: 60px; margin: 2px auto 0; }
+                @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+            </style></head><body>
+            <div class="page">
+                <div class="header">
+                    <div class="header-right"><div>الأزهر الشريف</div><div>الإدارة المركزية لمنطقة مطروح الأزهرية</div><div>إدارة الضبعة</div></div>
+                    <div class="title">الخطة العامة لموجهي إدارة الضبعة<br>لشهر ${monthName} ${currentYear} — للعام الدراسي 2027/2026 م.</div>
+                    <div style="width: 100px;"></div>
+                </div>
+                <div class="table-container">${buildTable(supervisors1)}</div>
+                <div class="footer">
+                    <div class="footer-item no-line"><div>المختص</div></div>
+                    <div class="footer-item no-line"><div>مدير الإدارة</div></div>
+                    <div class="footer-item no-line"><div>مدير التوجيه الفني</div></div>
+                    <div class="footer-item no-line"><div>رئيس الإدارة المركزية</div></div>
+                </div>
+            </div>
+            ${supervisors2.length > 0 ? `
+            <div class="page">
+                <div class="header">
+                    <div class="header-right"><div>الأزهر الشريف</div><div>الإدارة المركزية لمنطقة مطروح الأزهرية</div><div>إدارة الضبعة</div></div>
+                    <div class="title">الخطة العامة لموجهي إدارة الضبعة (تابع)<br>لشهر ${monthName} ${currentYear} — للعام الدراسي 2027/2026 م.</div>
+                    <div style="width: 100px;"></div>
+                </div>
+                <div class="table-container">${buildTable(supervisors2)}</div>
+                <div class="footer">
+                    <div class="footer-item no-line"><div>المختص</div></div>
+                    <div class="footer-item no-line"><div>مدير الإدارة</div></div>
+                    <div class="footer-item no-line"><div>مدير التوجيه الفني</div></div>
+                    <div class="footer-item no-line"><div>رئيس الإدارة المركزية</div></div>
+                </div>
+            </div>` : ''}
+            </body></html>`;
         }
-        .page:last-child { page-break-after: auto; }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 3mm;
-            border-bottom: 2px solid #333;
-            padding-bottom: 2mm;
-            flex-shrink: 0;
-        }
-        .header-right { text-align: right; font-size: 15px; line-height: 1.45; font-weight: 800; }
-        .title { text-align: center; font-size: 18px; font-weight: 800; flex: 1; }
-        .table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        table { width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; }
-        th, td { border: 1px solid #333; text-align: center; vertical-align: middle; word-wrap: break-word; overflow: hidden; }
-        th { background-color: #2c5f8d; color: white; }
-        .spec { opacity: 0.88; }
-        .date-col { width: 78px; background-color: #f0f0f0; }
-        .date-cell { background-color: #f9f9f9; }
-        .day-name { font-weight: bold; }
-        .day-num  { font-weight: bold; }
-        .footer {
-            flex-shrink: 0;
-            margin-top: 3mm;
-            padding-top: 2mm;
-            border-top: 2px solid #333;
-            display: flex;
-            justify-content: space-around;
-            font-size: 15px;
-            font-weight: 800;
-        }
-        .footer-item { text-align: center; }
-        .footer-item.no-line .footer-line { display: none; }
-        .footer-line { border-bottom: 1px solid #333; width: 60px; margin: 2px auto 0; }
-        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-    </style></head><body>
-    <div class="page">
-        <div class="header">
-            <div class="header-right"><div>الأزهر الشريف</div><div>الإدارة المركزية لمنطقة مطروح الأزهرية</div><div>إدارة الضبعة</div></div>
-            <div class="title">الخطة العامة لموجهي إدارة الضبعة<br>لشهر ${monthName} ${currentYear} — للعام الدراسي 2027/2026 م.</div>
-            <div style="width: 100px;"></div>
-        </div>
-        <div class="table-container">${buildTable(supervisors1)}</div>
-        <div class="footer">
-            <div class="footer-item no-line"><div>المختص</div></div>
-            <div class="footer-item no-line"><div>مدير الإدارة</div></div>
-            <div class="footer-item no-line"><div>مدير التوجيه الفني</div></div>
-            <div class="footer-item no-line"><div>رئيس الإدارة المركزية</div></div>
-        </div>
-    </div>
-    ${supervisors2.length > 0 ? `
-    <div class="page">
-        <div class="header">
-            <div class="header-right"><div>الأزهر الشريف</div><div>الإدارة المركزية لمنطقة مطروح الأزهرية</div><div>إدارة الضبعة</div></div>
-            <div class="title">الخطة العامة لموجهي إدارة الضبعة (تابع)<br>لشهر ${monthName} ${currentYear} — للعام الدراسي 2027/2026 م.</div>
-            <div style="width: 100px;"></div>
-        </div>
-        <div class="table-container">${buildTable(supervisors2)}</div>
-        <div class="footer">
-            <div class="footer-item no-line"><div>المختص</div></div>
-            <div class="footer-item no-line"><div>مدير الإدارة</div></div>
-            <div class="footer-item no-line"><div>مدير التوجيه الفني</div></div>
-            <div class="footer-item no-line"><div>رئيس الإدارة المركزية</div></div>
-        </div>
-    </div>` : ''}
-    </body></html>`;
-}
 
         function printIndividualSupervisor(supervisorId) {
             const supervisor = SUPERVISORS.find(s => s.id === supervisorId);
@@ -1978,137 +1595,109 @@
         }
 
         function buildSupervisorPlanHTML(supervisor, visits) {
-    const monthName = MONTHS_AR[currentMonth - 1];
-    const recordInfo = supervisor.recordNumber ? `رقم سجل (${supervisor.recordNumber})` : 'رقم سجل ( )';
-    
-        
-    // توزيع ديناميكي: 3 أعمدة، مع الحفاظ على وضوح اسم المعهد.
-    const totalBoxes = visits.length;
-    const rows = Math.ceil(totalBoxes / 3);
-    const gapMM = Math.max(1.4, Math.min(3, 3 - Math.max(0, rows - 4) * 0.22));
-    const instituteFont = Math.max(18, Math.min(26, 26 - Math.max(0, rows - 4) * 1.25));
-    const boxPadding = Math.max(2, Math.min(4, 4 - Math.max(0, rows - 5) * 0.4));
-    
-    return `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>خطة ${supervisor.name}</title>
-    <style>
-        @page { size: A4 portrait; margin: 10mm; }
-        html, body { margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; font-weight: 500; direction: rtl; }
-        .page { display: flex; flex-direction: column; height: 100vh; }
-        .header { text-align: center; margin-bottom: 3mm; border-bottom: 2px solid #333; padding-bottom: 2mm; flex-shrink: 0; }
-        .header-title { font-size: 17px; font-weight: 800; margin-bottom: 2px; }
-        .header-info { font-size: 15px; line-height: 1.25; font-weight: 800; }
-        .boxes-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: minmax(0, 1fr); gap: ${gapMM}mm; overflow: hidden; align-items: stretch; }
-        .visit-box { border: 1.5px solid #2c5f8d; border-radius: 4px; padding: ${boxPadding}px; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f9f9f9; text-align: center; overflow: hidden; }
-        .box-date-inline { display: flex; align-items: baseline; justify-content: center; gap: 4px; white-space: nowrap; }
-        .box-day-name { font-size: 11px; color: #666; margin: 0; line-height: 1.05; }
-        .box-day-num { font-size: 16px; font-weight: bold; color: #2c5f8d; margin: 0; line-height: 1; }
-        .box-institute { font-size: ${instituteFont}px; font-weight: 700; line-height: 1.1; word-wrap: break-word; overflow-wrap: anywhere; }
-        .footer { margin-top: 2mm; padding-top: 2mm; border-top: 2px solid #333; display: flex; justify-content: space-around; font-size: 15px; font-weight: 800; flex-shrink: 0; }
-        .footer-item { text-align: center; }
-        .footer-item.no-line .footer-line { display: none; }
-        .footer-line { border-bottom: 1px solid #333; width: 70px; margin: 3px auto 0; }
-        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-    </style></head><body>
-    <div class="page">
-        <div class="header">
-            <div class="header-title">إدارة الضبعة</div>
-            <div class="header-info">
-                <strong style="font-size:17px;font-weight:900">خطة الموجه: ${supervisor.name}</strong><br>
-                سجل ${supervisor.recordNumber || ' ' } &nbsp; تخصص ${supervisor.specialty || ' ' } &nbsp; لشهر ${monthName} ${currentYear} &nbsp; للعام الدراسي 2027/2026م.
-            </div>
-        </div>
-        <div class="boxes-grid">
-            ${visits.map(v => `
-                <div class="visit-box">
-                    <div class="box-date-inline"><span class="box-day-name">${v.dayName}</span> <span class="box-day-num">${v.dayNumber}</span></div>
-                    <div class="box-institute">${normalizeInstituteName(v.institute)}</div>
+            const monthName = MONTHS_AR[currentMonth - 1];
+            const totalBoxes = visits.length;
+            const rows = Math.ceil(totalBoxes / 3);
+            const gapMM = Math.max(1.4, Math.min(3, 3 - Math.max(0, rows - 4) * 0.22));
+            const instituteFont = Math.max(18, Math.min(26, 26 - Math.max(0, rows - 4) * 1.25));
+            const boxPadding = Math.max(2, Math.min(4, 4 - Math.max(0, rows - 5) * 0.4));
+            
+            return `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>خطة ${supervisor.name}</title>
+            <style>
+                @page { size: A4 portrait; margin: 10mm; }
+                html, body { margin: 0; padding: 0; }
+                body { font-family: Arial, sans-serif; font-weight: 500; direction: rtl; }
+                .page { display: flex; flex-direction: column; height: 100vh; }
+                .header { text-align: center; margin-bottom: 3mm; border-bottom: 2px solid #333; padding-bottom: 2mm; flex-shrink: 0; }
+                .header-title { font-size: 17px; font-weight: 800; margin-bottom: 2px; }
+                .header-info { font-size: 15px; line-height: 1.25; font-weight: 800; }
+                .boxes-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: minmax(0, 1fr); gap: ${gapMM}mm; overflow: hidden; align-items: stretch; }
+                .visit-box { border: 1.5px solid #2c5f8d; border-radius: 4px; padding: ${boxPadding}px; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f9f9f9; text-align: center; overflow: hidden; }
+                .box-date-inline { display: flex; align-items: baseline; justify-content: center; gap: 4px; white-space: nowrap; }
+                .box-day-name { font-size: 11px; color: #666; margin: 0; line-height: 1.05; }
+                .box-day-num { font-size: 16px; font-weight: bold; color: #2c5f8d; margin: 0; line-height: 1; }
+                .box-institute { font-size: ${instituteFont}px; font-weight: 700; line-height: 1.1; word-wrap: break-word; overflow-wrap: anywhere; }
+                .footer { margin-top: 2mm; padding-top: 2mm; border-top: 2px solid #333; display: flex; justify-content: space-around; font-size: 15px; font-weight: 800; flex-shrink: 0; }
+                .footer-item { text-align: center; }
+                .footer-item.no-line .footer-line { display: none; }
+                .footer-line { border-bottom: 1px solid #333; width: 70px; margin: 3px auto 0; }
+                @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+            </style></head><body>
+            <div class="page">
+                <div class="header">
+                    <div class="header-title">إدارة الضبعة</div>
+                    <div class="header-info">
+                        <strong style="font-size:17px;font-weight:900">خطة الموجه: ${supervisor.name}</strong><br>
+                        سجل ${supervisor.recordNumber || ' ' } &nbsp; تخصص ${supervisor.specialty || ' ' } &nbsp; لشهر ${monthName} ${currentYear} &nbsp; للعام الدراسي 2027/2026م.
+                    </div>
                 </div>
-            `).join('')}
-        </div>
-        <div class="footer">
-            <div class="footer-item no-line"><div>المختص</div></div>
-            <div class="footer-item no-line"><div>مدير الإدارة</div></div>
-        </div>
-    </div>
-    </body></html>`;
-}
+                <div class="boxes-grid">
+                    ${visits.map(v => `
+                        <div class="visit-box">
+                            <div class="box-date-inline"><span class="box-day-name">${v.dayName}</span> <span class="box-day-num">${v.dayNumber}</span></div>
+                            <div class="box-institute">${normalizeInstituteName(v.institute)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="footer">
+                    <div class="footer-item no-line"><div>المختص</div></div>
+                    <div class="footer-item no-line"><div>مدير الإدارة</div></div>
+                </div>
+            </div>
+            </body></html>`;
+        }
 
         function buildInstitutePlanHTML(instituteName, visits) {
-    instituteName = normalizeInstituteName(instituteName);
-    const monthName = MONTHS_AR[currentMonth - 1];
-    
-    // <span class="ui-icon" data-icon="check" aria-hidden="true"></span> حساب عدد الصفوف الديناميكي (3 أعمدة)
-    const totalBoxes = visits.length;
-    const rows = Math.ceil(totalBoxes / 3);
-    
-    return `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>خطة ${instituteName}</title>
-    <style>
-        @page { size: A4 portrait; margin: 10mm; }
-        html, body { margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; font-weight: 500; direction: rtl; }
-        .page { display: flex; flex-direction: column; height: 100vh; }
-        .header { text-align: center; margin-bottom: 4mm; border-bottom: 2px solid #333; padding-bottom: 3mm; }
-        .header-title { font-size: 25.5px; font-weight: 800; margin-bottom: 4px; }
-        .header-info { font-size: 22.5px; line-height: 1.45; font-weight: 800; white-space: nowrap; }
-        .boxes-grid { 
-            flex: 1; 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr);
-                    column-gap: 0;
-                    row-gap: 0;
-                    grid-auto-rows: auto;
-                    align-items: start; 
-            gap: 3mm; 
-            overflow: hidden; 
-        }
-        .visit-box { 
-            border: 2px solid #2c5f8d; 
-            border-radius: 6px; 
-            padding: 4px; 
-            display: flex; 
-            flex-direction: column;
-            align-items: center; 
-            justify-content: center;
-            background-color: #f9f9f9; 
-            text-align: center;
-        }
-        .box-date-inline { display: flex; align-items: baseline; justify-content: center; gap: 4px; white-space: nowrap; }
-        .box-day-name { font-size: 12px; color: #666; margin: 0; }
-        .box-day-num { font-size: 16px; font-weight: bold; color: #2c5f8d; margin: 0; }
-        .box-supervisor-name { font-size: 15px; font-weight: 800; margin-bottom: 2px; line-height: 1.2; }
-        .box-supervisor-spec { font-size: 24px; color: #666; }
-        .footer { margin-top: 4mm; padding-top: 3mm; border-top: 2px solid #333; display: flex; justify-content: space-around; font-size: 22.5px; font-weight: 800; }
-        .footer-item { text-align: center; }
-        .footer-line { border-bottom: 1px solid #333; width: 70px; margin: 3px auto 0; }
-        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-    </style></head><body>
-    <div class="page">
-        <div class="header">
-            <div class="header-title">إدارة الضبعة</div>
-            <div class="header-info">
-                خطة المعهد: ${instituteName}<br>
-                لشهر ${monthName} ${currentYear} — للعام الدراسي ${currentYear}/${currentYear + 1}
-            </div>
-        </div>
-        <div class="boxes-grid">
-            ${visits.map(v => `
-                <div class="visit-box">
-                    <div class="box-date-inline"><span class="box-day-name">${v.dayName}</span> <span class="box-day-num">${v.dayNumber}</span></div>
-                    <div class="box-supervisor-name">${v.supervisorName}</div>
-                    <div class="box-supervisor-spec">${v.supervisorSpecialty}</div>
+            instituteName = normalizeInstituteName(instituteName);
+            const monthName = MONTHS_AR[currentMonth - 1];
+            const totalBoxes = visits.length;
+            const rows = Math.ceil(totalBoxes / 3);
+            
+            return `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>خطة ${instituteName}</title>
+            <style>
+                @page { size: A4 portrait; margin: 10mm; }
+                html, body { margin: 0; padding: 0; }
+                body { font-family: Arial, sans-serif; font-weight: 500; direction: rtl; }
+                .page { display: flex; flex-direction: column; height: 100vh; }
+                .header { text-align: center; margin-bottom: 4mm; border-bottom: 2px solid #333; padding-bottom: 3mm; }
+                .header-title { font-size: 25.5px; font-weight: 800; margin-bottom: 4px; }
+                .header-info { font-size: 22.5px; line-height: 1.45; font-weight: 800; white-space: nowrap; }
+                .boxes-grid { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 0; row-gap: 0; grid-auto-rows: auto; align-items: start; gap: 3mm; overflow: hidden; }
+                .visit-box { border: 2px solid #2c5f8d; border-radius: 6px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f9f9f9; text-align: center; }
+                .box-date-inline { display: flex; align-items: baseline; justify-content: center; gap: 4px; white-space: nowrap; }
+                .box-day-name { font-size: 12px; color: #666; margin: 0; }
+                .box-day-num { font-size: 16px; font-weight: bold; color: #2c5f8d; margin: 0; }
+                .box-supervisor-name { font-size: 15px; font-weight: 800; margin-bottom: 2px; line-height: 1.2; }
+                .box-supervisor-spec { font-size: 24px; color: #666; }
+                .footer { margin-top: 4mm; padding-top: 3mm; border-top: 2px solid #333; display: flex; justify-content: space-around; font-size: 22.5px; font-weight: 800; }
+                .footer-item { text-align: center; }
+                .footer-line { border-bottom: 1px solid #333; width: 70px; margin: 3px auto 0; }
+                @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+            </style></head><body>
+            <div class="page">
+                <div class="header">
+                    <div class="header-title">إدارة الضبعة</div>
+                    <div class="header-info">
+                        خطة المعهد: ${instituteName}<br>
+                        لشهر ${monthName} ${currentYear} — للعام الدراسي ${currentYear}/${currentYear + 1}
+                    </div>
                 </div>
-            `).join('')}
-        </div>
-        <div class="footer">
-            <div class="footer-item no-line"><div>المختص</div></div>
-            <div class="footer-item no-line"><div>مدير الإدارة</div></div>
-        </div>
-    </div>
-    </body></html>`;
-}
-
-
+                <div class="boxes-grid">
+                    ${visits.map(v => `
+                        <div class="visit-box">
+                            <div class="box-date-inline"><span class="box-day-name">${v.dayName}</span> <span class="box-day-num">${v.dayNumber}</span></div>
+                            <div class="box-supervisor-name">${v.supervisorName}</div>
+                            <div class="box-supervisor-spec">${v.supervisorSpecialty}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="footer">
+                    <div class="footer-item no-line"><div>المختص</div></div>
+                    <div class="footer-item no-line"><div>مدير الإدارة</div></div>
+                </div>
+            </div>
+            </body></html>`;
+        }
 
         function openPrintWindow(html) {
             const iframe = document.createElement('iframe');
@@ -2120,27 +1709,16 @@
             setTimeout(() => { iframe.contentWindow.print(); setTimeout(() => document.body.removeChild(iframe), 1000); }, 200);
         }
 
-        // ---- رابط Google Apps Script ثابت ----
         const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxKfFXMasn8LPgyCBfHKXxoDJH-qcnL52oApaZg6ga8MWP04I6lZPGwcB1sVXTBxec_/exec';
 
         function initGoogleSheets() {
-            // عرض الرابط في الإعدادات للمرجعية فقط
-            const apiInput = document.getElementById('sheetsApiUrl');
-            if (apiInput) {
-                apiInput.value = SHEETS_API_URL;
-                apiInput.readOnly = true;
-                apiInput.style.background = '#f0f7ff';
-                apiInput.style.color = '#555';
-                apiInput.title = 'الرابط مثبت في النظام ولا يحتاج تعديل';
-            }
+            // Removed visual clutter from settings tab
         }
 
-        // ---- جلب بيانات الموجهين من Google Sheets وحفظها محلياً ----
         const REMOTE_SUPERVISORS_KEY = 'dabaa_remote_supervisors_v1';
         const REMOTE_SUPERVISORS_TS  = 'dabaa_remote_supervisors_ts';
 
         async function fetchSupervisorsFromSheets(forceRefresh) {
-            // إذا كانت البيانات محفوظة محلياً وليس طلب تحديث إجباري → استخدمها مباشرة
             const cached = localStorage.getItem(REMOTE_SUPERVISORS_KEY);
             if (cached && !forceRefresh) {
                 try {
@@ -2151,16 +1729,12 @@
                     }
                 } catch(e) {}
             }
-
-            // جلب من الشبكة
             try {
                 showLoading('جاري جلب بيانات الموجهين من الشبكة...');
                 const resp = await fetch(SHEETS_API_URL + '?action=read&type=supervisors', { method: 'GET' });
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const json = await resp.json();
                 hideLoading();
-
-                // يتوقع الـ API أن يرجع { ok: true, records: [...] } أو { ok: true, data: [...] }
                 const records = json.records || json.data || json.supervisors || [];
                 if (Array.isArray(records) && records.length > 0) {
                     localStorage.setItem(REMOTE_SUPERVISORS_KEY, JSON.stringify(records));
@@ -2176,10 +1750,7 @@
             }
         }
 
-        // تطبيق بيانات الموجهين القادمة من الشبكة على مصفوفة SUPERVISORS
         function applySupervisorsFromRemote(records) {
-            // records: مصفوفة من كائنات { id, name, specialty, recordNumber, allowedAdmins, workDays, assignedInstitutes }
-            // نقوم بدمجها مع overrides المحلية (الأولوية للشبكة للحقول الأساسية فقط)
             for (const rec of records) {
                 const sup = SUPERVISORS.find(s => s.id === rec.id);
                 if (sup) {
@@ -2194,7 +1765,6 @@
                         sup.assignedInstitutes = rec.assignedInstitutes.map(normalizeInstituteName).filter(Boolean);
                 }
             }
-            // حفظ التحديث كـ overrides محلية حتى تستمر بعد إعادة التحميل
             saveSupervisorsOverrides();
         }
 
@@ -2214,7 +1784,6 @@
             }
         }
 
-        // ---- دالة مساعدة: إرسال bulk_sync لنوع واحد وقراءة الرد ----
         async function bulkSyncType(type, records) {
             const body = JSON.stringify({ action: 'bulk_sync', type: type, records: records });
             const resp = await fetch(SHEETS_API_URL, {
@@ -2232,7 +1801,6 @@
             if (!SHEETS_API_URL) { alert('الرجاء إدخال رابط Google Apps Script أولاً'); return; }
             if (Object.keys(currentPlan).length === 0) { alert('لا توجد بيانات لرفعها'); return; }
             try {
-                // --- اختبار اتصال أولي ---
                 showLoading('جاري التحقق من الاتصال...');
                 let pingResp;
                 try {
@@ -2249,7 +1817,6 @@
                 }
 
                 showLoading('جاري رفع الموجهين...');
-                // --- 1: supervisors ---
                 const supervisorRecords = SUPERVISORS.map(s => ({
                     id: 'sup_' + s.id,
                     type: 'supervisors',
@@ -2267,7 +1834,6 @@
                 await bulkSyncType('supervisors', supervisorRecords);
 
                 showLoading('جاري رفع خطة الشهر...');
-                // --- 2: plans (الخطة اليومية) ---
                 const planRows = getWorkingDays(currentMonth, currentYear).map(day => {
                     const assignment = {};
                     SUPERVISORS.forEach(s => {
@@ -2289,7 +1855,6 @@
                 await bulkSyncType('plans', planRows);
 
                 showLoading('جاري رفع المعاهد...');
-                // --- 3: institutes ---
                 const allInstitutes = [
                     ...INSTITUTES.dabaa.map(i => ({ ...i, admin: 'dabaa' })),
                     ...INSTITUTES.matrouh.map(i => ({ ...i, admin: 'matrouh' })),
@@ -2358,58 +1923,11 @@ Who has access: Anyone
     textarea { display:block; width:100%; max-width:1000px; height:75vh; margin:0 auto; padding:20px; border:1px solid #bbb; border-radius:10px; background:#fff; font:17px/1.8 Arial,Tahoma,sans-serif; direction:rtl; text-align:right; resize:both; outline:none; }
     textarea:focus { border-color:#145a8d; box-shadow:0 0 0 2px rgba(20,90,141,.12); }
     .hint { max-width:1000px; margin:10px auto 0; color:#666; font-size:13px; }
-
-        /* ===== إضافات التصدير والإدارة وPWA ===== */
-        .plan-table td.cell-empty {
-            background: #fff4c7 !important;
-            box-shadow: inset 0 0 0 2px #f0ad00;
-        }
-        .plan-table td.cell-empty select {
-            background: #fff8dc !important;
-            border-color: #e5a900 !important;
-        }
-        .empty-warning {
-            display:inline-flex; align-items:center; gap:6px; padding:6px 10px;
-            border-radius:10px; background:#fff4c7; color:#8a5a00;
-            border:1px solid #f0c24b; font-weight:700; font-size:12px;
-        }
-        .manage-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-        .manage-panel { background:rgba(255,255,255,.82); border:1px solid #dfe8f2; border-radius:18px; padding:18px; box-shadow:var(--shadow-soft); }
-        .manage-panel h3 { color:#075db3; margin-bottom:12px; }
-        .manage-table-wrap { overflow:auto; max-height:65vh; }
-        .manage-table { width:100%; border-collapse:collapse; min-width:560px; }
-        .manage-table th,.manage-table td { border:1px solid #dfe6ef; padding:8px; text-align:center; vertical-align:middle; }
-        .manage-table th { background:#eaf4ff; color:#174a79; position:sticky; top:0; z-index:1; }
-        .manage-table input,.manage-table select { width:100%; min-height:38px; padding:6px 8px; border:1px solid #ccd8e5; border-radius:9px; font-family:inherit; }
-        .manage-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
-        .manage-actions .btn { flex:1; min-width:150px; }
-        .pwa-box { margin-top:20px; padding:18px; border:1px solid #cfe3f8; background:#f4f9ff; border-radius:16px; }
-        .offline-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700; margin-top:8px; background:#eef2f7; color:#56616f; }
-        .offline-badge.online { background:#e7f8ee; color:#16723a; }
-        .offline-badge.offline { background:#fff4c7; color:#8a5a00; }
-        .sync-badge { display:inline-flex; align-items:center; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700; }
-        .sync-syncing { background:#e3f2fd; color:#1565c0; }
-        .sync-ok      { background:#e8f5e9; color:#2e7d32; }
-        .sync-error   { background:#fff3e0; color:#e65100; }
-        .sync-offline { background:#f5f5f5; color:#757575; }
-        @media (max-width: 900px) { .manage-grid { grid-template-columns:1fr; } }
-        @media print { .manage-panel,.pwa-box { display:none !important; } }
-
-
-        /* تنبيه بصري للخلايا الفارغة في الخطة */
-        #planTableContainer td.empty-cell-warning {
-            background: #fff3cd !important;
-            box-shadow: inset 0 0 0 2px #f0ad4e;
-        }
-        #planTableContainer td.empty-cell-warning select {
-            background: #fff3cd !important;
-            border-color: #f0ad4e !important;
-        }
 </style>
 </head>
 <body>
 <div class="toolbar">
-    <h1><span class="ui-icon" data-icon="book" aria-hidden="true"></span> تعليمات إعداد Google Sheets</h1>
+    <h1>تعليمات إعداد Google Sheets</h1>
     <button onclick="selectAllText()">تحديد الكل</button>
     <button onclick="copyText()">نسخ النص</button>
     <button onclick="window.print()">طباعة</button>
@@ -2433,12 +1951,6 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
             setTimeout(() => URL.revokeObjectURL(url), 60000);
         }
 
-
-        // ============================================================
-        // MonthlyArchive — طبقة بيانات سجل الأشهر (مستقلة تمامًا)
-        // مفتاح localStorage: dabaa_monthly_archive
-        // لا تعدّل أي دالة موجودة
-        // ============================================================
         const MonthlyArchive = (() => {
             const ARCHIVE_KEY = 'dabaa_monthly_archive';
 
@@ -2453,9 +1965,7 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                         if (overrides && typeof overrides === 'object') {
                             for (const sup of Object.values(overrides)) {
                                 if (sup && Array.isArray(sup.assignedInstitutes)) {
-                                    sup.assignedInstitutes = [...new Set(
-                                        sup.assignedInstitutes.map(normalizeInstituteName).filter(Boolean)
-                                    )];
+                                    sup.assignedInstitutes = [...new Set(sup.assignedInstitutes.map(normalizeInstituteName).filter(Boolean))];
                                 }
                             }
                         }
@@ -2465,25 +1975,16 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
             }
 
             function _save(archive) {
-                try {
-                    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archive));
-                    return true;
-                } catch (e) {
-                    console.error('MonthlyArchive: فشل الحفظ', e);
-                    return false;
-                }
+                try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archive)); return true; }
+                catch (e) { console.error('MonthlyArchive: فشل الحفظ', e); return false; }
             }
 
             function _deepClone(obj) {
-                try { return structuredClone(obj); }
-                catch (e) { return JSON.parse(JSON.stringify(obj)); }
+                try { return structuredClone(obj); } catch (e) { return JSON.parse(JSON.stringify(obj)); }
             }
 
-            function _makeId(year, month) {
-                return `${year}-${String(month).padStart(2, '0')}`;
-            }
+            function _makeId(year, month) { return `${year}-${String(month).padStart(2, '0')}`; }
 
-            // قراءة Snapshot الحالي من التطبيق
             function _currentSnapshot() {
                 normalizePlanInstitutes(currentPlan);
                 normalizeSupervisorInstitutes();
@@ -2493,26 +1994,18 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 })();
                 for (const sup of Object.values(overrides)) {
                     if (sup && Array.isArray(sup.assignedInstitutes)) {
-                        sup.assignedInstitutes = [...new Set(
-                            sup.assignedInstitutes.map(normalizeInstituteName).filter(Boolean)
-                        )];
+                        sup.assignedInstitutes = [...new Set(sup.assignedInstitutes.map(normalizeInstituteName).filter(Boolean))];
                     }
                 }
-                return {
-                    plan: _deepClone(currentPlan),
-                    supervisorOverrides: _deepClone(overrides)
-                };
+                return { plan: _deepClone(currentPlan), supervisorOverrides: _deepClone(overrides) };
             }
 
-            // تهيئة الأرشيف: إذا لم يوجد سجل للشهر الحالي، أنشئه من البيانات الحالية
             function init() {
                 const archive = _load();
                 const id = _makeId(currentYear, currentMonth);
                 if (!archive[id]) {
                     archive[id] = {
-                        id,
-                        month: currentMonth,
-                        year: currentYear,
+                        id, month: currentMonth, year: currentYear,
                         name: `${MONTHS_AR[currentMonth - 1]} ${currentYear}`,
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString(),
@@ -2523,15 +2016,12 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 return archive;
             }
 
-            // حفظ الشهر الحالي في الأرشيف
             function saveCurrentMonth() {
                 const archive = _load();
                 const id = _makeId(currentYear, currentMonth);
                 const existing = archive[id] || {};
                 archive[id] = Object.assign({}, existing, {
-                    id,
-                    month: currentMonth,
-                    year: currentYear,
+                    id, month: currentMonth, year: currentYear,
                     name: `${MONTHS_AR[currentMonth - 1]} ${currentYear}`,
                     createdAt: existing.createdAt || new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
@@ -2540,7 +2030,6 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 return _save(archive);
             }
 
-            // تحميل شهر محدد إلى التطبيق
             function loadMonth(id) {
                 const archive = _load();
                 const rec = archive[id];
@@ -2550,35 +2039,27 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 }
                 try {
                     const snap = rec.data;
-                    // تحديث المتغيرات العالمية
                     currentMonth = rec.month;
                     currentYear = rec.year;
                     currentPlan = _deepClone(snap.plan || {});
                     normalizePlanInstitutes(currentPlan);
 
-                    // تحديث Overrides في localStorage
                     if (snap.supervisorOverrides) {
                         for (const sup of Object.values(snap.supervisorOverrides)) {
                             if (sup && Array.isArray(sup.assignedInstitutes)) {
-                                sup.assignedInstitutes = [...new Set(
-                                    sup.assignedInstitutes.map(normalizeInstituteName).filter(Boolean)
-                                )];
+                                sup.assignedInstitutes = [...new Set(sup.assignedInstitutes.map(normalizeInstituteName).filter(Boolean))];
                             }
                         }
                         localStorage.setItem(SUPERVISORS_OVERRIDES_KEY, JSON.stringify(snap.supervisorOverrides));
                     }
                     loadSupervisorsOverrides();
 
-                    // تحديث واجهة الشهر/السنة
                     const mSel = document.getElementById('monthSelect');
                     const ySel = document.getElementById('yearSelect');
                     if (mSel) mSel.value = currentMonth;
                     if (ySel) ySel.value = currentYear;
 
-                    // حفظ الخطة في مفتاح localStorage الأصلي
                     savePlan();
-
-                    // تحديث الواجهة بالكامل
                     renderTable();
                     updateTitle();
                     updateOtherTabs();
@@ -2591,25 +2072,20 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 }
             }
 
-            // إنشاء شهر جديد (فارغ أو منسوخ)
             function createMonth(year, month, sourceId) {
                 const id = _makeId(year, month);
                 const archive = _load();
-                if (archive[id]) {
-                    // الشهر موجود: فقط حمّله
-                    return loadMonth(id);
-                }
+                if (archive[id]) return loadMonth(id);
+                
                 let planData = {};
                 let overridesData = {};
                 if (sourceId && archive[sourceId] && archive[sourceId].data) {
                     const src = _deepClone(archive[sourceId].data);
-                    planData = {}; // الخطة اليومية لا تُنسخ (تواريخ مختلفة)
+                    planData = {};
                     overridesData = src.supervisorOverrides || {};
                 }
                 archive[id] = {
-                    id,
-                    month,
-                    year,
+                    id, month, year,
                     name: `${MONTHS_AR[month - 1]} ${year}`,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
@@ -2619,7 +2095,6 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 return loadMonth(id);
             }
 
-            // حذف شهر
             function deleteMonth(id) {
                 const archive = _load();
                 if (!archive[id]) return false;
@@ -2627,7 +2102,6 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 return _save(archive);
             }
 
-            // جلب جميع الأشهر مرتبة من الأحدث للأقدم
             function getAllMonths() {
                 const archive = _load();
                 return Object.values(archive).sort((a, b) => {
@@ -2636,27 +2110,21 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 });
             }
 
-            // مفتاح الشهر الحالي
             function getCurrentId() { return _makeId(currentYear, currentMonth); }
 
             return { init, saveCurrentMonth, loadMonth, createMonth, deleteMonth, getAllMonths, getCurrentId };
         })();
 
 
-        // ============================================================
-        // ArchiveUI — طبقة واجهة سجل الأشهر (مستقلة)
-        // ============================================================
         const ArchiveUI = (() => {
             let _newMonthMode = 'empty';
-            let _pendingLoadId = null; // الشهر المراد فتحه بعد التأكيد
+            let _pendingLoadId = null;
 
-            // ---------- شارة الشهر الحالي في الرأس ----------
             function updateBadge() {
                 const el = document.getElementById('activeMonthLabel');
                 if (el) el.textContent = `${MONTHS_AR[currentMonth - 1]} ${currentYear}`;
             }
 
-            // ---------- نافذة الأرشيف ----------
             function openArchiveModal() {
                 MonthlyArchive.saveCurrentMonth();
                 renderArchiveList();
@@ -2702,14 +2170,11 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 }).join('');
             }
 
-            // ---------- طلب فتح شهر (مع حماية من فقد بيانات) ----------
             function requestLoadMonth(id) {
                 _pendingLoadId = id;
-                // تحقق بسيط: هل الخطة الحالية تختلف عما في الأرشيف؟
                 const saved = localStorage.getItem(`plan_${currentYear}_${currentMonth}`) || '{}';
                 const live = JSON.stringify(currentPlan);
                 if (live !== saved) {
-                    // يوجد تعديل غير محفوظ
                     document.getElementById('archiveConfirmModal').classList.add('open');
                 } else {
                     _doLoadMonth(id);
@@ -2725,29 +2190,23 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 document.getElementById('archiveConfirmModal').classList.remove('open');
             }
 
-            // ---------- طلب حذف شهر ----------
             function requestDeleteMonth(id, name) {
                 const currentId = MonthlyArchive.getCurrentId();
                 if (id === currentId) {
                     alert('لا يمكن حذف الشهر الحالي النشط. انتقل إلى شهر آخر أولًا.');
                     return;
                 }
-                if (!confirm(`هل أنت متأكد من حذف سجل «${name}»؟
-
-لا يمكن التراجع عن هذا الإجراء.`)) return;
+                if (!confirm(`هل أنت متأكد من حذف سجل «${name}»؟\n\nلا يمكن التراجع عن هذا الإجراء.`)) return;
                 MonthlyArchive.deleteMonth(id);
                 renderArchiveList();
             }
 
-            // ---------- نافذة إنشاء شهر جديد ----------
             function openNewMonthModal() {
-                // ملء قائمة الأشهر
                 const mSel = document.getElementById('nmMonthSelect');
                 mSel.innerHTML = MONTHS_AR.map((n, i) => `<option value="${i+1}">${n}</option>`).join('');
                 mSel.value = currentMonth;
                 document.getElementById('nmYearInput').value = currentYear;
 
-                // ملء قائمة المصادر للنسخ
                 const cSel = document.getElementById('nmCopySource');
                 const months = MonthlyArchive.getAllMonths();
                 cSel.innerHTML = months.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
@@ -2774,7 +2233,6 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                     alert('الرجاء إدخال شهر وسنة صحيحين.');
                     return;
                 }
-                // حفظ الشهر الحالي أولًا
                 MonthlyArchive.saveCurrentMonth();
 
                 const sourceId = _newMonthMode === 'copy'
@@ -2788,7 +2246,6 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 }
             }
 
-            // ---------- تهيئة أزرار نافذة التأكيد ----------
             function initConfirmModal() {
                 document.getElementById('confirmSaveGo').onclick = () => {
                     MonthlyArchive.saveCurrentMonth();
@@ -2803,7 +2260,6 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 };
             }
 
-            // ---------- إغلاق النوافذ بالنقر خارجها ----------
             function initOutsideClick() {
                 document.getElementById('archiveModal').addEventListener('click', e => {
                     if (e.target.id === 'archiveModal') closeArchiveModal();
@@ -2831,10 +2287,6 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
         })();
 
 
-        // ============================================================
-        // إضافات الإصدار: Excel XLSX + إدارة الموجهين والمعاهد + PWA
-        // ============================================================
-
         function updateEmptyCellWarning(td, select) {
             if (!td || !select) return;
             const empty = !select.value;
@@ -2843,11 +2295,8 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
             select.title = empty ? '⚠ هذه الخلية فارغة' : select.value;
         }
 
-        // ---------- XLSX بدون مكتبات خارجية ----------
         function _xmlEscape(v) {
-            return String(v == null ? '' : v)
-                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-                .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+            return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
         }
         function _crc32(bytes) {
             let table = _crc32.table;
@@ -2948,14 +2397,6 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
             } catch(e) { console.error(e); alert('تعذر إنشاء ملف Excel: '+(e.message||e)); }
         }
 
-        // PDF: يفتح نسخة الطباعة الرسمية، ويمكن اختيار "Save as PDF" من نافذة الطباعة.
-        function exportPlanPDF() {
-            const workingDays=getWorkingDays(currentMonth,currentYear);
-            if(!workingDays.length){ alert('لا توجد أيام عمل'); return; }
-            openPrintWindow(buildGeneralPlanHTML(workingDays), true);
-        }
-
-        // ---------- إدارة المعاهد ----------
         const INSTITUTES_OVERRIDES_KEY='dabaa_institutes_overrides_v1';
         function loadInstitutesOverrides(){
             try{
@@ -2998,7 +2439,6 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 s.recordNumber=row.querySelector('[data-field="record"]').value.trim();
             });
             saveSupervisorsOverrides();
-            // تحديث نسخة الكاش المحلية بالبيانات الجديدة
             const remoteCache = SUPERVISORS.map(s=>({
                 id: s.id, name: s.name, specialty: s.specialty,
                 recordNumber: s.recordNumber||'', allowedAdmins: s.allowedAdmins,
@@ -3026,7 +2466,6 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                 const admin=tr.querySelector('[data-field="admin"]').value;
                 next[admin].push({name,isSalfGroup:tr.querySelector('[data-field="group"]').checked});
             });
-            // تحديث الاسم في خطة الشهر الحالي للحفاظ على البيانات عند إعادة التسمية.
             const renameMap={};
             Object.entries(INSTITUTES).forEach(([oldAdmin,list])=>list.forEach((x,i)=>{
                 const oldName=x.name;
@@ -3037,7 +2476,6 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
                     if(newName && newName!==oldName) renameMap[oldName]=newName;
                 }
             }));
-            // حساب المعاهد الجديدة لكل إدارة (التي لم تكن موجودة قبل الحفظ)
             const oldNames = {
                 dabaa:   new Set(INSTITUTES.dabaa.map(x=>x.name)),
                 matrouh: new Set(INSTITUTES.matrouh.map(x=>x.name)),
@@ -3051,7 +2489,6 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
             }));
             SUPERVISORS.forEach(s=>{ if(Array.isArray(s.assignedInstitutes)) s.assignedInstitutes=s.assignedInstitutes.map(v=>renameMap[v]||v); });
 
-            // ---- إضافة المعاهد الجديدة تلقائياً لكل موجه يملك إذن الإدارة ----
             let autoAddedCount = 0;
             ['dabaa','matrouh','hamam'].forEach(adminKey => {
                 const newInsts = next[adminKey].filter(x => !oldNames[adminKey].has(x.name));
@@ -3075,7 +2512,6 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
             alert('تم حفظ تعديلات المعاهد' + (autoAddedCount > 0 ? `\n✅ تم إضافة ${autoAddedCount} معهد جديد تلقائياً للموجهين المختصين` : ''));
         }
 
-        // ---------- PWA ----------
         let deferredPwaPrompt=null;
         function initPWA(){
             const status=document.getElementById('pwaStatus'), install=document.getElementById('installPwaBtn');
