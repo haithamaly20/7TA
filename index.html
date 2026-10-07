@@ -333,7 +333,7 @@
     <div class="container">
         <div class="app-header">
             <h1><span class="ui-icon" data-icon="clipboard" aria-hidden="true"></span> الخطة العامة لموجهي إدارة الضبعة</h1>
-            <p>هيثم</p>
+            <p>نظام إدارة الزيارات الإشرافية</p>
             <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:8px;">
                 <div class="current-month-badge" id="activeMonthBadge"><span class="ui-icon" data-icon="calendar" aria-hidden="true"></span> <span id="activeMonthLabel">—</span></div>
                 <span id="syncIndicator" class="sync-badge" style="display:none;"></span>
@@ -547,18 +547,18 @@
 
     <script>
         const SUPERVISORS = [
-            { id: 's1', name: 'هيثم محمود علي', specialty: 'رياضيات', recordNumber: '', allowedAdmins: ['dabaa', 'matrouh'] },
-            { id: 's2', name: 'مصطفى ابراهيم احمد', specialty: 'تربية رياضية', recordNumber: '', allowedAdmins: ['dabaa'] },
-            { id: 's3', name: 'سوسن فايز غازي', specialty: 'دراسات', recordNumber: '', allowedAdmins: ['dabaa'] },
-            { id: 's4', name: 'نعيمة عبدالسلام طايل', specialty: 'علوم', recordNumber: '', allowedAdmins: ['dabaa'] },
-            { id: 's5', name: 'محمد يوسف كامل', specialty: 'حاسب', recordNumber: '', allowedAdmins: ['dabaa'] },
-            { id: 's6', name: 'محمود عبد المحسن', specialty: 'موجه', recordNumber: '', allowedAdmins: ['dabaa'] },
-            { id: 's7', name: 'السعيد عمارة', specialty: 'لغة انجليزية', recordNumber: '', allowedAdmins: ['dabaa'] },
-            { id: 's8', name: 'محمد شحاته', specialty: 'لغة عربية', recordNumber: '', allowedAdmins: ['dabaa'] },
-            { id: 's9', name: 'عبير احمد', specialty: 'شرعي', recordNumber: '', allowedAdmins: ['dabaa'] },
-            { id: 's10', name: 'رجب عبد النبي', specialty: 'تغذية', recordNumber: '', allowedAdmins: ['dabaa'] },
-            { id: 's11', name: 'ايناس صلاح عبد القادر', specialty: 'احياء', recordNumber: '', allowedAdmins: ['dabaa'] },
-            { id: 's12', name: 'عادل جلال', specialty: 'معامل', recordNumber: '', allowedAdmins: ['dabaa'] }
+            { id: 's1', name: 'هيثم محمود علي', specialty: 'رياضيات', recordNumber: '273978', allowedAdmins: ['dabaa', 'matrouh'] },
+            { id: 's2', name: 'مصطفى ابراهيم احمد', specialty: 'تربية رياضية', recordNumber: '328141', allowedAdmins: ['dabaa'] },
+            { id: 's3', name: 'سوسن فايز غازي', specialty: 'دراسات', recordNumber: '358650', allowedAdmins: ['dabaa'] },
+            { id: 's4', name: 'نعيمة عبدالسلام طايل', specialty: 'علوم', recordNumber: '212774', allowedAdmins: ['dabaa'] },
+            { id: 's5', name: 'محمد يوسف كامل', specialty: 'حاسب', recordNumber: '321873', allowedAdmins: ['dabaa'] },
+            { id: 's6', name: 'محمود عبد المحسن', specialty: 'موجه', recordNumber: '229597', allowedAdmins: ['dabaa'] },
+            { id: 's7', name: 'السعيد عمارة', specialty: 'لغة انجليزية', recordNumber: '328007', allowedAdmins: ['dabaa'] },
+            { id: 's8', name: 'محمد شحاته', specialty: 'لغة عربية', recordNumber: '01097094978', allowedAdmins: ['dabaa'] },
+            { id: 's9', name: 'عبير احمد', specialty: 'شرعي', recordNumber: '327947', allowedAdmins: ['dabaa'] },
+            { id: 's10', name: 'رجب عبد النبي', specialty: 'تغذية', recordNumber: '278809', allowedAdmins: ['dabaa'] },
+            { id: 's11', name: 'ايناس صلاح عبد القادر', specialty: 'احياء', recordNumber: '224944', allowedAdmins: ['dabaa'] },
+            { id: 's12', name: 'عادل جلال', specialty: 'معامل', recordNumber: '293669', allowedAdmins: ['dabaa'] }
         ];
 
         const INSTITUTES = {
@@ -727,24 +727,24 @@
             const infoEl = document.getElementById('lastSyncInfo');
             if (infoEl && ts) infoEl.textContent = 'آخر مزامنة للموجهين: ' + new Date(ts).toLocaleString('ar-EG');
 
-            const hasCache = !!localStorage.getItem(REMOTE_SUPERVISORS_KEY);
-            if (!hasCache) {
-                fetchSupervisorsFromSheets(false).then(result => {
-                    if (result.ok && result.source === 'network') {
-                        renderTable();
-                        updateOtherTabs();
-                        if (infoEl) {
-                            const ts2 = localStorage.getItem(REMOTE_SUPERVISORS_TS);
-                            infoEl.textContent = 'آخر مزامنة للموجهين: ' + (ts2 ? new Date(ts2).toLocaleString('ar-EG') : '');
-                        }
-                    }
-                });
-            } else {
-                try {
-                    const cached = localStorage.getItem(REMOTE_SUPERVISORS_KEY);
-                    if (cached) applySupervisorsFromRemote(JSON.parse(cached));
-                } catch(e) {}
+            const cachedRaw = localStorage.getItem(REMOTE_SUPERVISORS_KEY);
+            if (cachedRaw) {
+                try { applySupervisorsFromRemote(JSON.parse(cachedRaw)); } catch(e) {}
             }
+            fetchSupervisorsFromSheets(true).then(result => {
+                if (result.ok) {
+                    renderTable();
+                    updateOtherTabs();
+                    if (infoEl) {
+                        const ts2 = localStorage.getItem(REMOTE_SUPERVISORS_TS);
+                        infoEl.textContent = 'آخر مزامنة للموجهين: ' + (ts2 ? new Date(ts2).toLocaleString('ar-EG') : '');
+                    }
+                    if (typeof renderManagementTab === 'function') renderManagementTab();
+                }
+            });
+            window.addEventListener('online', () => {
+                if (localStorage.getItem('dabaa_sup_pending') === '1') syncSupervisorsNow();
+            });
 
             const monthSelect = document.getElementById('monthSelect');
             const yearSelect = document.getElementById('yearSelect');
@@ -819,12 +819,8 @@
             if (!navigator.onLine) { setSyncIndicator('offline'); return; }
             try {
                 setSyncIndicator('syncing');
-                const planRows = getWorkingDays(currentMonth, currentYear).map(day => {
-                    const assignment = {};
-                    SUPERVISORS.forEach(s => { assignment[s.name] = (currentPlan[day.date] && currentPlan[day.date][s.id]) || ''; });
-                    return { id: 'plan_' + day.date, type: 'plans', data: { date: day.date, dayName: day.dayName, dayNumber: day.dayNumber, month: MONTHS_AR[currentMonth - 1], year: currentYear, assignment: assignment } };
-                });
-                await bulkSyncType('plans', planRows);
+                await pushSupervisorsToSheets();
+                await bulkSyncType('plans', buildPlanRowsForSheets());
                 setSyncIndicator('ok');
                 const now = new Date().toISOString();
                 localStorage.setItem('dabaa_plan_last_push_' + currentYear + '_' + currentMonth, now);
@@ -849,7 +845,7 @@
                     if (!d.date || !d.assignment) continue;
                     const dayPlan = {};
                     for (const sup of SUPERVISORS) {
-                        const val = d.assignment[sup.name];
+                        const val = (d.assignmentById && d.assignmentById[sup.id]) || d.assignment[sup.name];
                         if (val) dayPlan[sup.id] = normalizeInstituteName(val);
                     }
                     if (Object.keys(dayPlan).length > 0) remotePlan[d.date] = dayPlan;
@@ -1377,24 +1373,25 @@ function renderTable() {
             closeSupervisorModal();
             renderTable();
             updateOtherTabs();
+            syncSupervisorsNow();
             alert('تم حفظ التعديلات بنجاح');
         }
 
         function resetSupervisorData(supervisorId) {
             if (!confirm('هل أنت متأكد من إعادة تعيين بيانات هذا الموجه للقيم الأصلية؟')) return;
             const defaults = {
-                's1': { name: 'هيثم محمود علي', specialty: 'رياضيات', recordNumber: '', allowedAdmins: ['dabaa', 'matrouh'] },
-                's2': { name: 'مصطفى ابراهيم احمد', specialty: 'تربية رياضية', recordNumber: '', allowedAdmins: ['dabaa'] },
-                's3': { name: 'سوسن فايز غازي', specialty: 'دراسات', recordNumber: '', allowedAdmins: ['dabaa'] },
-                's4': { name: 'نعيمة عبدالسلام طايل', specialty: 'علوم', recordNumber: '', allowedAdmins: ['dabaa'] },
-                's5': { name: 'محمد يوسف كامل', specialty: 'حاسب', recordNumber: '', allowedAdmins: ['dabaa'] },
-                's6': { name: 'محمود عبد المحسن', specialty: 'موجه', recordNumber: '', allowedAdmins: ['dabaa'] },
-                's7': { name: 'السعيد عمارة', specialty: 'لغة انجليزية', recordNumber: '', allowedAdmins: ['dabaa'] },
-                's8': { name: 'محمد شحاته', specialty: 'لغة عربية', recordNumber: '', allowedAdmins: ['dabaa'] },
-                's9': { name: 'عبير احمد', specialty: 'شرعي', recordNumber: '', allowedAdmins: ['dabaa'] },
-                's10': { name: 'رجب عبد النبي', specialty: 'تغذية', recordNumber: '', allowedAdmins: ['dabaa'] },
-                's11': { name: 'ايناس صلاح عبد القادر', specialty: 'احياء', recordNumber: '', allowedAdmins: ['dabaa'] },
-                's12': { name: 'عادل جلال', specialty: 'معامل', recordNumber: '', allowedAdmins: ['dabaa'] }
+                's1': { name: 'هيثم محمود علي', specialty: 'رياضيات', recordNumber: '273978', allowedAdmins: ['dabaa', 'matrouh'] },
+                's2': { name: 'مصطفى ابراهيم احمد', specialty: 'تربية رياضية', recordNumber: '328141', allowedAdmins: ['dabaa'] },
+                's3': { name: 'سوسن فايز غازي', specialty: 'دراسات', recordNumber: '358650', allowedAdmins: ['dabaa'] },
+                's4': { name: 'نعيمة عبدالسلام طايل', specialty: 'علوم', recordNumber: '212774', allowedAdmins: ['dabaa'] },
+                's5': { name: 'محمد يوسف كامل', specialty: 'حاسب', recordNumber: '321873', allowedAdmins: ['dabaa'] },
+                's6': { name: 'محمود عبد المحسن', specialty: 'موجه', recordNumber: '229597', allowedAdmins: ['dabaa'] },
+                's7': { name: 'السعيد عمارة', specialty: 'لغة انجليزية', recordNumber: '328007', allowedAdmins: ['dabaa'] },
+                's8': { name: 'محمد شحاته', specialty: 'لغة عربية', recordNumber: '01097094978', allowedAdmins: ['dabaa'] },
+                's9': { name: 'عبير احمد', specialty: 'شرعي', recordNumber: '327947', allowedAdmins: ['dabaa'] },
+                's10': { name: 'رجب عبد النبي', specialty: 'تغذية', recordNumber: '278809', allowedAdmins: ['dabaa'] },
+                's11': { name: 'ايناس صلاح عبد القادر', specialty: 'احياء', recordNumber: '224944', allowedAdmins: ['dabaa'] },
+                's12': { name: 'عادل جلال', specialty: 'معامل', recordNumber: '293669', allowedAdmins: ['dabaa'] }
             };
             const sup = SUPERVISORS.find(s => s.id === supervisorId);
             if (sup && defaults[supervisorId]) {
@@ -1405,6 +1402,7 @@ function renderTable() {
                 closeSupervisorModal();
                 renderTable();
                 updateOtherTabs();
+                syncSupervisorsNow();
                 alert('تم إعادة التعيين بنجاح');
             }
         }
@@ -1867,22 +1865,114 @@ function buildSupervisorPlanHTML(supervisor, visits) {
             }
         }
 
+        function parseListField(v) {
+            if (Array.isArray(v)) return v;
+            if (typeof v === 'string' && v.trim()) {
+                try { const p = JSON.parse(v); if (Array.isArray(p)) return p; } catch(e) {}
+                return v.split(/[,،]/).map(x => x.trim()).filter(Boolean);
+            }
+            return [];
+        }
+
+        function normalizeRemoteSupervisor(rec) {
+            return {
+                id: String(rec.id || rec.ID || rec.Id || '').trim(),
+                name: String(rec.name || rec['الاسم'] || '').trim(),
+                specialty: String(rec.specialty || rec['التخصص'] || '').trim(),
+                recordNumber: String(rec.recordNumber ?? rec['رقم السجل'] ?? rec.record ?? rec['السجل'] ?? '').trim(),
+                allowedAdmins: rec.allowedAdmins,
+                workDays: rec.workDays,
+                assignedInstitutes: rec.assignedInstitutes
+            };
+        }
+
         function applySupervisorsFromRemote(records) {
-            for (const rec of records) {
-                const sup = SUPERVISORS.find(s => s.id === rec.id);
-                if (sup) {
-                    if (rec.name)        sup.name        = rec.name;
-                    if (rec.specialty)   sup.specialty   = rec.specialty;
-                    if (rec.recordNumber !== undefined) sup.recordNumber = rec.recordNumber || '';
-                    if (Array.isArray(rec.allowedAdmins) && rec.allowedAdmins.length)
-                        sup.allowedAdmins = rec.allowedAdmins;
-                    if (Array.isArray(rec.workDays) && rec.workDays.length)
-                        sup.workDays = rec.workDays;
-                    if (Array.isArray(rec.assignedInstitutes))
-                        sup.assignedInstitutes = rec.assignedInstitutes.map(normalizeInstituteName).filter(Boolean);
+            for (const raw of records) {
+                const rec = normalizeRemoteSupervisor(raw);
+                let sup = SUPERVISORS.find(s => s.id === rec.id);
+                if (!sup && rec.recordNumber) sup = SUPERVISORS.find(s => (s.recordNumber || '') === rec.recordNumber);
+                if (!sup) continue;
+                if (rec.name) sup.name = rec.name;
+                if (rec.specialty) sup.specialty = rec.specialty;
+                sup.recordNumber = rec.recordNumber;
+                const admins = parseListField(rec.allowedAdmins);
+                if (admins.length) sup.allowedAdmins = admins;
+                const wd = parseListField(rec.workDays).map(Number).filter(n => !isNaN(n));
+                if (wd.length) sup.workDays = wd;
+                if (rec.assignedInstitutes !== undefined) {
+                    sup.assignedInstitutes = parseListField(rec.assignedInstitutes).map(normalizeInstituteName).filter(Boolean);
                 }
             }
             saveSupervisorsOverrides();
+        }
+
+        function buildSupervisorRecordsForSheets() {
+            return SUPERVISORS.map(s => ({
+                id: 'sup_' + s.id,
+                type: 'supervisors',
+                data: {
+                    id: s.id,
+                    name: s.name,
+                    specialty: s.specialty,
+                    recordNumber: s.recordNumber || '',
+                    allowedAdmins: s.allowedAdmins,
+                    workDays: s.workDays || [0, 1, 2, 3, 4],
+                    assignedInstitutes: s.assignedInstitutes || [],
+                    visits: extractSupervisorVisits(s.id).map(v => ({
+                        date: v.date, dayName: v.dayName, dayNumber: v.dayNumber, institute: v.institute
+                    }))
+                }
+            }));
+        }
+
+        async function pushSupervisorsToSheets() {
+            await bulkSyncType('supervisors', buildSupervisorRecordsForSheets());
+            localStorage.setItem(REMOTE_SUPERVISORS_TS, new Date().toISOString());
+        }
+
+        async function syncSupervisorsNow() {
+            if (!navigator.onLine) {
+                localStorage.setItem('dabaa_sup_pending', '1');
+                alert('لا يوجد اتصال بالإنترنت. تم حفظ التعديلات على هذا الجهاز وسيتم رفعها تلقائياً عند عودة الاتصال.');
+                return;
+            }
+            showLoading('جاري رفع بيانات الموجهين إلى الشبكة...');
+            try {
+                await pushSupervisorsToSheets();
+                localStorage.removeItem('dabaa_sup_pending');
+                hideLoading();
+                const infoEl = document.getElementById('lastSyncInfo');
+                if (infoEl) infoEl.textContent = 'آخر مزامنة للموجهين: ' + new Date().toLocaleString('ar-EG');
+            } catch (err) {
+                hideLoading();
+                localStorage.setItem('dabaa_sup_pending', '1');
+                alert('تعذر رفع بيانات الموجهين إلى الشبكة، وتم حفظها محلياً وستُرفع لاحقاً.\n' + (err.message || err));
+            }
+        }
+
+        function buildPlanRowsForSheets() {
+            return getWorkingDays(currentMonth, currentYear).map(day => {
+                const assignment = {};
+                const assignmentById = {};
+                SUPERVISORS.forEach(s => {
+                    const v = (currentPlan[day.date] && currentPlan[day.date][s.id]) || '';
+                    assignment[s.name] = v;
+                    assignmentById[s.id] = v;
+                });
+                return {
+                    id: 'plan_' + day.date,
+                    type: 'plans',
+                    data: {
+                        date: day.date,
+                        dayName: day.dayName,
+                        dayNumber: day.dayNumber,
+                        month: MONTHS_AR[currentMonth - 1],
+                        year: currentYear,
+                        assignment: assignment,
+                        assignmentById: assignmentById
+                    }
+                };
+            });
         }
 
         async function refreshSupervisorsFromNetwork() {
@@ -1951,25 +2041,7 @@ function buildSupervisorPlanHTML(supervisor, visits) {
                 await bulkSyncType('supervisors', supervisorRecords);
 
                 showLoading('جاري رفع خطة الشهر...');
-                const planRows = getWorkingDays(currentMonth, currentYear).map(day => {
-                    const assignment = {};
-                    SUPERVISORS.forEach(s => {
-                        assignment[s.name] = (currentPlan[day.date] && currentPlan[day.date][s.id]) || '';
-                    });
-                    return {
-                        id: 'plan_' + day.date,
-                        type: 'plans',
-                        data: {
-                            date: day.date,
-                            dayName: day.dayName,
-                            dayNumber: day.dayNumber,
-                            month: MONTHS_AR[currentMonth - 1],
-                            year: currentYear,
-                            assignment: assignment
-                        }
-                    };
-                });
-                await bulkSyncType('plans', planRows);
+                await bulkSyncType('plans', buildPlanRowsForSheets());
 
                 showLoading('جاري رفع المعاهد...');
                 const allInstitutes = [
@@ -2561,6 +2633,7 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
             }));
             localStorage.setItem(REMOTE_SUPERVISORS_KEY, JSON.stringify(remoteCache));
             renderTable(); updateOtherTabs(); renderManagementTab();
+            syncSupervisorsNow();
             alert('تم حفظ بيانات الموجهين');
         }
         function addInstituteRow(){
