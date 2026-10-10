@@ -9,7 +9,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="manifest" href="./manifest.json">
-   
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: rtl; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100%; padding: 20px; color: #333; }
@@ -546,18 +547,18 @@
 
     <script>
         const SUPERVISORS = [
-            { id: 's1', name: 'هيثم محمود علي اسماعيل', specialty: 'رياضيات', recordNumber: '273978', allowedAdmins: ['dabaa', 'matrouh'] },
-            { id: 's2', name: 'مصطفى ابراهيم احمد المكل', specialty: 'تربية رياضية', recordNumber: '328141', allowedAdmins: ['dabaa'] },
+            { id: 's1', name: 'هيثم محمود علي', specialty: 'رياضيات', recordNumber: '273978', allowedAdmins: ['dabaa', 'matrouh'] },
+            { id: 's2', name: 'مصطفى ابراهيم احمد', specialty: 'تربية رياضية', recordNumber: '328141', allowedAdmins: ['dabaa'] },
             { id: 's3', name: 'سوسن فايز غازي', specialty: 'دراسات', recordNumber: '358650', allowedAdmins: ['dabaa'] },
             { id: 's4', name: 'نعيمة عبدالسلام طايل', specialty: 'علوم', recordNumber: '212774', allowedAdmins: ['dabaa'] },
-            { id: 's5', name: 'محمد يوسف كامل سيد احمد', specialty: 'حاسب', recordNumber: '321873', allowedAdmins: ['dabaa'] },
-            { id: 's6', name: 'محمود عبد المحسن البماني زعير', specialty: 'موجه', recordNumber: '229597', allowedAdmins: ['dabaa'] },
-            { id: 's7', name: 'السعيد عبدالغفار عبد القادر عماره', specialty: 'لغة انجليزية', recordNumber: '328007', allowedAdmins: ['dabaa'] },
-            { id: 's8', name: 'محمد شحاته حجازي', specialty: 'لغة عربية', recordNumber: '244750', allowedAdmins: ['dabaa'] },
-            { id: 's9', name: 'عبير يوسف فتحي الذكاوني', specialty: 'شرعي', recordNumber: '327947', allowedAdmins: ['dabaa'] },
-            { id: 's10', name: 'رجب عبد النبي محمد سليم', specialty: 'تغذية', recordNumber: '278809', allowedAdmins: ['dabaa'] },
-            { id: 's11', name: 'إيناس صلاح عبد القادر', specialty: 'احياء', recordNumber: '224944', allowedAdmins: ['dabaa'] },
-            { id: 's12', name: 'عادل جلال الهواري', specialty: 'معامل', recordNumber: '293669', allowedAdmins: ['dabaa'] }
+            { id: 's5', name: 'محمد يوسف كامل', specialty: 'حاسب', recordNumber: '321873', allowedAdmins: ['dabaa'] },
+            { id: 's6', name: 'محمود عبد المحسن', specialty: 'موجه', recordNumber: '229597', allowedAdmins: ['dabaa'] },
+            { id: 's7', name: 'السعيد عمارة', specialty: 'لغة انجليزية', recordNumber: '328007', allowedAdmins: ['dabaa'] },
+            { id: 's8', name: 'محمد شحاته', specialty: 'لغة عربية', recordNumber: '01097094978', allowedAdmins: ['dabaa'] },
+            { id: 's9', name: 'عبير احمد', specialty: 'شرعي', recordNumber: '327947', allowedAdmins: ['dabaa'] },
+            { id: 's10', name: 'رجب عبد النبي', specialty: 'تغذية', recordNumber: '278809', allowedAdmins: ['dabaa'] },
+            { id: 's11', name: 'ايناس صلاح عبد القادر', specialty: 'احياء', recordNumber: '224944', allowedAdmins: ['dabaa'] },
+            { id: 's12', name: 'عادل جلال', specialty: 'معامل', recordNumber: '293669', allowedAdmins: ['dabaa'] }
         ];
 
         const INSTITUTES = {
@@ -579,7 +580,7 @@
                 { name: 'بنين النجيله', isSalfGroup: false }, { name: 'فتيات النجيله', isSalfGroup: false },
                 { name: 'بنين براني', isSalfGroup: false }, { name: 'فتيات براني', isSalfGroup: false },
                 { name: 'بنين سيوة', isSalfGroup: false }, { name: 'فتيات سيوة', isSalfGroup: false },
-                { name: 'الدكرور', isSalfGroup: false }, { name: 'كشوك عميره', isSalfGroup: false }
+                { name: 'الدكرور', isSalfGroup: false }
             ],
             hamam: [
                 { name: 'فتيات الحمام', isSalfGroup: false }, { name: 'بنين الحمام', isSalfGroup: false },
@@ -720,7 +721,6 @@
             localStorage.setItem(SUPERVISORS_OVERRIDES_KEY, JSON.stringify(overrides));
         }
 
-        let DATA_MIGRATED = false;
         function initDashboard() {
             loadSupervisorsOverrides();
             const ts = localStorage.getItem(REMOTE_SUPERVISORS_TS);
@@ -731,24 +731,17 @@
             if (cachedRaw) {
                 try { applySupervisorsFromRemote(JSON.parse(cachedRaw)); } catch(e) {}
             }
-            
-            if (DATA_MIGRATED) {
-                // ارفع البيانات الجديدة إلى الشبكة أولاً، ولا تجلب القديمة
-                setTimeout(() => syncSupervisorsNow(), 500);
-            } else {
-                fetchSupervisorsFromSheets(true).then(result => {
-                    if (result.ok) {
-                        renderTable();
-                        updateOtherTabs();
-                        if (infoEl) {
-                            const ts2 = localStorage.getItem(REMOTE_SUPERVISORS_TS);
-                            infoEl.textContent = 'آخر مزامنة للموجهين: ' + (ts2 ? new Date(ts2).toLocaleString('ar-EG') : '');
-                        }
-                        if (typeof renderManagementTab === 'function') renderManagementTab();
+            fetchSupervisorsFromSheets(true).then(result => {
+                if (result.ok) {
+                    renderTable();
+                    updateOtherTabs();
+                    if (infoEl) {
+                        const ts2 = localStorage.getItem(REMOTE_SUPERVISORS_TS);
+                        infoEl.textContent = 'آخر مزامنة للموجهين: ' + (ts2 ? new Date(ts2).toLocaleString('ar-EG') : '');
                     }
-                });
-            }
-
+                    if (typeof renderManagementTab === 'function') renderManagementTab();
+                }
+            });
             window.addEventListener('online', () => {
                 if (localStorage.getItem('dabaa_sup_pending') === '1') syncSupervisorsNow();
             });
@@ -1386,7 +1379,20 @@ function renderTable() {
 
         function resetSupervisorData(supervisorId) {
             if (!confirm('هل أنت متأكد من إعادة تعيين بيانات هذا الموجه للقيم الأصلية؟')) return;
-            const defaults = Object.fromEntries(SUPERVISORS.map(s => [s.id, { name: s.name, specialty: s.specialty, recordNumber: s.recordNumber, allowedAdmins: s.allowedAdmins }]));
+            const defaults = {
+                's1': { name: 'هيثم محمود علي', specialty: 'رياضيات', recordNumber: '273978', allowedAdmins: ['dabaa', 'matrouh'] },
+                's2': { name: 'مصطفى ابراهيم احمد', specialty: 'تربية رياضية', recordNumber: '328141', allowedAdmins: ['dabaa'] },
+                's3': { name: 'سوسن فايز غازي', specialty: 'دراسات', recordNumber: '358650', allowedAdmins: ['dabaa'] },
+                's4': { name: 'نعيمة عبدالسلام طايل', specialty: 'علوم', recordNumber: '212774', allowedAdmins: ['dabaa'] },
+                's5': { name: 'محمد يوسف كامل', specialty: 'حاسب', recordNumber: '321873', allowedAdmins: ['dabaa'] },
+                's6': { name: 'محمود عبد المحسن', specialty: 'موجه', recordNumber: '229597', allowedAdmins: ['dabaa'] },
+                's7': { name: 'السعيد عمارة', specialty: 'لغة انجليزية', recordNumber: '328007', allowedAdmins: ['dabaa'] },
+                's8': { name: 'محمد شحاته', specialty: 'لغة عربية', recordNumber: '01097094978', allowedAdmins: ['dabaa'] },
+                's9': { name: 'عبير احمد', specialty: 'شرعي', recordNumber: '327947', allowedAdmins: ['dabaa'] },
+                's10': { name: 'رجب عبد النبي', specialty: 'تغذية', recordNumber: '278809', allowedAdmins: ['dabaa'] },
+                's11': { name: 'ايناس صلاح عبد القادر', specialty: 'احياء', recordNumber: '224944', allowedAdmins: ['dabaa'] },
+                's12': { name: 'عادل جلال', specialty: 'معامل', recordNumber: '293669', allowedAdmins: ['dabaa'] }
+            };
             const sup = SUPERVISORS.find(s => s.id === supervisorId);
             if (sup && defaults[supervisorId]) {
                 Object.assign(sup, defaults[supervisorId]);
@@ -1449,7 +1455,7 @@ function renderTable() {
             });
             if (container.children.length === 0) container.innerHTML = '<p class="empty-msg">لا توجد زيارات مسجلة لأي معهد</p>';
         }
-        
+
         function extractInstituteVisits(instituteName) {
             const visits = [];
             for (const [day, dayPlan] of Object.entries(currentPlan)) {
@@ -2673,3 +2679,90 @@ async function copyText(){ const t=document.getElementById('instructions'); t.fo
 
             let autoAddedCount = 0;
             ['dabaa','matrouh','hamam'].forEach(adminKey => {
+                const newInsts = next[adminKey].filter(x => !oldNames[adminKey].has(x.name));
+                if (newInsts.length === 0) return;
+                SUPERVISORS.forEach(sup => {
+                    if (!Array.isArray(sup.assignedInstitutes) || sup.assignedInstitutes.length === 0) return;
+                    const allowed = sup.allowedAdmins || ['dabaa'];
+                    if (!allowed.includes(adminKey)) return;
+                    newInsts.forEach(inst => {
+                        const n = normalizeInstituteName(inst.name);
+                        if (!sup.assignedInstitutes.includes(n)) {
+                            sup.assignedInstitutes.push(n);
+                            autoAddedCount++;
+                        }
+                    });
+                });
+            });
+
+            saveInstitutesOverrides(); savePlan(); saveSupervisorsOverrides();
+            renderTable(); updateOtherTabs(); renderManagementTab();
+            alert('تم حفظ تعديلات المعاهد' + (autoAddedCount > 0 ? `\n✅ تم إضافة ${autoAddedCount} معهد جديد تلقائياً للموجهين المختصين` : ''));
+        }
+
+        let deferredPwaPrompt=null;
+        function initPWA(){
+            const status=document.getElementById('pwaStatus'), install=document.getElementById('installPwaBtn');
+            const update=()=>{
+                if(!status) return;
+                const online=navigator.onLine;
+                status.textContent=online?'متصل بالإنترنت — التطبيق جاهز للعمل':'وضع عدم الاتصال — البيانات المحلية متاحة';
+                status.className='offline-badge '+(online?'online':'offline');
+            };
+            update();
+            window.addEventListener('online', () => { update(); fetchPlanFromSheets(); });
+            window.addEventListener('offline', () => { update(); setSyncIndicator('offline'); });
+            if('serviceWorker' in navigator){
+                navigator.serviceWorker.register('./sw.js').then(()=>update()).catch(e=>console.warn('SW registration failed',e));
+            }
+            window.addEventListener('beforeinstallprompt',e=>{
+                e.preventDefault(); deferredPwaPrompt=e; if(install) install.style.display='inline-flex';
+            });
+            if(install) install.addEventListener('click',async()=>{
+                if(!deferredPwaPrompt) return;
+                deferredPwaPrompt.prompt();
+                try{ await deferredPwaPrompt.userChoice; }catch(e){}
+                deferredPwaPrompt=null; install.style.display='none';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadInstitutesOverrides();
+            migrateInstituteNamesOnce();
+            initDashboard();
+            initGoogleSheets();
+            MonthlyArchive.init();
+            ArchiveUI.init();
+            initPWA();
+
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.dataset.tab;
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tabName + 'Tab').classList.add('active');
+                    if (tabName === 'supervisors' && typeof initSupervisorPlans === 'function') initSupervisorPlans();
+                    else if (tabName === 'institutes' && typeof initInstitutePlans === 'function') initInstitutePlans();
+                    else if (tabName === 'single' && typeof initSinglePlanTab === 'function') initSinglePlanTab();
+                    else if (tabName === 'manage' && typeof renderManagementTab === 'function') renderManagementTab();
+                });
+            });
+
+            document.querySelectorAll('.admin-checkbox').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const list = document.getElementById('inst_list_' + cb.value);
+                    if (list) list.style.display = cb.checked ? 'grid' : 'none';
+                });
+            });
+
+            document.getElementById('supervisorModal').addEventListener('click', (e) => {
+                if (e.target.id === 'supervisorModal') closeSupervisorModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeSupervisorModal();
+            });
+        });
+    </script>
+</body>
+</html>
