@@ -1,19 +1,20 @@
 {
   "name": "الخطة العامة لموجهي إدارة الضبعة",
-  "short_name": "خطة الموجهين",
-  "description": "نظام إدارة الخطط والزيارات الإشرافية",
-  "lang": "ar",
-  "dir": "rtl",
-  "start_url": "./index.html",
-  "scope": "./",
+  "short_name": "خطة الضبعة",
+  "start_url": "./",
   "display": "standalone",
-  "orientation": "any",
-  "background_color": "#f4f8fd",
+  "background_color": "#087cf0",
   "theme_color": "#087cf0",
   "icons": [
-    {"src":"./icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"./icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"},
-    {"src":"./icons/icon-maskable-192.png","sizes":"192x192","type":"image/png","purpose":"maskable"},
-    {"src":"./icons/icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+    {
+      "src": "./icons/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "./icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
   ]
 }
