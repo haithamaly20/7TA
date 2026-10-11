@@ -72,7 +72,6 @@ select.admin-hamam { background-color: #e8f5e9; border-color: #4caf50; color: #2
 .clickable-date:hover { background-color: #ffebee !important; transform: scale(1.05); box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3); }
 .clickable-date:hover::after { content: '×'; position: absolute; top: 2px; left: 2px; font-size: 10px; opacity: 0.7; }
 .supervisor-header:hover { background-color: #1a3a5c !important; transform: scale(1.02); }
-.supervisor-header:hover::after { content: '<span class="ui-icon" data-icon="edit" aria-hidden="true"></span>'; position: absolute; top: 4px; left: 4px; font-size: 12px; }
 .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; margin-top: 20px; }
 .supervisor-card, .institute-card { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; }
 .supervisor-card:hover, .institute-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); }
@@ -1754,9 +1753,7 @@ const rec = normalizeRemoteSupervisor(raw);
 let sup = SUPERVISORS.find(s => s.id === rec.id);
 if (!sup && rec.recordNumber) sup = SUPERVISORS.find(s => (s.recordNumber || '') === rec.recordNumber);
 if (!sup) continue;
-if (rec.name) sup.name = rec.name;
-if (rec.specialty) sup.specialty = rec.specialty;
-sup.recordNumber = rec.recordNumber;
+// تم حذف الأسطر التي كانت تسمح للشيت بالكتابة فوق الاسم والتخصص ورقم السجل
 const admins = parseListField(rec.allowedAdmins);
 if (admins.length) sup.allowedAdmins = admins;
 const wd = parseListField(rec.workDays).map(Number).filter(n => !isNaN(n));
@@ -2505,18 +2502,15 @@ status.className='offline-badge '+(online?'online':'offline');
 update();
 window.addEventListener('online', () => { update(); fetchPlanFromSheets(); });
 window.addEventListener('offline', () => { update(); setSyncIndicator('offline'); });
-
-// التحقق من أن البروتوكول http أو https لتجنب أخطاء Service Worker في وضع الملف المحلي
 if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
-    navigator.serviceWorker.register('./sw.js').then(()=>update()).catch(e=>console.warn('SW registration failed',e));
+navigator.serviceWorker.register('./sw.js').then(()=>update()).catch(e=>console.warn('SW registration failed',e));
 } else if (window.location.protocol === 'file:') {
-    console.info('ملاحظة: تم تعطيل تسجيل Service Worker تلقائياً لأن الملف مفتوح محلياً (file://). لتفعيل ميزات PWA، يُرجى تشغيل الملف عبر خادم محلي (مثل Live Server في VS Code).');
-    if(status) {
-        status.textContent = 'وضع الملف المحلي (لا يدعم PWA)';
-        status.className = 'offline-badge offline';
-    }
+console.info('ملاحظة: تم تعطيل تسجيل Service Worker تلقائياً لأن الملف مفتوح محلياً (file://). لتفعيل ميزات PWA، يُرجى تشغيل الملف عبر خادم محلي (مثل Live Server في VS Code).');
+if(status) {
+status.textContent = 'وضع الملف المحلي (لا يدعم PWA)';
+status.className = 'offline-badge offline';
 }
-
+}
 window.addEventListener('beforeinstallprompt',e=>{
 e.preventDefault(); deferredPwaPrompt=e; if(install) install.style.display='inline-flex';
 });
@@ -2527,6 +2521,29 @@ try{ await deferredPwaPrompt.userChoice; }catch(e){}
 deferredPwaPrompt=null; install.style.display='none';
 });
 }
+
+// ====== 3. مسح الأسماء القديمة المخزنة محلياً مرة واحدة ======
+(function migrateSupervisorNamesV4() {
+    const KEY = 'supervisor_names_migration';
+    const VER = 'v4-2026-10-12';
+    if (localStorage.getItem(KEY) === VER) return;
+    try {
+        const raw = localStorage.getItem(SUPERVISORS_OVERRIDES_KEY);
+        if (raw) {
+            const o = JSON.parse(raw);
+            for (const id of Object.keys(o)) {
+                delete o[id].name;
+                delete o[id].specialty;
+                delete o[id].recordNumber;
+            }
+            localStorage.setItem(SUPERVISORS_OVERRIDES_KEY, JSON.stringify(o));
+        }
+    } catch (e) {}
+    localStorage.removeItem(REMOTE_SUPERVISORS_KEY);
+    localStorage.removeItem(REMOTE_SUPERVISORS_TS);
+    localStorage.setItem(KEY, VER);
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
 loadInstitutesOverrides();
 migrateInstituteNamesOnce();
