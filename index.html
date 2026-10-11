@@ -731,17 +731,17 @@
             if (cachedRaw) {
                 try { applySupervisorsFromRemote(JSON.parse(cachedRaw)); } catch(e) {}
             }
-          //  fetchSupervisorsFromSheets(true).then(result => {
-            //    if (result.ok) {
-              //      renderTable();
-                //    updateOtherTabs();
-                  //  if (infoEl) {
-                    //    const ts2 = localStorage.getItem(REMOTE_SUPERVISORS_TS);
-                      //  infoEl.textContent = 'آخر مزامنة للموجهين: ' + (ts2 ? new Date(ts2).toLocaleString('ar-EG') : '');
-            //        }        
-            //if (typeof renderManagementTab === 'function') renderManagementTab();
-              //  }
-            //});
+            fetchSupervisorsFromSheets(true).then(result => {
+            if (result.ok) {
+            renderTable();
+           updateOtherTabs();
+                   if (infoEl) {
+                      const ts2 = localStorage.getItem(REMOTE_SUPERVISORS_TS);
+                        infoEl.textContent = 'آخر مزامنة للموجهين: ' + (ts2 ? new Date(ts2).toLocaleString('ar-EG') : '');
+                }        
+           if (typeof renderManagementTab === 'function') renderManagementTab();
+                }
+            });
             window.addEventListener('online', () => {
                 if (localStorage.getItem('dabaa_sup_pending') === '1') syncSupervisorsNow();
             });
