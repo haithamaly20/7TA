@@ -653,7 +653,10 @@ if (!stored) return;
 try {
 const overrides = JSON.parse(stored);
 for (const sup of SUPERVISORS) {
-if (overrides[sup.id]) Object.assign(sup, overrides[sup.id]);
+if (overrides[sup.id]) {
+    const { name, specialty, recordNumber, ...rest } = overrides[sup.id];
+    Object.assign(sup, rest);
+}
 }
 } catch (e) { console.error('Error loading overrides:', e); }
 for (const sup of SUPERVISORS) {
@@ -665,7 +668,7 @@ normalizeSupervisorInstitutes();
 function saveSupervisorsOverrides() {
 const overrides = {};
 for (const sup of SUPERVISORS) {
-overrides[sup.id] = { name: sup.name, specialty: sup.specialty, recordNumber: sup.recordNumber || '', allowedAdmins: sup.allowedAdmins, workDays: sup.workDays || [0, 1, 2, 3, 4], assignedInstitutes: [...new Set((sup.assignedInstitutes || []).map(normalizeInstituteName).filter(Boolean))] };
+overrides[sup.id] = { allowedAdmins: sup.allowedAdmins, workDays: sup.workDays || [0, 1, 2, 3, 4], assignedInstitutes: [...new Set((sup.assignedInstitutes || []).map(normalizeInstituteName).filter(Boolean))] };    
 }
 localStorage.setItem(SUPERVISORS_OVERRIDES_KEY, JSON.stringify(overrides));
 }
