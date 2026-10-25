@@ -72,6 +72,18 @@ table.planner-table{ border-collapse:separate; border-spacing:0; width:max-conte
 .plan-select.conflict{ border-color:var(--red); background:var(--red-soft); color:var(--red); }
 
 /* ============================================================
+   معاهد سبق زيارتها لنفس الموجه (في خطة الموجه)
+   ============================================================ */
+.plan-select option.visited-before{
+  background:#cffafe;   /* لون فاتح للوضع الفاتح الافتراضي */
+  color:#155e75;
+  font-weight:700;
+}
+:root:not([data-theme="light"]) .plan-select option.visited-before{
+  background:#164e63;   /* لون داكن للوضع الداكن */
+  color:#cffafe;
+}
+/* ============================================================
    تمييز عمود "اليوم" في شبكة الخطة (1.2.0)
    ------------------------------------------------------------
    يجعل أي خلل في تاريخ/سنة ساعة الجهاز مرئيًا فورًا: إذا لاحظ
