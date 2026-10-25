@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dabaa-plan-v4';
+const CACHE_NAME = 'dabaa-plan-v6';
 // ضع هنا اسم ملف HTML الفعلي للتطبيق إن لم يكن index.html
 const ASSETS = ['./', './manifest.json'];
 

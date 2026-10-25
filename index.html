@@ -62,6 +62,8 @@ select:focus { outline: none; border-color: #2c5f8d; }
 select.admin-dabaa { background-color: #e3f2fd; border-color: #2196f3; color: #1565c0; }
 select.admin-matrouh { background-color: #f3e5f5; border-color: #9c27b0; color: #6a1b9a; }
 select.admin-hamam { background-color: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
+select.admin-leave { background-color: #ffebee !important; border-color: #e53935 !important; color: #c62828 !important; font-weight: bold; }
+.leave-option { color: #c62828; font-weight: bold; background: #ffebee; }
 .admin-legend { display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; flex-wrap: wrap; }
 .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: bold; }
 .legend-color { width: 30px; height: 20px; border-radius: 4px; border: 2px solid; }
@@ -524,35 +526,36 @@ const SUPERVISORS = [
 ];
 const INSTITUTES = {
 dabaa: [
-{ name: 'التوحيد بالجفيره', isSalfGroup: false }, { name: 'السلف الصالح', isSalfGroup: true },
-{ name: 'فوكة', isSalfGroup: false }, { name: 'فتيات الضبعه', isSalfGroup: false },
-{ name: 'بنين الضبعه', isSalfGroup: false }, { name: 'الفرقان بالزيتون', isSalfGroup: true },
-{ name: 'الضبعه الابتدائي', isSalfGroup: false }, { name: 'جلال', isSalfGroup: false },
-{ name: 'المبروك', isSalfGroup: false }, { name: 'غزاله الابتدائية', isSalfGroup: false },
-{ name: 'اولاد صميدة', isSalfGroup: false }, { name: 'حسبنك الابتدائي', isSalfGroup: false },
-{ name: 'الفاروق', isSalfGroup: false }, { name: 'سواني جابر', isSalfGroup: false },
-{ name: 'نجع الشجرة', isSalfGroup: false }, { name: 'كرم شفيله', isSalfGroup: false },
-{ name: 'اولاد رحيل', isSalfGroup: false }, { name: 'كريميد', isSalfGroup: false }
+{ name: 'التوحيد', isSalfGroup: false }, { name: 'السلف', isSalfGroup: true },
+{ name: 'الضبعه الابتدائي', isSalfGroup: false }, { name: 'الفاروق', isSalfGroup: false },
+{ name: 'الفرقان', isSalfGroup: true }, { name: 'المبروك', isSalfGroup: false },
+{ name: 'اولاد رحيل', isSalfGroup: false }, { name: 'اولاد صميدة', isSalfGroup: false },
+{ name: 'بنين الضبعه', isSalfGroup: false }, { name: 'جلال', isSalfGroup: false },
+{ name: 'حسبنك', isSalfGroup: false }, { name: 'سواني جابر', isSalfGroup: false },
+{ name: 'غزاله', isSalfGroup: false }, { name: 'فتيات الضبعه', isSalfGroup: false },
+{ name: 'فوكة', isSalfGroup: false }, { name: 'كرم شفيله', isSalfGroup: false },
+{ name: 'كريميد', isSalfGroup: false }, { name: 'نجع الشجرة', isSalfGroup: false }
 ],
 matrouh: [
-{ name: 'بنين مطروح ث', isSalfGroup: false }, { name: 'فتيات مطروح', isSalfGroup: false },
-{ name: 'بنين النموذجي', isSalfGroup: false }, { name: 'فتيات النموذجي', isSalfGroup: false },
-{ name: 'بنين عمر', isSalfGroup: false }, { name: 'فتيات عمر', isSalfGroup: false },
-{ name: 'بنين النجيله', isSalfGroup: false }, { name: 'فتيات النجيله', isSalfGroup: false },
-{ name: 'بنين براني', isSalfGroup: false }, { name: 'فتيات براني', isSalfGroup: false },
-{ name: 'بنين سيوة', isSalfGroup: false }, { name: 'فتيات سيوة', isSalfGroup: false },
-{ name: 'الدكرور', isSalfGroup: false }
+{ name: 'الدكرور', isSalfGroup: false }, { name: 'بنين النموذجي', isSalfGroup: false },
+{ name: 'بنين عمر', isSalfGroup: false }, { name: 'بنين مطروح', isSalfGroup: false },
+{ name: 'فتيات النجيله', isSalfGroup: false }, { name: 'فتيات النموذجي', isSalfGroup: false },
+{ name: 'فتيات براني', isSalfGroup: false }, { name: 'فتيات سيوة', isSalfGroup: false },
+{ name: 'فتيات عمر', isSalfGroup: false }, { name: 'فتيات مطروح', isSalfGroup: false },
+{ name: 'كشوك عميره', isSalfGroup: false }
 ],
 hamam: [
-{ name: 'فتيات الحمام', isSalfGroup: false }, { name: 'بنين الحمام', isSalfGroup: false },
-{ name: 'بنجر 24', isSalfGroup: false }, { name: 'بنين بنجر 27', isSalfGroup: false },
-{ name: 'فتيات بنجر 27', isSalfGroup: false }, { name: 'الرويسات', isSalfGroup: false },
-{ name: 'بلوزة ث', isSalfGroup: false }
+{ name: 'الرحمن', isSalfGroup: false }, { name: 'الرويسات', isSalfGroup: false },
+{ name: 'بلوزة ث', isSalfGroup: false }, { name: 'بنجر 24', isSalfGroup: false },
+{ name: 'بنين بنجر 27', isSalfGroup: false }, { name: 'تل العيس', isSalfGroup: false },
+{ name: 'فتيات الحمام', isSalfGroup: false }
 ]
 };
+const LEAVE_NAME = 'اجازة مرضيه';
+function isLeave(name){ return normalizeInstituteName(name) === LEAVE_NAME; }
 const GROUP_INSTITUTES = [
-{ id: 'salf', name: 'السلف الصالح', pattern: 'السلف الصالح' },
-{ id: 'farqan', name: 'الفرقان بالزيتون', pattern: 'الفرقان بالزيتون' }
+{ id: 'salf', name: 'السلف', pattern: 'السلف' },
+{ id: 'farqan', name: 'الفرقان', pattern: 'الفرقان' }
 ];
 function getGroupForInstitute(instituteName) {
 if (!instituteName) return null;
@@ -588,15 +591,24 @@ sup.assignedInstitutes = [...new Set(sup.assignedInstitutes.map(normalizeInstitu
 const MONTHS_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 const ARABIC_DAYS = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 const SUPERVISORS_OVERRIDES_KEY = 'supervisors_overrides';
+// ===== تواريخ محلية بدون انزياح المنطقة الزمنية =====
+function isoLocal(y, m, d){ return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+function shiftIsoDay(iso, days){
+  const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + days);
+  return isoLocal(d.getFullYear(), d.getMonth() + 1, d.getDate());
+}
+// إصدار صيغة التواريخ: 2 = التواريخ الصحيحة. أي بيانات بدونه قديمة وتحتاج إزاحة يوم.
+const PLAN_DATE_VERSION = 2;
+
 function getWorkingDays(month, year) {
 const workingDays = [];
 const daysInMonth = new Date(year, month, 0).getDate();
 for (let day = 1; day <= daysInMonth; day++) {
 const currentDate = new Date(year, month - 1, day);
 const dayOfWeek = currentDate.getDay();
-if (dayOfWeek === 5 || dayOfWeek === 6) continue;
+if (dayOfWeek === 5 || dayOfWeek === 6) { const isoKey = isoLocal(currentDate.getFullYear(), currentDate.getMonth() + 1, currentDate.getDate()); if (!currentPlan[isoKey] || Object.keys(currentPlan[isoKey]).length === 0) continue; }
 workingDays.push({
-date: currentDate.toISOString().split('T')[0],
+date: isoLocal(currentDate.getFullYear(), currentDate.getMonth() + 1, currentDate.getDate()),
 dayName: ARABIC_DAYS[dayOfWeek],
 dayNumber: day
 });
@@ -620,6 +632,7 @@ const bookedByOthers = {};
 const bookedGroups = {};
 for (const [sId, instituteName] of Object.entries(dayPlan)) {
 if (sId === supervisorId) continue;
+  if (isLeave(instituteName)) continue;
 const normalized = normalizeInstituteName(instituteName);
 bookedByOthers[normalized] = sId;
 const group = getGroupForInstitute(normalized);
@@ -786,7 +799,7 @@ for (const sup of SUPERVISORS) {
 const val = (d.assignmentById && d.assignmentById[sup.id]) || d.assignment[sup.name];
 if (val) dayPlan[sup.id] = normalizeInstituteName(val);
 }
-if (Object.keys(dayPlan).length > 0) remotePlan[d.date] = dayPlan;
+if (Object.keys(dayPlan).length > 0) remotePlan[d.dateVersion === PLAN_DATE_VERSION ? d.date : shiftIsoDay(d.date, 1)] = dayPlan;
 }
 if (hasLocalData) {
 console.log('Local data exists. Overriding remote fetch to prevent data loss.');
@@ -955,7 +968,7 @@ const counts = {};
 Object.entries(currentPlan).forEach(([d, dayPlan]) => {
 if (d === excludeDay) return;
 const val = dayPlan[supervisorId];
-if (val) counts[val] = (counts[val] || 0) + 1;
+if (val && !isLeave(val)) counts[val] = (counts[val] || 0) + 1;
 });
 return counts;
 }
@@ -994,6 +1007,12 @@ optgroup.appendChild(opt);
 });
 if (optgroup.childElementCount > 0) select.appendChild(optgroup);
 });
+const leaveGroup = document.createElement('optgroup');
+leaveGroup.label = '── إجازات ──';
+const leaveOpt = document.createElement('option');
+leaveOpt.value = LEAVE_NAME; leaveOpt.textContent = LEAVE_NAME; leaveOpt.className = 'leave-option';
+leaveGroup.appendChild(leaveOpt);
+select.appendChild(leaveGroup);
 if (currentValue && !Array.from(select.options).some(opt => opt.value === currentValue)) {
 const currentOptGroup = document.createElement('optgroup');
 currentOptGroup.label = '── القيمة الحالية (اختبار) ──';
@@ -1022,7 +1041,8 @@ function applySelectColor(select) {
 const selectedOption = select.options[select.selectedIndex];
 let admin = selectedOption ? selectedOption.dataset.admin : '';
 if (!admin && select.value) admin = getInstituteAdmin(select.value);
-select.classList.remove('admin-dabaa', 'admin-matrouh', 'admin-hamam');
+select.classList.remove('admin-dabaa', 'admin-matrouh', 'admin-hamam', 'admin-leave');
+if (isLeave(select.value)) select.classList.add('admin-leave');
 if (admin) select.classList.add(`admin-${admin}`);
 }
 function onSelectChange(e) {
@@ -1062,7 +1082,7 @@ updateOtherTabs();
 }
 function exportPlan() {
 const exportedPlan = normalizePlanInstitutes(JSON.parse(JSON.stringify(currentPlan || {})));
-const data = { version: '1.0', exportDate: new Date().toISOString(), month: currentMonth, year: currentYear, plan: exportedPlan };
+const data = { version: '1.0', dateVersion: PLAN_DATE_VERSION, exportDate: new Date().toISOString(), month: currentMonth, year: currentYear, plan: exportedPlan };
 const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
 const url = URL.createObjectURL(blob);
 const a = document.createElement('a');
@@ -1083,8 +1103,21 @@ try {
 const data = JSON.parse(event.target.result);
 if (!data.plan || !data.month || !data.year) throw new Error('ملف غير صالح');
 if (!confirm(`هل تريد استيراد خطة ${MONTHS_AR[data.month - 1]} ${data.year}؟`)) return;
+// المفتاح في الملف = اليوم الذي قبل اليوم المعروض (انزياح توقيت القاهرة)، لذا نوزّع كل يوم على الشهر الذي يظهر فيه
+const buckets = {};
+const needsShift = data.dateVersion !== PLAN_DATE_VERSION;
+Object.entries(normalizePlanInstitutes(data.plan)).forEach(([k, v]) => {
+  const nk = needsShift ? shiftIsoDay(k, 1) : k;
+  const d = new Date(nk + 'T12:00:00');
+  const bk = `plan_${d.getFullYear()}_${d.getMonth() + 1}`;
+  (buckets[bk] = buckets[bk] || {})[nk] = v;
+});
+Object.entries(buckets).forEach(([bk, bp]) => {
+  const existing = JSON.parse(localStorage.getItem(bk) || '{}');
+  localStorage.setItem(bk, JSON.stringify(Object.assign(existing, bp)));
+});
 currentMonth = data.month; currentYear = data.year;
-currentPlan = normalizePlanInstitutes(data.plan);
+loadPlan();
 document.getElementById('monthSelect').value = currentMonth;
 document.getElementById('yearSelect').value = currentYear;
 savePlan(); renderTable(); updateTitle(); updateOtherTabs();
@@ -1316,7 +1349,7 @@ const card = document.createElement('div');
 card.className = 'supervisor-card';
 card.innerHTML = `
 <div class="card-header"><h3>${supervisor.name}</h3><span class="specialty-badge">${supervisor.specialty}</span></div>
-<div class="card-stats"><div class="stat-item"><span class="stat-label">عدد الزيارات:</span><span class="stat-value">${visits.length}</span></div></div>
+<div class="card-stats"><div class="stat-item"><span class="stat-label">عدد الزيارات:</span><span class="stat-value">${visits.filter(v => !isLeave(v.institute)).length}</span></div></div>
 ${visits.length === 0 ? '<div class="empty-visits">لا توجد زيارات مسجلة</div>' :
 `<div class="visits-list">${visits.map(v => `<div class="visit-item"><div class="visit-date"><span class="day-name">${v.dayName}</span><span class="day-num">${v.dayNumber}</span></div><div class="visit-institute">${v.institute}</div></div>`).join('')}</div>`}
 <div class="card-actions"><button class="btn btn-print" onclick="printIndividualSupervisor('${supervisor.id}')"><span class="ui-icon" data-icon="printer" aria-hidden="true"></span> طباعة</button></div>
@@ -1833,6 +1866,7 @@ id: 'plan_' + day.date,
 type: 'plans',
 data: {
 date: day.date,
+        dateVersion: PLAN_DATE_VERSION,
 dayName: day.dayName,
 dayNumber: day.dayNumber,
 month: MONTHS_AR[currentMonth - 1],
@@ -2394,7 +2428,7 @@ a.href=url; a.download=`خطة_${monthName}_${currentYear}.xlsx`; document.body.
 setTimeout(()=>URL.revokeObjectURL(url),1000);
 } catch(e) { console.error(e); alert('تعذر إنشاء ملف Excel: '+(e.message||e)); }
 }
-const INSTITUTES_OVERRIDES_KEY='dabaa_institutes_overrides_v1';
+const INSTITUTES_OVERRIDES_KEY='dabaa_institutes_overrides_v2';
 function loadInstitutesOverrides(){
 try{
 const raw=localStorage.getItem(INSTITUTES_OVERRIDES_KEY);
@@ -2558,7 +2592,45 @@ deferredPwaPrompt=null; install.style.display='none';
     localStorage.setItem(KEY, VER);
 })();
 
+function migratePlanDatesV2(){
+  const FLAG = 'dabaa_plan_date_version';
+  if (localStorage.getItem(FLAG) === String(PLAN_DATE_VERSION)) return;
+  try {
+    // 1) الخطط الشهرية: كل يوم يتزاد يوماً ويتوزع على الشهر الصحيح
+    const moved = {};
+    Object.keys(localStorage).filter(k => /^plan_\d{4}_\d{1,2}$/.test(k)).forEach(k => {
+      const plan = JSON.parse(localStorage.getItem(k) || '{}');
+      Object.entries(plan).forEach(([d, v]) => { moved[shiftIsoDay(d, 1)] = v; });
+      localStorage.removeItem(k);
+    });
+    const buckets = {};
+    Object.entries(moved).forEach(([nk, v]) => {
+      const d = new Date(nk + 'T12:00:00');
+      const bk = `plan_${d.getFullYear()}_${d.getMonth() + 1}`;
+      (buckets[bk] = buckets[bk] || {})[nk] = v;
+    });
+    Object.entries(buckets).forEach(([bk, bp]) => localStorage.setItem(bk, JSON.stringify(bp)));
+
+    // 2) الأرشيف: إزاحة نفس الشكل داخل كل سجل (بدون حذف أي بيانات)
+    const ARCH = 'dabaa_monthly_archive';
+    const arch = JSON.parse(localStorage.getItem(ARCH) || 'null');
+    if (arch) {
+      Object.values(arch).forEach(rec => {
+        if (rec && rec.data && rec.data.plan) {
+          const np = {};
+          Object.entries(rec.data.plan).forEach(([d, v]) => { np[shiftIsoDay(d, 1)] = v; });
+          rec.data.plan = np;
+        }
+      });
+      localStorage.setItem(ARCH, JSON.stringify(arch));
+    }
+    localStorage.setItem(FLAG, String(PLAN_DATE_VERSION));
+    console.info('تم تصحيح تواريخ الخطة المحفوظة');
+  } catch (e) { console.error('فشل تصحيح تواريخ الخطة:', e); }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+migratePlanDatesV2();
 loadInstitutesOverrides();
 migrateInstituteNamesOnce();
 initDashboard();
