@@ -1163,15 +1163,26 @@ const blockedMap = {};
 blocked.forEach(b => { blockedMap[b.institute] = b.blockedBy; });
 const sup = SUPERVISORS.find(s => s.id === supervisorId);
 const currentValueSingle = (currentPlan[day] && currentPlan[day][supervisorId]) || '';
-getSupervisorInstitutes(sup).forEach(inst => {
-if (blockedMap[inst.name] && inst.name !== currentValueSingle) return;
-const opt = document.createElement('option');
-opt.value = inst.name;
-opt.dataset.admin = inst.admin;
-opt.textContent = inst.name;
-select.appendChild(opt);
-});
-select.value = currentValueSingle;
+    const singleVisitCounts = countInstituteVisits(supervisorId, day);
+
+    getSupervisorInstitutes(sup).forEach(inst => {
+        if (blockedMap[inst.name] && inst.name !== currentValueSingle) return;
+
+        const opt = document.createElement('option');
+        opt.value = inst.name;
+        opt.dataset.admin = inst.admin;
+
+        const count = singleVisitCounts[inst.name] || 0;
+        opt.textContent = count > 0 ? `${inst.name}  (${count}×)` : inst.name;
+
+        if (count > 0) {
+            opt.classList.add('visited-before');   // المعهد اتزار قبل كده لنفس الموجه
+            opt.title = `تمت زيارته ${count} مرة سابقاً`;
+        }
+
+        select.appendChild(opt);
+    });
+    select.value = currentValueSingle;
 applySelectColor(select);
 select.addEventListener('change', onSelectChange);
 return select;
