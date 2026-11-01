@@ -311,6 +311,157 @@ select:focus,.modal-content input[type="text"]:focus,.nm-row select:focus,.nm-ro
 .ui-icon[data-icon="check"]::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m5%2012%204%204L19%206%22/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m5%2012%204%204L19%206%22/%3E%3C/svg%3E");}
 .ui-icon[data-icon="x"]::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%206%2012%2012M18%206%206%2018%22/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%206%2012%2012M18%206%206%2018%22/%3E%3C/svg%3E");}
 .ui-icon[data-icon="active"]::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%228%22/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%228%22/%3E%3C/svg%3E");}
+
+/* ====== نافذة اختيار الموجهين للطباعة ====== */
+.send-all-list { max-height: 60vh; overflow-y: auto; }
+.send-row { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #e2eaf4; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; }
+.send-info { flex: 1; min-width: 0; }
+.send-name { font-weight: bold; color: #1a3a5c; font-size: 14px; }
+.send-meta { font-size: 12px; color: #667085; direction: ltr; text-align: right; }
+.send-status { font-size: 12px; color: #667085; }
+.send-status.warn { color: #c0392b; }
+
+#printSelectionModal .modal-content { max-width: 820px; }
+.print-modal-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 10px 14px;
+background: linear-gradient(135deg, #2c5f8d 0%, #1a3a5c 100%);
+color: white;
+border-radius: 10px 10px 0 0;
+font-weight: bold;
+font-size: 14px;
+}
+.print-modal-sup-col { flex: 1; }
+.print-modal-page-col { min-width: 280px; text-align: center; }
+.print-supervisors-list {
+max-height: 60vh;
+overflow-y: auto;
+border: 1px solid #e2eaf4;
+border-top: none;
+border-radius: 0 0 10px 10px;
+background: #fcfdff;
+}
+.print-page-section { padding: 10px 14px; }
+.print-page-section + .print-page-section { border-top: 2px dashed #e2eaf4; }
+.print-page-section-title {
+display: flex;
+align-items: center;
+gap: 12px;
+margin-bottom: 10px;
+}
+.page-badge {
+display: inline-flex;
+align-items: center;
+padding: 5px 16px;
+border-radius: 20px;
+font-weight: bold;
+font-size: 14px;
+}
+.page-badge-1 { background: #e3f2fd; color: #1565c0; border: 1px solid #2196f3; }
+.page-badge-2 { background: #f3e5f5; color: #6a1b9a; border: 1px solid #9c27b0; }
+.print-page-count { font-size: 12px; color: #667085; font-weight: bold; }
+.print-empty-page {
+padding: 20px;
+text-align: center;
+color: #999;
+font-style: italic;
+font-size: 13px;
+}
+.print-supervisor-row {
+display: flex;
+align-items: center;
+padding: 10px 12px;
+border-bottom: 1px solid #f0f4fa;
+transition: background 0.2s, transform 0.15s;
+gap: 10px;
+background: white;
+border-radius: 8px;
+margin-bottom: 6px;
+box-shadow: 0 1px 3px rgba(31,55,86,0.06);
+}
+.print-supervisor-row:hover { background: #f5f9ff; transform: translateX(-2px); }
+.print-supervisor-row:last-child { border-bottom: none; margin-bottom: 0; }
+.print-sup-controls {
+display: flex;
+flex-direction: column;
+gap: 2px;
+flex-shrink: 0;
+}
+.print-move-btn {
+width: 30px;
+height: 22px;
+border: 1px solid #d7e0ec;
+background: linear-gradient(180deg,#fff,#f5f8fc);
+color: #2c5f8d;
+border-radius: 5px;
+cursor: pointer;
+font-size: 11px;
+font-weight: bold;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: all 0.15s;
+padding: 0;
+line-height: 1;
+}
+.print-move-btn:hover:not(:disabled) {
+background: linear-gradient(180deg,#e3f2fd,#d1ecff);
+border-color: #2196f3;
+color: #1565c0;
+transform: scale(1.08);
+}
+.print-move-btn:active:not(:disabled) {
+transform: scale(0.95);
+}
+.print-move-btn:disabled {
+opacity: 0.3;
+cursor: not-allowed;
+}
+.print-sup-info { flex: 1; min-width: 0; }
+.print-sup-name { font-weight: bold; color: #1a3a5c; font-size: 14px; margin-bottom: 2px; }
+.print-sup-spec { font-size: 12px; color: #667085; }
+.print-transfer-btn {
+padding: 6px 10px;
+font-size: 12px;
+flex-shrink: 0;
+}
+.print-page-summary {
+margin: 12px 0;
+padding: 12px;
+background: linear-gradient(135deg, #f0f7ff 0%, #e3f2fd 100%);
+border-radius: 10px;
+border: 1px solid #d7e0ec;
+display: flex;
+justify-content: center;
+gap: 20px;
+flex-wrap: wrap;
+}
+.summary-pill {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+padding: 6px 14px;
+border-radius: 20px;
+font-size: 13px;
+font-weight: bold;
+}
+.summary-pill b { font-size: 15px; }
+.summary-pill-1 { background: #e3f2fd; color: #1565c0; border: 1px solid #2196f3; }
+.summary-pill-2 { background: #f3e5f5; color: #6a1b9a; border: 1px solid #9c27b0; }
+@media (max-width: 600px) {
+#printSelectionModal .modal-content { max-width: 96vw; }
+.print-modal-header { flex-direction: column; gap: 6px; padding: 8px; }
+.print-modal-page-col { text-align: center; }
+.print-supervisor-row { flex-wrap: wrap; gap: 8px; padding: 10px; }
+.print-sup-info { flex: 1 1 100%; order: -1; }
+.print-transfer-btn { flex: 1; }
+}
+@media print {
+#printSelectionModal { display: none !important; }
+}
+
 </style>
 </head>
 <body>
@@ -363,6 +514,8 @@ select:focus,.modal-content input[type="text"]:focus,.nm-row select:focus,.nm-ro
 <div id="supervisorsTab" class="tab-content">
 <div class="controls">
 <button id="btnPrintAllSupervisors" class="btn btn-print" onclick="printAllSupervisors()"><span class="ui-icon" data-icon="printer" aria-hidden="true"></span> طباعة كل الخطط</button>
+<button class="btn btn-success" onclick="openSendAllModal('text')"><span class="ui-icon" data-icon="note" aria-hidden="true"></span> إرسال الكل (نص)</button>
+<button class="btn btn-primary" onclick="openSendAllModal('pdf')"><span class="ui-icon" data-icon="file" aria-hidden="true"></span> إرسال الكل (PDF)</button>
 </div>
 <div id="supervisorPlansContainer" class="cards-grid"></div>
 </div>
@@ -379,6 +532,8 @@ select:focus,.modal-content input[type="text"]:focus,.nm-row select:focus,.nm-ro
 <label>أيام عمله الأسبوعية:</label>
 <span id="singleWorkDays" class="workdays-display"></span>
 </div>
+<button class="btn btn-success" onclick="sendSupervisorPlanWhatsApp(currentSingleSupervisor)"><span class="ui-icon" data-icon="note" aria-hidden="true"></span> واتساب (نص)</button>
+<button class="btn btn-primary" onclick="sendSupervisorPlanPDF(currentSingleSupervisor)"><span class="ui-icon" data-icon="file" aria-hidden="true"></span> واتساب (PDF)</button>
 </div>
 <p style="text-align:center; color:#666; font-size:13px; margin-bottom:10px;">
 <span class="ui-icon" data-icon="bulb" aria-hidden="true"></span> المعهد المحجوز من موجه آخر في نفس اليوم لا يظهر هنا، وكل أسبوع بلون مميز عن سابقه. للتعديل استخدم تبويب <strong>إدارة الموجهين والمعاهد</strong>.
@@ -478,6 +633,8 @@ select:focus,.modal-content input[type="text"]:focus,.nm-row select:focus,.nm-ro
 <input type="text" id="modalSpecialty" placeholder="التخصص">
 <label for="modalRecord">رقم السجل:</label>
 <input type="text" id="modalRecord" placeholder="رقم السجل (اختياري)">
+<label for="modalPhone">رقم الواتساب:</label>
+<input type="text" id="modalPhone" placeholder="مثال: 01012345678 أو +201012345678" inputmode="tel" dir="ltr" style="text-align:right;">
 <label>أيام العمل الأسبوعية (تُحفظ وتثبت طوال السنة):</label>
 <div class="admin-checkboxes" id="workDaysCheckboxes"></div>
 <label>المعاهد المكلف بزيارتها (اختر الإدارة ثم المعاهد):</label>
@@ -503,6 +660,34 @@ select:focus,.modal-content input[type="text"]:focus,.nm-row select:focus,.nm-ro
 <button class="btn btn-warning" onclick="resetSupervisorData(document.getElementById('modalSupervisorId').value)"><span class="ui-icon" data-icon="refresh" aria-hidden="true"></span> إعادة تعيين</button>
 <button class="btn btn-secondary" onclick="closeSupervisorModal()"><span class="ui-icon" data-icon="close" aria-hidden="true"></span> إلغاء</button>
 </div>
+</div>
+</div>
+<!-- ====== نافذة اختيار الموجهين للطباعة ====== -->
+<div id="printSelectionModal" class="modal" style="z-index:10004;">
+<div class="modal-content" style="max-width:760px;">
+<h3><span class="ui-icon" data-icon="printer" aria-hidden="true"></span> تحديد الموجهين لكل صفحة</h3>
+<p style="text-align:center;color:#667085;font-size:13px;margin:0 0 12px;line-height:1.6;">
+حدد صفحة كل موجه (زر النقل) وأعد ترتيبه داخلها (أزرار ▲ ▼). التوزيع والترتيب يُحفظان تلقائيًا.
+</p>
+<div class="print-modal-header">
+<div class="print-modal-sup-col">الموجه</div>
+<div class="print-modal-page-col">توزيع وترتيب الموجهين على الصفحتين</div>
+</div>
+<div id="printSupervisorsList" class="print-supervisors-list"></div>
+<div id="printPageSummary" class="print-page-summary"></div>
+<div class="modal-actions">
+<button class="btn btn-warning" onclick="resetPrintConfig()"><span class="ui-icon" data-icon="refresh" aria-hidden="true"></span> إعادة افتراضي</button>
+<button class="btn btn-primary" onclick="executeCustomPrint()"><span class="ui-icon" data-icon="printer" aria-hidden="true"></span> طباعة</button>
+<button class="btn btn-secondary" onclick="closePrintSelectionModal()"><span class="ui-icon" data-icon="close" aria-hidden="true"></span> إلغاء</button>
+</div>
+</div>
+</div>
+<div id="sendAllModal" class="modal" style="z-index:10003;">
+<div class="modal-content" style="max-width:640px;">
+<h3 id="sendAllTitle">إرسال خطط الموجهين</h3>
+<p style="font-size:13px;color:#666;text-align:center;margin-bottom:12px;">اضغط الزرار بجوار كل موجه لإرسال خطته. كل موجه يحتاج ضغطة منك.</p>
+<div id="sendAllList" class="send-all-list"></div>
+<div class="modal-actions"><button class="btn btn-secondary" onclick="closeSendAllModal()">إغلاق</button></div>
 </div>
 </div>
 <div id="loadingOverlay" class="loading-overlay">
@@ -681,7 +866,7 @@ normalizeSupervisorInstitutes();
 function saveSupervisorsOverrides() {
 const overrides = {};
 for (const sup of SUPERVISORS) {
-overrides[sup.id] = { allowedAdmins: sup.allowedAdmins, workDays: sup.workDays || [0, 1, 2, 3, 4], assignedInstitutes: [...new Set((sup.assignedInstitutes || []).map(normalizeInstituteName).filter(Boolean))] };    
+overrides[sup.id] = { allowedAdmins: sup.allowedAdmins, workDays: sup.workDays || [0, 1, 2, 3, 4], assignedInstitutes: [...new Set((sup.assignedInstitutes || []).map(normalizeInstituteName).filter(Boolean))], phone: sup.phone || '' };    
 }
 localStorage.setItem(SUPERVISORS_OVERRIDES_KEY, JSON.stringify(overrides));
 }
@@ -724,7 +909,7 @@ yearSelect.appendChild(opt);
 yearSelect.value = currentYear;
 monthSelect.addEventListener('change', onMonthYearChange);
 yearSelect.addEventListener('change', onMonthYearChange);
-document.getElementById('btnPrint').addEventListener('click', printGeneralPlan);
+document.getElementById('btnPrint').addEventListener('click', openPrintSelectionModal);
 loadPlan();
 renderTable();
 updateTitle();
@@ -1268,6 +1453,7 @@ document.getElementById('modalSupervisorId').value = sup.id;
 document.getElementById('modalName').value = sup.name;
 document.getElementById('modalSpecialty').value = sup.specialty;
 document.getElementById('modalRecord').value = sup.recordNumber || '';
+document.getElementById('modalPhone').value = sup.phone || '';
 document.querySelectorAll('.admin-checkbox').forEach(cb => {
 cb.checked = (sup.allowedAdmins || ['dabaa']).includes(cb.value);
 });
@@ -1284,9 +1470,12 @@ const sup = SUPERVISORS.find(s => s.id === id);
 if (!sup) return;
 const newName = document.getElementById('modalName').value.trim();
 if (!newName) { alert('الاسم لا يمكن أن يكون فارغاً'); return; }
+const rawPh = document.getElementById('modalPhone').value.trim();
+if (rawPh && !normalizeWhatsAppNumber(rawPh)) { alert('رقم الواتساب غير صحيح، اكتبه بالشكل 01012345678'); return; }
 sup.name = newName;
 sup.specialty = document.getElementById('modalSpecialty').value.trim();
 sup.recordNumber = document.getElementById('modalRecord').value.trim();
+sup.phone = rawPh;
 const allowedAdmins = [];
 document.querySelectorAll('.admin-checkbox:checked').forEach(cb => allowedAdmins.push(cb.value));
 sup.allowedAdmins = allowedAdmins.length > 0 ? allowedAdmins : ['dabaa'];
@@ -1300,7 +1489,7 @@ saveSupervisorsOverrides();
 try {
 const remoteCache = SUPERVISORS.map(s=>({
 id: s.id, name: s.name, specialty: s.specialty,
-recordNumber: s.recordNumber||'', allowedAdmins: s.allowedAdmins,
+recordNumber: s.recordNumber||'', phone: s.phone||'', allowedAdmins: s.allowedAdmins,
 workDays: s.workDays||[0,1,2,3,4], assignedInstitutes: s.assignedInstitutes||[]
 }));
 localStorage.setItem(REMOTE_SUPERVISORS_KEY, JSON.stringify(remoteCache));
@@ -1349,10 +1538,17 @@ const card = document.createElement('div');
 card.className = 'supervisor-card';
 card.innerHTML = `
 <div class="card-header"><h3>${supervisor.name}</h3><span class="specialty-badge">${supervisor.specialty}</span></div>
-<div class="card-stats"><div class="stat-item"><span class="stat-label">عدد الزيارات:</span><span class="stat-value">${visits.filter(v => !isLeave(v.institute)).length}</span></div></div>
+<div class="card-stats">
+<div class="stat-item"><span class="stat-label">عدد الزيارات:</span><span class="stat-value">${visits.filter(v => !isLeave(v.institute)).length}</span></div>
+${supervisor.phone ? `<div class="stat-item"><span class="stat-label">الواتساب:</span><span class="stat-value" style="font-size:14px;direction:ltr;display:inline-block;">${supervisor.phone}</span></div>` : '<div class="stat-item"><span class="stat-label" style="color:#e67e22;">الواتساب:</span><span style="color:#e67e22;font-size:13px;">غير مسجل</span></div>'}
+</div>
 ${visits.length === 0 ? '<div class="empty-visits">لا توجد زيارات مسجلة</div>' :
 `<div class="visits-list">${visits.map(v => `<div class="visit-item"><div class="visit-date"><span class="day-name">${v.dayName}</span><span class="day-num">${v.dayNumber}</span></div><div class="visit-institute">${v.institute}</div></div>`).join('')}</div>`}
-<div class="card-actions"><button class="btn btn-print" onclick="printIndividualSupervisor('${supervisor.id}')"><span class="ui-icon" data-icon="printer" aria-hidden="true"></span> طباعة</button></div>
+<div class="card-actions">
+<button class="btn btn-print" onclick="printIndividualSupervisor('${supervisor.id}')"><span class="ui-icon" data-icon="printer" aria-hidden="true"></span> طباعة</button>
+<button class="btn btn-success" onclick="sendSupervisorPlanWhatsApp('${supervisor.id}')"><span class="ui-icon" data-icon="note" aria-hidden="true"></span> واتساب (نص)</button>
+<button class="btn btn-primary" onclick="sendSupervisorPlanPDF('${supervisor.id}')"><span class="ui-icon" data-icon="file" aria-hidden="true"></span> واتساب (PDF)</button>
+</div>
 `;
 container.appendChild(card);
 });
@@ -1399,16 +1595,171 @@ visits.push({ date: day, dayName: dayInfo ? dayInfo.dayName : '', dayNumber: day
 }
 return visits.sort((a, b) => a.date.localeCompare(b.date));
 }
-function printGeneralPlan() {
+function printGeneralPlan(customSupervisors1, customSupervisors2) {
 const workingDays = getWorkingDays(currentMonth, currentYear);
 if (workingDays.length === 0) { alert('لا توجد أيام عمل'); return; }
-openPrintWindow(buildGeneralPlanHTML(workingDays));
+openPrintWindow(buildGeneralPlanHTML(workingDays, customSupervisors1, customSupervisors2));
 }
-function buildGeneralPlanHTML(workingDays) {
+// ====== إعداد توزيع وترتيب الموجهين على صفحات الطباعة ======
+const PRINT_CONFIG_KEY = 'dabaa_print_config_v1';
+// تُرجع { assignment: {supId: 1|2}, order: {1: [supId,...], 2: [supId,...]} }
+function getPrintConfig() {
+const all = getGeneralSupervisors();
+function defaults() {
+const assignment = {};
+const order = { 1: [], 2: [] };
+all.forEach((s, i) => {
+const page = i < 6 ? 1 : 2;
+assignment[s.id] = page;
+order[page].push(s.id);
+});
+return { assignment, order };
+}
+try {
+const stored = localStorage.getItem(PRINT_CONFIG_KEY);
+if (!stored) return defaults();
+const cfg = JSON.parse(stored);
+if (!cfg || typeof cfg !== 'object') return defaults();
+const assignment = (cfg.assignment && typeof cfg.assignment === 'object') ? cfg.assignment : {};
+const order = (cfg.order && typeof cfg.order === 'object') ? cfg.order : { 1: [], 2: [] };
+const result = { assignment: {}, order: { 1: [], 2: [] } };
+// 1) تحديد صفحة كل موجه (افتراضياً 1 إن لم تُحدد)
+all.forEach(s => {
+result.assignment[s.id] = assignment[s.id] === 2 ? 2 : 1;
+});
+// 2) بناء الترتيب من المحفوظ، مع تجاهل المعرفات غير الصالحة
+[1, 2].forEach(page => {
+const saved = Array.isArray(order[page]) ? order[page] : [];
+saved.forEach(id => {
+if (result.assignment[id] === page && !result.order[page].includes(id) && all.some(s => s.id === id)) {
+result.order[page].push(id);
+}
+});
+});
+// 3) إضافة الموجهين غير الموجودين في أي ترتيب (للحفاظ على الترتيب الافتراضي)
+all.forEach(s => {
+const page = result.assignment[s.id];
+if (!result.order[page].includes(s.id)) {
+result.order[page].push(s.id);
+}
+});
+return result;
+} catch(e) {
+return defaults();
+}
+}
+function savePrintConfig(config) {
+try { localStorage.setItem(PRINT_CONFIG_KEY, JSON.stringify(config)); } catch(e) {}
+}
+function openPrintSelectionModal() {
+const container = document.getElementById('printSupervisorsList');
+if (!container) return;
+const cfg = getPrintConfig();
+const supervisors = getGeneralSupervisors();
+const findSup = (id) => supervisors.find(s => s.id === id);
+const renderPage = (pageNum) => {
+const ids = (cfg.order[pageNum] || []).filter(id => cfg.assignment[id] === pageNum && findSup(id));
+const otherPage = pageNum === 1 ? 2 : 1;
+const pageLabel = pageNum === 1 ? 'الأولى' : 'الثانية';
+const otherLabel = pageNum === 1 ? 'الثانية' : 'الأولى';
+return `
+<div class="print-page-section">
+<div class="print-page-section-title">
+<span class="page-badge page-badge-${pageNum}">الصفحة ${pageLabel}</span>
+<span class="print-page-count">${ids.length} موجه</span>
+</div>
+${ids.length === 0 ? '<div class="print-empty-page">لا يوجد موجهون في هذه الصفحة</div>' : ids.map((id, idx) => {
+const s = findSup(id);
+return `
+<div class="print-supervisor-row" data-sup-id="${id}" data-page="${pageNum}">
+<div class="print-sup-controls">
+<button type="button" class="print-move-btn" onclick="moveSupervisorInPage('${id}', -1)" ${idx === 0 ? 'disabled' : ''} title="تحريك لأعلى" aria-label="تحريك لأعلى">&#9650;</button>
+<button type="button" class="print-move-btn" onclick="moveSupervisorInPage('${id}', 1)" ${idx === ids.length - 1 ? 'disabled' : ''} title="تحريك لأسفل" aria-label="تحريك لأسفل">&#9660;</button>
+</div>
+<div class="print-sup-info">
+<div class="print-sup-name">${formatGeneralPrintSupervisorName(s.name)}</div>
+<div class="print-sup-spec">${s.specialty}${s.recordNumber ? ' • سجل ' + s.recordNumber : ''}</div>
+</div>
+<button type="button" class="btn btn-secondary print-transfer-btn" onclick="moveSupervisorToPage('${id}', ${otherPage})">
+<span class="ui-icon" data-icon="arrow" aria-hidden="true"></span> نقل للصفحة ${otherLabel}
+</button>
+</div>`;
+}).join('')}
+</div>`;
+};
+container.innerHTML = renderPage(1) + renderPage(2);
+updatePrintSummary();
+document.getElementById('printSelectionModal').style.display = 'flex';
+}
+function moveSupervisorInPage(supId, direction) {
+const cfg = getPrintConfig();
+const page = cfg.assignment[supId];
+if (!page) return;
+const order = cfg.order[page];
+const idx = order.indexOf(supId);
+if (idx < 0) return;
+const newIdx = idx + direction;
+if (newIdx < 0 || newIdx >= order.length) return;
+const tmp = order[idx];
+order[idx] = order[newIdx];
+order[newIdx] = tmp;
+savePrintConfig(cfg);
+openPrintSelectionModal();
+}
+function moveSupervisorToPage(supId, targetPage) {
+const cfg = getPrintConfig();
+const currentPage = cfg.assignment[supId];
+if (!currentPage || currentPage === targetPage) return;
+// إزالة من ترتيب الصفحة القديمة
+cfg.order[currentPage] = (cfg.order[currentPage] || []).filter(id => id !== supId);
+// تحديث الصفحة والإضافة لترتيب الصفحة الجديدة
+cfg.assignment[supId] = targetPage;
+if (!Array.isArray(cfg.order[targetPage])) cfg.order[targetPage] = [];
+cfg.order[targetPage].push(supId);
+savePrintConfig(cfg);
+openPrintSelectionModal();
+}
+function closePrintSelectionModal() {
+const m = document.getElementById('printSelectionModal');
+if (m) m.style.display = 'none';
+}
+function updatePrintSummary() {
+const summary = document.getElementById('printPageSummary');
+if (!summary) return;
+const cfg = getPrintConfig();
+const p1 = (cfg.order[1] || []).filter(id => cfg.assignment[id] === 1).length;
+const p2 = (cfg.order[2] || []).filter(id => cfg.assignment[id] === 2).length;
+summary.innerHTML = `<span class="summary-pill summary-pill-1">الصفحة الأولى: <b>${p1}</b> موجه</span><span class="summary-pill summary-pill-2">الصفحة الثانية: <b>${p2}</b> موجه</span>`;
+}
+function resetPrintConfig() {
+localStorage.removeItem(PRINT_CONFIG_KEY);
+openPrintSelectionModal();
+}
+function executeCustomPrint() {
+const cfg = getPrintConfig();
+const supervisors = getGeneralSupervisors();
+const findSup = (id) => supervisors.find(s => s.id === id);
+const supervisors1 = (cfg.order[1] || []).map(findSup).filter(Boolean);
+const supervisors2 = (cfg.order[2] || []).map(findSup).filter(Boolean);
+if (supervisors1.length === 0 && supervisors2.length === 0) {
+alert('يجب اختيار موجه واحد على الأقل للطباعة');
+return;
+}
+if (supervisors1.length === 0) {
+alert('يجب اختيار موجه واحد على الأقل للصفحة الأولى');
+return;
+}
+closePrintSelectionModal();
+const workingDays = getWorkingDays(currentMonth, currentYear);
+if (workingDays.length === 0) { alert('لا توجد أيام عمل'); return; }
+openPrintWindow(buildGeneralPlanHTML(workingDays, supervisors1, supervisors2));
+}
+function buildGeneralPlanHTML(workingDays, customSupervisors1, customSupervisors2) {
 const logoSrc = 'data:image/png;base64,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';
 const monthName = MONTHS_AR[currentMonth - 1];
-const supervisors1 = getGeneralSupervisors().slice(0, 6);
-const supervisors2 = getGeneralSupervisors().slice(6);
+const allGeneralSups = getGeneralSupervisors();
+const supervisors1 = Array.isArray(customSupervisors1) ? customSupervisors1 : allGeneralSups.slice(0, 6);
+const supervisors2 = Array.isArray(customSupervisors2) ? customSupervisors2 : allGeneralSups.slice(6);
 const buildTable = (sups) => {
 const activeDays = workingDays.filter(day => sups.some(s => currentPlan[day.date] && currentPlan[day.date][s.id]));
 if (activeDays.length === 0) return '<p style="text-align:center;padding:10px;">لا توجد خطط مسجلة</p>';
@@ -1500,6 +1851,204 @@ ${supervisors2.length > 0 ? `
 </div>
 </div>` : ''}
 </body></html>`;
+}
+// ====== توليد PDF وإرساله عبر واتساب ======
+let _html2pdfPromise = null;
+async function loadHtml2Pdf() {
+if (window.html2pdf) return window.html2pdf;
+if (_html2pdfPromise) return _html2pdfPromise;
+_html2pdfPromise = new Promise((resolve, reject) => {
+const script = document.createElement('script');
+script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+script.onload = () => {
+if (window.html2pdf) resolve(window.html2pdf);
+else { _html2pdfPromise = null; reject(new Error('html2pdf غير متاحة بعد التحميل')); }
+};
+script.onerror = () => {
+_html2pdfPromise = null;
+reject(new Error('فشل تحميل أداة إنشاء PDF من الإنترنت. تأكد من الاتصال ثم حاول مرة أخرى.'));
+};
+document.head.appendChild(script);
+});
+return _html2pdfPromise;
+}
+async function generateSupervisorPlanPDFBlob(supervisor, visits) {
+const html2pdf = await loadHtml2Pdf();
+const html = buildSupervisorPlanHTML(supervisor, visits);
+const iframe = document.createElement('iframe');
+iframe.style.position = 'fixed';
+iframe.style.left = '-9999px';
+iframe.style.top = '0';
+iframe.style.width = '800px';
+iframe.style.height = '1130px';
+iframe.style.border = '0';
+iframe.style.background = '#ffffff';
+document.body.appendChild(iframe);
+try {
+const doc = iframe.contentWindow.document;
+doc.open();
+doc.write(html);
+doc.close();
+const imgs = Array.from(doc.images || []);
+await Promise.all(imgs.map(img =>
+img.complete ? Promise.resolve() : new Promise(res => { img.onload = res; img.onerror = res; })
+));
+await new Promise(r => setTimeout(r, 300));
+const element = doc.body;
+const worker = html2pdf().set({
+margin: [3, 3, 3, 3],
+filename: 'temp.pdf',
+image: { type: 'jpeg', quality: 0.95 },
+html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 800 },
+jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+});
+const blob = await worker.from(element).outputPdf('blob');
+return blob;
+} finally {
+document.body.removeChild(iframe);
+}
+}
+async function sendSupervisorPlanPDF(supervisorId) {
+const sup = SUPERVISORS.find(s => s.id === supervisorId);
+if (!sup) { alert('الموجه غير موجود'); return; }
+const phone = normalizeWhatsAppNumber(sup.phone);
+if (!phone) {
+alert('لا يوجد رقم واتساب مسجل للموجه: ' + sup.name + '\nأضف رقمه من تبويب «إدارة الموجهين والمعاهد».');
+return;
+}
+const visits = extractSupervisorVisits(supervisorId);
+if (visits.length === 0) {
+alert('لا توجد زيارات مسجلة لهذا الموجه في هذا الشهر');
+return;
+}
+const safeName = sup.name.replace(/[\s\/><|:*?"\\]+/g, '_').replace(/^_+|_+$/g, '');
+const filename = 'خطة_' + safeName + '_' + MONTHS_AR[currentMonth - 1] + '_' + currentYear + '.pdf';
+try {
+showLoading('جاري إنشاء ملف PDF...');
+const blob = await generateSupervisorPlanPDFBlob(sup, visits);
+hideLoading();
+const file = new File([blob], filename, { type: 'application/pdf' });
+const monthName = MONTHS_AR[currentMonth - 1];
+// محاولة Web Share API (موبايل: إرفاق مباشر)
+if (navigator.canShare && navigator.canShare({ files: [file] })) {
+const shareText = 'خطة الموجه: ' + sup.name + ' - ' + monthName + ' ' + currentYear;
+try {
+await navigator.share({
+files: [file],
+title: 'خطة الموجه',
+text: shareText
+});
+return;
+} catch(e) {
+if (e.name === 'AbortError') return;
+}
+}
+// حل بديل (ديسكتوب): تنزيل PDF + فتح واتساب
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = filename;
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+setTimeout(() => URL.revokeObjectURL(url), 30000);
+const message = '*خطة الموجه: ' + sup.name + '*\n' +
+'التخصص: ' + sup.specialty + '\n' +
+'الشهر: ' + monthName + ' ' + currentYear + '\n' +
+'عدد الزيارات: ' + visits.length + '\n\n' +
+'_تجد الخطة مفصلة في ملف PDF المرفق_';
+const waUrl = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
+setTimeout(() => {
+const win = window.open(waUrl, '_blank');
+if (!win) {
+alert('تم حظر النافذة المنبثقة. اسمح بالنوافذ المنبثقة للموقع ثم حاول مرة أخرى.');
+}
+}, 1500);
+alert('✅ تم إنشاء وتنزيل ملف PDF:\n' + filename + '\n\n' +
+'📋 الخطوات التالية:\n' +
+'1. ستفتح محادثة واتساب مع ' + sup.name + '\n' +
+'2. اضغط على زر الإرفاق (📎) في واتساب\n' +
+'3. اختر الملف الذي تم تنزيله');
+} catch(e) {
+hideLoading();
+alert('تعذر إنشاء PDF:\n' + (e.message || e));
+}
+}
+function openSendAllModal(mode) {
+const isPdf = mode === 'pdf';
+document.getElementById('sendAllTitle').textContent = isPdf ? 'إرسال خطط الموجهين (PDF)' : 'إرسال خطط الموجهين (نص)';
+const fn = isPdf ? 'sendSupervisorPlanPDF' : 'sendSupervisorPlanWhatsApp';
+const label = isPdf ? '📎 PDF' : '📲 نص';
+const btnClass = isPdf ? 'btn-primary' : 'btn-success';
+const list = document.getElementById('sendAllList');
+list.innerHTML = SUPERVISORS.map(s => {
+const visits = extractSupervisorVisits(s.id);
+const hasPhone = !!normalizeWhatsAppNumber(s.phone);
+const hasVisits = visits.length > 0;
+let status = '';
+if (!hasPhone) status = '<span class="send-status warn">لا يوجد رقم</span>';
+else if (!hasVisits) status = '<span class="send-status">لا زيارات</span>';
+const disabled = (hasPhone && hasVisits) ? '' : 'disabled';
+return `<div class="send-row"><div class="send-info"><div class="send-name">${formatGeneralPrintSupervisorName(s.name)}</div><div class="send-meta">${s.phone ? s.phone + ' • ' : ''}${visits.length} زيارة</div></div>${status}<button class="btn ${btnClass}" ${disabled} onclick="${fn}('${s.id}')">${label}</button></div>`;
+}).join('');
+document.getElementById('sendAllModal').style.display = 'flex';
+}
+function closeSendAllModal() {
+document.getElementById('sendAllModal').style.display = 'none';
+}
+
+// ====== إرسال خطة الموجه عبر واتساب ======
+function normalizePhoneForWhatsApp(phone) {
+if (!phone) return '';
+let p = String(phone).replace(/[^0-9]/g, '');
+if (!p) return '';
+// مصر: تحويل 01xxxxxxxxx → 201xxxxxxxxx
+if (p.startsWith('00')) p = p.substring(2);
+if (p.startsWith('0')) p = '20' + p.substring(1);
+else if (!p.startsWith('20') && p.length === 10) p = '20' + p;
+else if (!p.startsWith('20') && p.length === 11 && p.startsWith('1')) p = '20' + p;
+return p;
+}
+function normalizeWhatsAppNumber(raw) {
+const d = normalizePhoneForWhatsApp(raw);
+return /^20\d{10}$/.test(d) ? d : '';
+}
+function buildSupervisorPlanMessage(supervisor, visits) {
+const monthName = MONTHS_AR[currentMonth - 1];
+const academicYear = currentYear + '/' + (currentYear + 1);
+let msg = '*خطة الموجه: ' + supervisor.name + '*\n';
+msg += 'التخصص: ' + supervisor.specialty + '\n';
+if (supervisor.recordNumber) msg += 'رقم السجل: ' + supervisor.recordNumber + '\n';
+msg += 'الشهر: ' + monthName + ' ' + currentYear + '\n';
+msg += 'العام الدراسي: ' + academicYear + '\n';
+msg += '\n*الزيارات (' + visits.length + '):*\n';
+if (visits.length === 0) {
+msg += '_لا توجد زيارات مسجلة_\n';
+} else {
+visits.forEach((v, i) => {
+const inst = isLeave(v.institute) ? '⛔ ' + v.institute : v.institute;
+msg += (i + 1) + '. ' + v.dayName + ' ' + v.dayNumber + ' — ' + inst + '\n';
+});
+}
+msg += '\n_إدارة الضبعة — الإدارة المركزية لمنطقة مطروح الأزهرية_';
+msg += '\n_تم الإرسال تلقائياً من نظام الخطة العامة_';
+return msg;
+}
+function sendSupervisorPlanWhatsApp(supervisorId) {
+const sup = SUPERVISORS.find(s => s.id === supervisorId);
+if (!sup) { alert('الموجه غير موجود'); return; }
+const phone = normalizeWhatsAppNumber(sup.phone);
+if (!phone) {
+alert('لا يوجد رقم واتساب مسجل للموجه: ' + sup.name + '\nأضف رقمه من تبويب «إدارة الموجهين والمعاهد».');
+return;
+}
+const visits = extractSupervisorVisits(supervisorId);
+const message = buildSupervisorPlanMessage(sup, visits);
+const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
+const win = window.open(url, '_blank');
+if (!win) {
+alert('تم حظر النافذة المنبثقة. اسمح بالنوافذ المنبثقة لهذا الموقع ثم حاول مرة أخرى.\nأو انسخ الرابط يدوياً:\n' + url);
+}
 }
 function printIndividualSupervisor(supervisorId) {
 const supervisor = SUPERVISORS.find(s => s.id === supervisorId);
@@ -1789,6 +2338,7 @@ id: String(rec.id || rec.ID || rec.Id || '').trim(),
 name: String(rec.name || rec['الاسم'] || '').trim(),
 specialty: String(rec.specialty || rec['التخصص'] || '').trim(),
 recordNumber: String(rec.recordNumber ?? rec['رقم السجل'] ?? rec.record ?? rec['السجل'] ?? '').trim(),
+phone: String(rec.phone ?? rec['واتساب'] ?? rec['رقم الواتساب'] ?? rec.whatsapp ?? '').trim(),
 allowedAdmins: rec.allowedAdmins,
 workDays: rec.workDays,
 assignedInstitutes: rec.assignedInstitutes
@@ -1808,6 +2358,7 @@ if (wd.length) sup.workDays = wd;
 if (rec.assignedInstitutes !== undefined) {
 sup.assignedInstitutes = parseListField(rec.assignedInstitutes).map(normalizeInstituteName).filter(Boolean);
 }
+if (rec.phone) sup.phone = rec.phone;
 }
 saveSupervisorsOverrides();
 }
@@ -1820,6 +2371,7 @@ id: s.id,
 name: s.name,
 specialty: s.specialty,
 recordNumber: s.recordNumber || '',
+phone: s.phone || '',
 allowedAdmins: s.allowedAdmins,
 workDays: s.workDays || [0, 1, 2, 3, 4],
 assignedInstitutes: s.assignedInstitutes || [],
@@ -1931,6 +2483,7 @@ id: s.id,
 name: s.name,
 specialty: s.specialty,
 recordNumber: s.recordNumber || '',
+phone: s.phone || '',
 allowedAdmins: s.allowedAdmins,
 visits: extractSupervisorVisits(s.id).map(v => ({
 date: v.date, dayName: v.dayName, dayNumber: v.dayNumber, institute: v.institute
@@ -2446,11 +2999,12 @@ function _adminLabel(a){ return a==='dabaa'?'إدارة الضبعة':a==='matro
 function renderManagementTab(){
 const sbox=document.getElementById('manageSupervisors'), ibox=document.getElementById('manageInstitutes');
 if(!sbox||!ibox) return;
-sbox.innerHTML=`<table class="manage-table"><thead><tr><th>الموجه</th><th>التخصص</th><th>رقم السجل</th><th>تفاصيل</th></tr></thead><tbody>${
+sbox.innerHTML=`<table class="manage-table"><thead><tr><th>الموجه</th><th>التخصص</th><th>رقم السجل</th><th>رقم الواتساب</th><th>تفاصيل</th></tr></thead><tbody>${
 SUPERVISORS.map(s=>`<tr data-sid="${s.id}">
 <td><input data-field="name" value="${_xmlEscape(s.name)}"></td>
 <td><input data-field="specialty" value="${_xmlEscape(s.specialty)}"></td>
 <td><input data-field="record" value="${_xmlEscape(s.recordNumber||'')}"></td>
+<td><input data-field="phone" value="${_xmlEscape(s.phone||'')}" placeholder="010xxxxxxxx" inputmode="tel" dir="ltr" style="text-align:right;"></td>
 <td><button class="btn btn-primary" onclick="openSupervisorModal('${s.id}')"><span class="ui-icon" data-icon="edit"></span> الأيام والمعاهد</button></td>
 </tr>`).join('')}</tbody></table>`;
 ibox.innerHTML=`<table class="manage-table"><thead><tr><th>الإدارة</th><th>اسم المعهد</th><th>مجموعة مشتركة</th><th>حذف</th></tr></thead><tbody>${
@@ -2462,16 +3016,23 @@ Object.entries(INSTITUTES).flatMap(([admin,list])=>list.map((inst,i)=>`<tr data-
 </tr>`)).join('')}</tbody></table>`;
 }
 async function saveManagementSupervisors(){
+const badPhones = [];
+document.querySelectorAll('#manageSupervisors tbody tr').forEach(row=>{
+const v=(row.querySelector('[data-field="phone"]')||{}).value; const nm=(row.querySelector('[data-field="name"]')||{}).value;
+if (v && v.trim() && !normalizeWhatsAppNumber(v)) badPhones.push((nm||'').trim());
+});
+if (badPhones.length) { alert('أرقام واتساب غير صحيحة:\n' + badPhones.join('\n') + '\nاكتبها بالشكل 01012345678'); return; }
 document.querySelectorAll('#manageSupervisors tbody tr').forEach(row=>{
 const s=SUPERVISORS.find(x=>x.id===row.dataset.sid); if(!s) return;
 s.name=row.querySelector('[data-field="name"]').value.trim()||s.name;
 s.specialty=row.querySelector('[data-field="specialty"]').value.trim();
 s.recordNumber=row.querySelector('[data-field="record"]').value.trim();
+s.phone=row.querySelector('[data-field="phone"]').value.trim();
 });
 saveSupervisorsOverrides();
 const remoteCache = SUPERVISORS.map(s=>({
 id: s.id, name: s.name, specialty: s.specialty,
-recordNumber: s.recordNumber||'', allowedAdmins: s.allowedAdmins,
+recordNumber: s.recordNumber||'', phone: s.phone||'', allowedAdmins: s.allowedAdmins,
 workDays: s.workDays||[0,1,2,3,4], assignedInstitutes: s.assignedInstitutes||[]
 }));
 localStorage.setItem(REMOTE_SUPERVISORS_KEY, JSON.stringify(remoteCache));
@@ -2660,8 +3221,14 @@ if (list) list.style.display = cb.checked ? 'grid' : 'none';
 document.getElementById('supervisorModal').addEventListener('click', (e) => {
 if (e.target.id === 'supervisorModal') closeSupervisorModal();
 });
+const printSelModal = document.getElementById('printSelectionModal');
+if (printSelModal) {
+printSelModal.addEventListener('click', (e) => {
+if (e.target.id === 'printSelectionModal') closePrintSelectionModal();
+});
+}
 document.addEventListener('keydown', (e) => {
-if (e.key === 'Escape') closeSupervisorModal();
+if (e.key === 'Escape') { closeSupervisorModal(); closePrintSelectionModal(); }
 });
 });
 </script>
