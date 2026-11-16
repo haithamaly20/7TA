@@ -471,6 +471,21 @@ option.visited-before { color:#e65100; }
   transform:translateY(4px);
   box-shadow:0 1px 0 rgba(0,0,0,.30),0 3px 6px rgba(31,55,86,.2),inset 0 2px 4px rgba(0,0,0,.2);
 }
+.hz-controls input[type=text]{padding:8px 10px;border:2px solid #ddd;border-radius:6px;font-size:14px;font-family:inherit}
+.hz-controls input[type=text]:focus{outline:none;border-color:#2c5f8d}
+.hz-page{background:#fff;border:1px solid #ddd;border-radius:10px;padding:20px;margin-bottom:20px;line-height:1.9;font-size:14px}
+.hz-page p{margin:6px 0;font-weight:bold}
+.hz-org{font-size:13px;font-weight:bold;line-height:1.6;margin-bottom:10px}
+.hz-center{text-align:center}.hz-bold{font-weight:bold}
+.hz-small{font-size:12px;font-weight:bold}.hz-title{text-align:center;font-size:18px;font-weight:bold;margin:8px 0}
+.hz-d{background:#e8f1fb;color:#1a3a5c;padding:0 6px;border-radius:4px}
+.hz-page table{width:100%;border-collapse:collapse;margin:10px 0}
+.hz-page th,.hz-page td{border:1px solid #999;padding:6px 8px;text-align:center;font-size:13px}
+.hz-page th{background:#f0f3f7}
+.hz-page td input{width:100%;padding:5px;border:1px solid #ccc;border-radius:4px;text-align:center;font-family:inherit;font-size:13px}
+.hz-x{background:none;border:none;color:#e74c3c;font-size:20px;cursor:pointer;line-height:1}
+.hz-x:hover{color:#c0392b}
+.hz-sign{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:18px;font-size:13px;font-weight:bold}
 </style>
 </head>
 <body>
@@ -490,6 +505,7 @@ option.visited-before { color:#e65100; }
 <button class="tab" data-tab="single"><span class="ui-icon" data-icon="note" aria-hidden="true"></span> خطة موجه</button>
 <button class="tab" data-tab="settings"><span class="ui-icon" data-icon="settings" aria-hidden="true"></span> الإعدادات</button>
 <button class="tab" data-tab="manage"><span class="ui-icon" data-icon="edit" aria-hidden="true"></span> إدارة الموجهين والمعاهد</button>
+<button class="tab" data-tab="hafez"><span class="ui-icon" data-icon="clipboard" aria-hidden="true"></span> الحافز</button>
 <button class="tab" id="btnArchiveOpen" onclick="ArchiveUI.openArchiveModal()"><span class="ui-icon" data-icon="calendar" aria-hidden="true"></span> سجل الأشهر</button>
 </div>
 <div id="generalTab" class="tab-content active">
@@ -574,6 +590,7 @@ option.visited-before { color:#e65100; }
 </section>
 </div>
 </div>
+<div id="hafezTab" class="tab-content"><div id="hafezBody"></div></div>
 <div id="settingsTab" class="tab-content">
 <div class="pwa-box" style="margin-bottom:20px;text-align:center;">
 <h3><span class="ui-icon" data-icon="settings" aria-hidden="true"></span> أدوات الخطة</h3>
@@ -3296,5 +3313,222 @@ var _plBadge = document.getElementById('printLockBadge');
 if (_plBadge) { _plBadge.addEventListener('click', function() { runPrintTest(); }); }
 });
 </script>
+<script>
+(function () {
+  'use strict';
+  var KEY = 'hafez_state_v1';
+  var EXCLUDED_DEFAULT = ['s6', 's10'];
+  var EDU_DEFAULT = '2027/2026';
+
+  function blank() { return { ids: null, custom: [], rewards: {}, visits: {}, monthOv: {}, eduOv: '' }; }
+  var st = blank();
+  try {
+    var raw = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (raw && typeof raw === 'object') st = Object.assign(blank(), raw);
+  } catch (e) {}
+  if (!Array.isArray(st.ids)) st.ids = SUPERVISORS.filter(function (s) { return EXCLUDED_DEFAULT.indexOf(s.id) < 0; }).map(function (s) { return s.id; });
+
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function mk() { return currentYear + '_' + currentMonth; }
+  function autoMonth() { return MONTHS_AR[currentMonth - 1] + ' ' + currentYear; }
+  function monthTxt() { var o = st.monthOv[mk()]; return o ? o : autoMonth(); }
+  function eduTxt() { return st.eduOv || EDU_DEFAULT; }
+  function find(id) {
+    return SUPERVISORS.find(function (s) { return s.id === id; }) || st.custom.find(function (s) { return s.id === id; }) || null;
+  }
+  function list() { return st.ids.map(find).filter(Boolean); }
+  function autoVisits(id) {
+    var n = 0;
+    for (var d in currentPlan) { var v = currentPlan[d] && currentPlan[d][id]; if (v && !isLeave(v)) n++; }
+    return n;
+  }
+  function visitsOf(id) {
+    var o = (st.visits[mk()] || {})[id];
+    return (o === undefined || o === '' || isNaN(Number(o))) ? autoVisits(id) : Number(o);
+  }
+  function rewardOf(id) { return (st.rewards[mk()] || {})[id] || ''; }
+  function num(s) {
+    var t = String(s == null ? '' : s).replace(/[٠-٩]/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'.indexOf(d); }).replace(/[,٬]/g, '').replace(/٫/g, '.').replace(/[^0-9.]/g, '');
+    return parseFloat(t) || 0;
+  }
+  function sums() {
+    var v = 0, r = 0;
+    list().forEach(function (s) { v += visitsOf(s.id); r += num(rewardOf(s.id)); });
+    return { v: v, r: Math.round(r * 100) / 100 };
+  }
+
+  function letter(mode) {
+    var m = monthTxt(), e = eduTxt();
+    function M() { return mode === 'screen' ? '<span class="hz-d hz-month">' + esc(m) + '</span>' : esc(m); }
+    function E() { return mode === 'screen' ? '<span class="hz-d hz-edu">' + esc(e) + '</span>' : esc(e); }
+    return '<p>الرجاء من فضيلتكم التكرم بالموافقة على صرف الحافز الخاص بموجهي إدارة الضبعة التعليمية الأزهرية المتابعين للصفوف الأولى من الصف الأول حتى الصف السادس للعام الدراسي ' + E() + 'م و حيث ان جميع السادة الموجهين قد وقعوا اكثر من 20 توقيع بدفتر الحضور و الانصراف و كما قاموا بمتابعة جميع المعاهد الابتدائي في الخطط التوجيهية و الفنية و كذلك قاموا بعمل ورش تدريبية و ورش عمل لتناقل الأثر الايجابي الفعال في رفع كفاءة العملية التعليمية بالأزهر الشريف الصفوف الأولي وذلك تحت إشراف رئيس الإدارة المركزية بمطروح و ايضا بالتعاون مع إدارة التدريب و تفيد الإدارة بأن السادة الاتي اسمائهم لم يوقع عليهم أي جزاءات و لم يحصلو على أي اجازات اعتيادية أو مرضية خلال شهر ' + M() + 'م</p>' +
+      '<p>وتفيد الإدارة بأن السادة الاتي اسمائهم قد قامو بزيارة صفين دراسين علي الأقل في كل زيارة قامو بها للمعاهد المدونة في الخطة خلال شهر ' + M() + 'م</p>' +
+      '<p class="hz-center">لذا</p>' +
+      '<p>نرجو صرف الحافز المشار اليه سابقا عن شهر ' + M() + 'م و اسماء السادة الموجهين هي :-</p>';
+  }
+  function formHead(mode) {
+    var m = monthTxt();
+    var M = mode === 'screen' ? '<span class="hz-d hz-month">' + esc(m) + '</span>' : esc(m);
+    return '<div class="hz-small">قسم الاستحقاقات</div>' +
+      '<div class="hz-title">نموذج إدخال مكافأة قيمة</div>' +
+      '<p>اسم المراجع/ ........................................ &nbsp;&nbsp; جهة الصرف المراجع/ ........................................</p>' +
+      '<p>اسم المكافأة/ حافز الصفوف الاولى ( للموجهين ) عن شهر ' + M + 'م</p>' +
+      '<p>جهة الصرف/ ادارة الضبعة</p>';
+  }
+
+  function render() {
+    var box = document.getElementById('hafezBody');
+    if (!box) return;
+    var L = list();
+    var avail = SUPERVISORS.filter(function (s) { return st.ids.indexOf(s.id) < 0; });
+    var sm = sums();
+    var h = '';
+    h += '<div class="controls hz-controls">' +
+      '<div class="control-group"><label>الشهر في الخطاب:</label><input type="text" id="hzMonth" value="' + esc(monthTxt()) + '"></div>' +
+      '<div class="control-group"><label>العام الدراسي:</label><input type="text" id="hzEdu" value="' + esc(eduTxt()) + '" style="width:110px"></div>' +
+      '<button class="btn btn-primary" data-hz="auto">رجوع للتواريخ التلقائية</button>' +
+      '<button class="btn btn-print" data-hz="print">طباعة الصفحتين</button>' +
+      '</div>';
+    h += '<p style="text-align:center;color:#666;font-size:13px;margin-bottom:10px;">الشهر والسنة يتبعان الخطة العامة تلقائيا (' + esc(autoMonth()) + ')، وعدد الزيارات يُحسب من الخطة العامة ويمكن تعديله.</p>';
+    h += '<div class="controls hz-controls">' +
+      '<div class="control-group"><label>إضافة موجه:</label><select id="hzAddSel"><option value="">اختر موجها…</option>' +
+      avail.map(function (s) { return '<option value="' + esc(s.id) + '">' + esc(s.name) + '</option>'; }).join('') +
+      '</select><button class="btn btn-success" data-hz="add">إضافة</button></div>' +
+      '<div class="control-group"><label>موجه جديد:</label>' +
+      '<input type="text" id="hzNName" placeholder="الاسم" style="width:200px">' +
+      '<input type="text" id="hzNRec" placeholder="رقم السجل" style="width:110px">' +
+      '<input type="text" id="hzNSpec" placeholder="التخصص" style="width:110px">' +
+      '<button class="btn btn-success" data-hz="addnew">إضافة يدوية</button></div>' +
+      '</div>';
+
+    h += '<div class="hz-page"><div class="hz-org">الأزهر الشريف<br>الإدارة المركزية لمنطقة مطروح الأزهرية<br>إدارة الضبعة التعليمية</div>' +
+      '<div class="hz-center hz-bold">السيد صاحب الفضيلة / رئيس الإدارة المركزية لمنطقة مطروح الأزهرية<br>السلام عليكم و رحمة الله و بركاته</div>' +
+      letter('screen') +
+      '<table><tr><th style="width:50px">م</th><th>رقم السجل</th><th>الاسم</th><th>التخصص</th><th style="width:40px"></th></tr>' +
+      (L.length ? L.map(function (s, i) {
+        return '<tr><td>' + (i + 1) + '</td><td>' + esc(s.recordNumber) + '</td><td>' + esc(s.name) + '</td><td>' + esc(s.specialty) + '</td><td><button class="hz-x" data-hz="del" data-id="' + esc(s.id) + '" title="حذف من الجدول">×</button></td></tr>';
+      }).join('') : '<tr><td colspan="5">لا يوجد موجهون في الجدول</td></tr>') +
+      '</table><div class="hz-sign"><span>المختص</span><span>مدير الإدارة</span></div></div>';
+
+    h += '<div class="hz-page">' + formHead('screen') +
+      '<table><tr><th>رقم السجل</th><th>اسم الموجه</th><th>التخصص</th><th style="width:110px">عدد الزيارات</th><th style="width:130px">المكافأة</th><th style="width:40px"></th></tr>' +
+      (L.length ? L.map(function (s) {
+        return '<tr><td>' + esc(s.recordNumber) + '</td><td>' + esc(s.name) + '</td><td>' + esc(s.specialty) + '</td>' +
+          '<td><input type="number" min="0" data-hz-visits="' + esc(s.id) + '" value="' + visitsOf(s.id) + '"></td>' +
+          '<td><input type="text" data-hz-reward="' + esc(s.id) + '" value="' + esc(rewardOf(s.id)) + '"></td>' +
+          '<td><button class="hz-x" data-hz="del" data-id="' + esc(s.id) + '" title="حذف من الجدول">×</button></td></tr>';
+      }).join('') : '<tr><td colspan="6">لا يوجد موجهون في الجدول</td></tr>') +
+      '<tr><th colspan="3">المجموع</th><th id="hzSumV">' + sm.v + '</th><th id="hzSumR">' + sm.r + '</th><th></th></tr></table>' +
+      '<div class="hz-sign"><span>المراجع</span><span>رئيس القسم</span><span>مدير شئون العاملين</span><span>يعتمد رئيس الإدارة المركزية</span></div></div>';
+    box.innerHTML = h;
+  }
+
+  function refreshTotals() {
+    var sm = sums();
+    var a = document.getElementById('hzSumV'), b = document.getElementById('hzSumR');
+    if (a) a.textContent = sm.v;
+    if (b) b.textContent = sm.r;
+  }
+  function syncSpans(cls, txt) {
+    document.querySelectorAll('#hafezTab .' + cls).forEach(function (el) { el.textContent = txt; });
+  }
+
+  function buildPrint(L) {
+    var sm = sums();
+    var css = '@page{size:A4 portrait;margin:12mm}html,body{margin:0;padding:0}' +
+      'body{font-family:Arial,Tahoma,sans-serif;direction:rtl;color:#000;font-size:14px;line-height:1.9}' +
+      '.page{page-break-after:always}.page:last-child{page-break-after:auto}' +
+      '.org{font-size:13px;font-weight:bold;line-height:1.6;margin-bottom:10px}' +
+      '.hz-center{text-align:center}.hz-bold{font-weight:bold;font-size:15px;margin-bottom:8px}' +
+      'p{margin:6px 0;text-align:justify;font-weight:bold}p.hz-center{text-align:center}' +
+      '.hz-small{font-size:12px;font-weight:bold}.hz-title{text-align:center;font-size:18px;font-weight:bold;margin:10px 0}' +
+      'table{width:100%;border-collapse:collapse;margin:10px 0}' +
+      'th,td{border:1px solid #000;padding:4px 6px;text-align:center;font-size:13px;height:9mm}th{background:#eee}' +
+      '.sign{display:flex;justify-content:space-between;margin-top:22px;font-size:13px;font-weight:bold}';
+    var p1 = '<div class="page"><div class="org">الأزهر الشريف<br>الإدارة المركزية لمنطقة مطروح الأزهرية<br>إدارة الضبعة التعليمية</div>' +
+      '<div class="hz-center hz-bold">السيد صاحب الفضيلة / رئيس الإدارة المركزية لمنطقة مطروح الأزهرية<br>السلام عليكم و رحمة الله و بركاته</div>' +
+      letter('print') +
+      '<table><tr><th style="width:8%">م</th><th style="width:22%">رقم السجل</th><th>الاسم</th><th style="width:22%">التخصص</th></tr>' +
+      L.map(function (s, i) { return '<tr><td>' + (i + 1) + '</td><td>' + esc(s.recordNumber) + '</td><td>' + esc(s.name) + '</td><td>' + esc(s.specialty) + '</td></tr>'; }).join('') +
+      '</table><div class="sign"><span>المختص</span><span>مدير الإدارة</span></div></div>';
+    var p2 = '<div class="page">' + formHead('print') +
+      '<table><tr><th style="width:17%">رقم السجل</th><th>اسم الموجه</th><th style="width:18%">التخصص</th><th style="width:12%">عدد الزيارات</th><th style="width:15%">المكافأة</th></tr>' +
+      L.map(function (s) { return '<tr><td>' + esc(s.recordNumber) + '</td><td>' + esc(s.name) + '</td><td>' + esc(s.specialty) + '</td><td>' + visitsOf(s.id) + '</td><td>' + esc(rewardOf(s.id)) + '</td></tr>'; }).join('') +
+      '<tr><th colspan="3">المجموع</th><th>' + sm.v + '</th><th>' + sm.r + '</th></tr></table>' +
+      '<div class="sign"><span>المراجع</span><span>رئيس القسم</span><span>مدير شئون العاملين</span><span>يعتمد رئيس الإدارة المركزية</span></div></div>';
+    return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>الحافز - ' + esc(monthTxt()) + '</title><style>' + css + '</style></head><body>' + p1 + p2 + '</body></html>';
+  }
+  function printHafez() {
+    var L = list();
+    if (!L.length) { alert('لا يوجد موجهون في الجدول'); return; }
+    openPrintWindow(buildPrint(L));
+  }
+
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest ? ev.target.closest('[data-hz]') : null;
+    var tab = document.getElementById('hafezTab');
+    if (!b || !tab || !tab.contains(b)) return;
+    var a = b.getAttribute('data-hz');
+    if (a === 'del') {
+      var id = b.getAttribute('data-id'), s = find(id);
+      if (confirm('حذف ' + (s ? s.name : '') + ' من جدول الحافز؟')) {
+        st.ids = st.ids.filter(function (x) { return x !== id; });
+        if (String(id).indexOf('h_') === 0) st.custom = st.custom.filter(function (x) { return x.id !== id; });
+        save(); render();
+      }
+    } else if (a === 'add') {
+      var sel = document.getElementById('hzAddSel');
+      if (!sel || !sel.value) { alert('اختر موجها من القائمة أولا'); return; }
+      st.ids.push(sel.value); save(); render();
+    } else if (a === 'addnew') {
+      var nm = document.getElementById('hzNName').value.trim();
+      if (!nm) { alert('اكتب اسم الموجه'); return; }
+      var id2 = 'h_' + Date.now();
+      st.custom.push({ id: id2, name: nm, recordNumber: document.getElementById('hzNRec').value.trim(), specialty: document.getElementById('hzNSpec').value.trim() });
+      st.ids.push(id2); save(); render();
+    } else if (a === 'auto') {
+      delete st.monthOv[mk()]; st.eduOv = ''; save(); render();
+    } else if (a === 'print') {
+      printHafez();
+    }
+  });
+
+  document.addEventListener('input', function (ev) {
+    var t = ev.target;
+    if (!t.closest || !t.closest('#hafezTab')) return;
+    if (t.id === 'hzMonth') {
+      var v = t.value.trim();
+      if (v && v !== autoMonth()) st.monthOv[mk()] = v; else delete st.monthOv[mk()];
+      save(); syncSpans('hz-month', monthTxt());
+    } else if (t.id === 'hzEdu') {
+      var e = t.value.trim();
+      st.eduOv = (e && e !== EDU_DEFAULT) ? e : '';
+      save(); syncSpans('hz-edu', eduTxt());
+    } else if (t.hasAttribute('data-hz-visits')) {
+      var k = mk(); st.visits[k] = st.visits[k] || {};
+      if (t.value === '') delete st.visits[k][t.getAttribute('data-hz-visits')]; else st.visits[k][t.getAttribute('data-hz-visits')] = t.value;
+      save(); refreshTotals();
+    } else if (t.hasAttribute('data-hz-reward')) {
+      var k2 = mk(); st.rewards[k2] = st.rewards[k2] || {};
+      st.rewards[k2][t.getAttribute('data-hz-reward')] = t.value;
+      save(); refreshTotals();
+    }
+  });
+
+  function isActive() { var t = document.getElementById('hafezTab'); return t && t.classList.contains('active'); }
+  var tabBtn = document.querySelector('.tab[data-tab="hafez"]');
+  if (tabBtn) tabBtn.addEventListener('click', function () { setTimeout(render, 0); });
+  ['monthSelect', 'yearSelect'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', function () { setTimeout(function () { if (isActive()) render(); }, 50); });
+  });
+  var _upd = window.updateOtherTabs;
+  if (typeof _upd === 'function') window.updateOtherTabs = function () { _upd.apply(this, arguments); if (isActive()) render(); };
+
+  render();
+})();
+</script>
+
 </body>
 </html>
