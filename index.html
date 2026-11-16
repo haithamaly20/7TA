@@ -3319,6 +3319,7 @@ if (_plBadge) { _plBadge.addEventListener('click', function() { runPrintTest(); 
   var KEY = 'hafez_state_v1';
   var EXCLUDED_DEFAULT = ['s6', 's10'];
   var EDU_DEFAULT = '2027/2026';
+  var RATE = 40;
 
   function blank() { return { ids: null, custom: [], rewards: {}, visits: {}, monthOv: {}, eduOv: '' }; }
   var st = blank();
@@ -3347,14 +3348,10 @@ if (_plBadge) { _plBadge.addEventListener('click', function() { runPrintTest(); 
     var o = (st.visits[mk()] || {})[id];
     return (o === undefined || o === '' || isNaN(Number(o))) ? autoVisits(id) : Number(o);
   }
-  function rewardOf(id) { return (st.rewards[mk()] || {})[id] || ''; }
-  function num(s) {
-    var t = String(s == null ? '' : s).replace(/[٠-٩]/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'.indexOf(d); }).replace(/[,٬]/g, '').replace(/٫/g, '.').replace(/[^0-9.]/g, '');
-    return parseFloat(t) || 0;
-  }
+  function rewardOf(id) { return Math.round(visitsOf(id) * RATE * 100) / 100; }
   function sums() {
     var v = 0, r = 0;
-    list().forEach(function (s) { v += visitsOf(s.id); r += num(rewardOf(s.id)); });
+    list().forEach(function (s) { v += visitsOf(s.id); r += rewardOf(s.id); });
     return { v: v, r: Math.round(r * 100) / 100 };
   }
 
@@ -3412,11 +3409,11 @@ if (_plBadge) { _plBadge.addEventListener('click', function() { runPrintTest(); 
       '</table><div class="hz-sign"><span>المختص</span><span>مدير الإدارة</span></div></div>';
 
     h += '<div class="hz-page">' + formHead('screen') +
-      '<table><tr><th>رقم السجل</th><th>اسم الموجه</th><th>التخصص</th><th style="width:110px">عدد الزيارات</th><th style="width:130px">المكافأة</th><th style="width:40px"></th></tr>' +
+      '<table><tr><th>رقم السجل</th><th>اسم الموجه</th><th>التخصص</th><th style="width:110px">عدد الزيارات</th><th style="width:130px">المكافأة (× ' + RATE + ')</th><th style="width:40px"></th></tr>' +
       (L.length ? L.map(function (s) {
         return '<tr><td>' + esc(s.recordNumber) + '</td><td>' + esc(s.name) + '</td><td>' + esc(s.specialty) + '</td>' +
           '<td><input type="number" min="0" data-hz-visits="' + esc(s.id) + '" value="' + visitsOf(s.id) + '"></td>' +
-          '<td><input type="text" data-hz-reward="' + esc(s.id) + '" value="' + esc(rewardOf(s.id)) + '"></td>' +
+          '<td data-hz-rw="' + esc(s.id) + '">' + rewardOf(s.id) + '</td>' +
           '<td><button class="hz-x" data-hz="del" data-id="' + esc(s.id) + '" title="حذف من الجدول">×</button></td></tr>';
       }).join('') : '<tr><td colspan="6">لا يوجد موجهون في الجدول</td></tr>') +
       '<tr><th colspan="3">المجموع</th><th id="hzSumV">' + sm.v + '</th><th id="hzSumR">' + sm.r + '</th><th></th></tr></table>' +
@@ -3454,7 +3451,7 @@ if (_plBadge) { _plBadge.addEventListener('click', function() { runPrintTest(); 
       '</table><div class="sign"><span>المختص</span><span>مدير الإدارة</span></div></div>';
     var p2 = '<div class="page">' + formHead('print') +
       '<table><tr><th style="width:17%">رقم السجل</th><th>اسم الموجه</th><th style="width:18%">التخصص</th><th style="width:12%">عدد الزيارات</th><th style="width:15%">المكافأة</th></tr>' +
-      L.map(function (s) { return '<tr><td>' + esc(s.recordNumber) + '</td><td>' + esc(s.name) + '</td><td>' + esc(s.specialty) + '</td><td>' + visitsOf(s.id) + '</td><td>' + esc(rewardOf(s.id)) + '</td></tr>'; }).join('') +
+      L.map(function (s) { return '<tr><td>' + esc(s.recordNumber) + '</td><td>' + esc(s.name) + '</td><td>' + esc(s.specialty) + '</td><td>' + visitsOf(s.id) + '</td><td>' + rewardOf(s.id) + '</td></tr>'; }).join('') +
       '<tr><th colspan="3">المجموع</th><th>' + sm.v + '</th><th>' + sm.r + '</th></tr></table>' +
       '<div class="sign"><span>المراجع</span><span>رئيس القسم</span><span>مدير شئون العاملين</span><span>يعتمد رئيس الإدارة المركزية</span></div></div>';
     return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>الحافز - ' + esc(monthTxt()) + '</title><style>' + css + '</style></head><body>' + p1 + p2 + '</body></html>';
@@ -3508,11 +3505,10 @@ if (_plBadge) { _plBadge.addEventListener('click', function() { runPrintTest(); 
     } else if (t.hasAttribute('data-hz-visits')) {
       var k = mk(); st.visits[k] = st.visits[k] || {};
       if (t.value === '') delete st.visits[k][t.getAttribute('data-hz-visits')]; else st.visits[k][t.getAttribute('data-hz-visits')] = t.value;
-      save(); refreshTotals();
-    } else if (t.hasAttribute('data-hz-reward')) {
-      var k2 = mk(); st.rewards[k2] = st.rewards[k2] || {};
-      st.rewards[k2][t.getAttribute('data-hz-reward')] = t.value;
-      save(); refreshTotals();
+      save();
+      var vid = t.getAttribute('data-hz-visits'), cell = document.querySelector('[data-hz-rw="' + vid + '"]');
+      if (cell) cell.textContent = rewardOf(vid);
+      refreshTotals();
     }
   });
 
