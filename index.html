@@ -486,6 +486,24 @@ option.visited-before { color:#e65100; }
 .hz-x{background:none;border:none;color:#e74c3c;font-size:20px;cursor:pointer;line-height:1}
 .hz-x:hover{color:#c0392b}
 .hz-sign{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:18px;font-size:13px;font-weight:bold}
+
+.hz-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.hz-card{background:#fff;border:1px solid #e0e8f2;border-radius:14px;padding:14px 16px;box-shadow:0 4px 14px rgba(31,55,86,.08)}
+.hz-lbl{font-size:12px;color:#667085;font-weight:bold;margin-bottom:4px}
+.hz-val{font-size:18px;font-weight:bold;color:#2c5f8d}
+.hz-settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:12px}
+.hz-set{background:#fff;border:1px solid #e0e8f2;border-radius:14px;padding:12px}
+.hz-set label{display:block;font-size:13px;font-weight:bold;color:#344054;margin-bottom:6px}
+.hz-set input{width:100%;padding:8px 10px;border:2px solid #ddd;border-radius:6px;font-size:14px;font-family:inherit}
+.hz-set input:focus{outline:none;border-color:#2c5f8d}
+.hz-add{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fff9df;border:1px solid #f1d36a;border-radius:14px;padding:12px 16px;margin:0 0 16px}
+.hz-add label{font-weight:bold;color:#856404;font-size:14px}
+.hz-add input,.hz-add select{padding:8px 10px;border:2px solid #ddd;border-radius:6px;font-size:14px;font-family:inherit}
+.hz-or{color:#856404;font-size:13px;font-weight:bold}
+.hz-rs{background:none;border:none;color:#2c5f8d;font-size:18px;cursor:pointer;line-height:1;margin-left:6px}
+.hz-page td input[type=text]{text-align:right}
+.btn-secondary{background:#87939f;color:#fff}
+.btn-secondary:hover{background:#6f7b87;transform:translateY(-2px)}
 </style>
 </head>
 <body>
@@ -3316,27 +3334,42 @@ if (_plBadge) { _plBadge.addEventListener('click', function() { runPrintTest(); 
 <script>
 (function () {
   'use strict';
-  var KEY = 'hafez_state_v1';
+  var KEY = 'hafez_state_v2';
   var EXCLUDED_DEFAULT = ['s6', 's10'];
   var EDU_DEFAULT = '2027/2026';
-  var RATE = 40;
+  var RATE_DEFAULT = 40;
+  var RNAME_DEFAULT = 'حافز الصفوف الاولى ( للموجهين )';
+  var ISSUER_DEFAULT = 'ادارة الضبعة';
 
-  function blank() { return { ids: null, custom: [], rewards: {}, visits: {}, monthOv: {}, eduOv: '' }; }
+  function blank() {
+    return { ids: null, custom: [], edits: {}, visits: {}, amountOv: {}, monthOv: {}, periodOv: {}, eduOv: '', rate: RATE_DEFAULT, rname: RNAME_DEFAULT, issuer: ISSUER_DEFAULT };
+  }
   var st = blank();
   try {
     var raw = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (raw && typeof raw === 'object') st = Object.assign(blank(), raw);
   } catch (e) {}
-  if (!Array.isArray(st.ids)) st.ids = SUPERVISORS.filter(function (s) { return EXCLUDED_DEFAULT.indexOf(s.id) < 0; }).map(function (s) { return s.id; });
+  function defaultIds() { return SUPERVISORS.filter(function (s) { return EXCLUDED_DEFAULT.indexOf(s.id) < 0; }).map(function (s) { return s.id; }); }
+  if (!Array.isArray(st.ids)) st.ids = defaultIds();
 
   function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
   function mk() { return currentYear + '_' + currentMonth; }
   function autoMonth() { return MONTHS_AR[currentMonth - 1] + ' ' + currentYear; }
   function monthTxt() { var o = st.monthOv[mk()]; return o ? o : autoMonth(); }
   function eduTxt() { return st.eduOv || EDU_DEFAULT; }
+  function autoFrom() { return currentYear + '-' + pad(currentMonth) + '-01'; }
+  function autoTo() { return currentYear + '-' + pad(currentMonth) + '-' + pad(new Date(currentYear, currentMonth, 0).getDate()); }
+  function pOv() { return st.periodOv[mk()] || {}; }
+  function fromD() { return pOv().from || autoFrom(); }
+  function toD() { return pOv().to || autoTo(); }
+  function fmtD(iso) { var p = String(iso || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : ''; }
+  function rate() { var r = Number(st.rate); return isFinite(r) && r >= 0 ? r : 0; }
+
   function find(id) {
-    return SUPERVISORS.find(function (s) { return s.id === id; }) || st.custom.find(function (s) { return s.id === id; }) || null;
+    var base = SUPERVISORS.find(function (s) { return s.id === id; }) || st.custom.find(function (s) { return s.id === id; });
+    return base ? Object.assign({}, base, st.edits[id] || {}) : null;
   }
   function list() { return st.ids.map(find).filter(Boolean); }
   function autoVisits(id) {
@@ -3348,30 +3381,37 @@ if (_plBadge) { _plBadge.addEventListener('click', function() { runPrintTest(); 
     var o = (st.visits[mk()] || {})[id];
     return (o === undefined || o === '' || isNaN(Number(o))) ? autoVisits(id) : Number(o);
   }
-  function rewardOf(id) { return Math.round(visitsOf(id) * RATE * 100) / 100; }
+  function hasAmtOv(id) { var o = (st.amountOv[mk()] || {})[id]; return o !== undefined && o !== '' && !isNaN(Number(o)); }
+  function rewardOf(id) {
+    if (hasAmtOv(id)) return Number(st.amountOv[mk()][id]);
+    return Math.round(visitsOf(id) * rate() * 100) / 100;
+  }
   function sums() {
     var v = 0, r = 0;
     list().forEach(function (s) { v += visitsOf(s.id); r += rewardOf(s.id); });
     return { v: v, r: Math.round(r * 100) / 100 };
   }
 
+  function letterParas(m, e) {
+    return [
+      'الرجاء من فضيلتكم التكرم بالموافقة على صرف الحافز الخاص بموجهي إدارة الضبعة التعليمية الأزهرية المتابعين للصفوف الأولى من الصف الأول حتى الصف السادس للعام الدراسي ' + e + 'م و حيث ان جميع السادة الموجهين قد وقعوا اكثر من 20 توقيع بدفتر الحضور و الانصراف و كما قاموا بمتابعة جميع المعاهد الابتدائي في الخطط التوجيهية و الفنية و كذلك قاموا بعمل ورش تدريبية و ورش عمل لتناقل الأثر الايجابي الفعال في رفع كفاءة العملية التعليمية بالأزهر الشريف الصفوف الأولي وذلك تحت إشراف رئيس الإدارة المركزية بمطروح و ايضا بالتعاون مع إدارة التدريب و تفيد الإدارة بأن السادة الاتي اسمائهم لم يوقع عليهم أي جزاءات و لم يحصلو على أي اجازات اعتيادية أو مرضية خلال شهر ' + m + 'م',
+      'وتفيد الإدارة بأن السادة الاتي اسمائهم قد قامو بزيارة صفين دراسين علي الأقل في كل زيارة قامو بها للمعاهد المدونة في الخطة خلال شهر ' + m + 'م',
+      'لذا',
+      'نرجو صرف الحافز المشار اليه سابقا عن شهر ' + m + 'م و اسماء السادة الموجهين هي :-'
+    ];
+  }
+  function tag(mode, cls, txt) { return mode === 'screen' ? '<span class="hz-d ' + cls + '">' + esc(txt) + '</span>' : esc(txt); }
   function letter(mode) {
-    var m = monthTxt(), e = eduTxt();
-    function M() { return mode === 'screen' ? '<span class="hz-d hz-month">' + esc(m) + '</span>' : esc(m); }
-    function E() { return mode === 'screen' ? '<span class="hz-d hz-edu">' + esc(e) + '</span>' : esc(e); }
-    return '<p>الرجاء من فضيلتكم التكرم بالموافقة على صرف الحافز الخاص بموجهي إدارة الضبعة التعليمية الأزهرية المتابعين للصفوف الأولى من الصف الأول حتى الصف السادس للعام الدراسي ' + E() + 'م و حيث ان جميع السادة الموجهين قد وقعوا اكثر من 20 توقيع بدفتر الحضور و الانصراف و كما قاموا بمتابعة جميع المعاهد الابتدائي في الخطط التوجيهية و الفنية و كذلك قاموا بعمل ورش تدريبية و ورش عمل لتناقل الأثر الايجابي الفعال في رفع كفاءة العملية التعليمية بالأزهر الشريف الصفوف الأولي وذلك تحت إشراف رئيس الإدارة المركزية بمطروح و ايضا بالتعاون مع إدارة التدريب و تفيد الإدارة بأن السادة الاتي اسمائهم لم يوقع عليهم أي جزاءات و لم يحصلو على أي اجازات اعتيادية أو مرضية خلال شهر ' + M() + 'م</p>' +
-      '<p>وتفيد الإدارة بأن السادة الاتي اسمائهم قد قامو بزيارة صفين دراسين علي الأقل في كل زيارة قامو بها للمعاهد المدونة في الخطة خلال شهر ' + M() + 'م</p>' +
-      '<p class="hz-center">لذا</p>' +
-      '<p>نرجو صرف الحافز المشار اليه سابقا عن شهر ' + M() + 'م و اسماء السادة الموجهين هي :-</p>';
+    var p = letterParas(tag(mode, 'hz-month', monthTxt()), tag(mode, 'hz-edu', eduTxt()));
+    return '<p>' + p[0] + '</p><p>' + p[1] + '</p><p class="hz-center">' + p[2] + '</p><p>' + p[3] + '</p>';
   }
   function formHead(mode) {
-    var m = monthTxt();
-    var M = mode === 'screen' ? '<span class="hz-d hz-month">' + esc(m) + '</span>' : esc(m);
     return '<div class="hz-small">قسم الاستحقاقات</div>' +
       '<div class="hz-title">نموذج إدخال مكافأة قيمة</div>' +
       '<p>اسم المراجع/ ........................................ &nbsp;&nbsp; جهة الصرف المراجع/ ........................................</p>' +
-      '<p>اسم المكافأة/ حافز الصفوف الاولى ( للموجهين ) عن شهر ' + M + 'م</p>' +
-      '<p>جهة الصرف/ ادارة الضبعة</p>';
+      '<p>اسم المكافأة/ ' + tag(mode, 'hz-rname', st.rname) + ' عن شهر ' + tag(mode, 'hz-month', monthTxt()) + 'م</p>' +
+      '<p>جهة الصرف/ ' + tag(mode, 'hz-issuer', st.issuer) + '</p>' +
+      '<p>فترة الحافز: من ' + tag(mode, 'hz-from', fmtD(fromD())) + ' إلى ' + tag(mode, 'hz-to', fmtD(toD())) + '</p>';
   }
 
   function render() {
@@ -3381,54 +3421,79 @@ if (_plBadge) { _plBadge.addEventListener('click', function() { runPrintTest(); 
     var avail = SUPERVISORS.filter(function (s) { return st.ids.indexOf(s.id) < 0; });
     var sm = sums();
     var h = '';
-    h += '<div class="controls hz-controls">' +
-      '<div class="control-group"><label>الشهر في الخطاب:</label><input type="text" id="hzMonth" value="' + esc(monthTxt()) + '"></div>' +
-      '<div class="control-group"><label>العام الدراسي:</label><input type="text" id="hzEdu" value="' + esc(eduTxt()) + '" style="width:110px"></div>' +
-      '<button class="btn btn-primary" data-hz="auto">رجوع للتواريخ التلقائية</button>' +
-      '<button class="btn btn-print" data-hz="print">طباعة الصفحتين</button>' +
+
+    h += '<div class="hz-cards">' +
+      '<div class="hz-card"><div class="hz-lbl">الشهر المحدد</div><div class="hz-val" id="hzInfoMonth">' + esc(monthTxt()) + '</div></div>' +
+      '<div class="hz-card"><div class="hz-lbl">عدد الموجهين</div><div class="hz-val">' + L.length + '</div></div>' +
+      '<div class="hz-card"><div class="hz-lbl">إجمالي الزيارات</div><div class="hz-val" id="hzInfoV">' + sm.v + '</div></div>' +
+      '<div class="hz-card"><div class="hz-lbl">إجمالي المكافآت</div><div class="hz-val" id="hzInfoR">' + sm.r + ' ج.م</div></div></div>';
+
+    h += '<div class="hz-settings">' +
+      '<div class="hz-set"><label>الشهر في الخطاب</label><input type="text" id="hzMonth" value="' + esc(monthTxt()) + '"></div>' +
+      '<div class="hz-set"><label>العام الدراسي</label><input type="text" id="hzEdu" value="' + esc(eduTxt()) + '"></div>' +
+      '<div class="hz-set"><label>قيمة الزيارة الواحدة (ج.م)</label><input type="number" min="0" id="hzRate" value="' + rate() + '"></div>' +
+      '<div class="hz-set"><label>اسم المكافأة</label><input type="text" id="hzRName" value="' + esc(st.rname) + '"></div>' +
+      '<div class="hz-set"><label>جهة الصرف</label><input type="text" id="hzIssuer" value="' + esc(st.issuer) + '"></div>' +
+      '<div class="hz-set"><label>فترة الحافز: من تاريخ</label><input type="date" id="hzFrom" value="' + fromD() + '"></div>' +
+      '<div class="hz-set"><label>إلى تاريخ</label><input type="date" id="hzTo" value="' + toD() + '"></div>' +
       '</div>';
-    h += '<p style="text-align:center;color:#666;font-size:13px;margin-bottom:10px;">الشهر والسنة يتبعان الخطة العامة تلقائيا (' + esc(autoMonth()) + ')، وعدد الزيارات يُحسب من الخطة العامة ويمكن تعديله.</p>';
-    h += '<div class="controls hz-controls">' +
-      '<div class="control-group"><label>إضافة موجه:</label><select id="hzAddSel"><option value="">اختر موجها…</option>' +
-      avail.map(function (s) { return '<option value="' + esc(s.id) + '">' + esc(s.name) + '</option>'; }).join('') +
-      '</select><button class="btn btn-success" data-hz="add">إضافة</button></div>' +
-      '<div class="control-group"><label>موجه جديد:</label>' +
-      '<input type="text" id="hzNName" placeholder="الاسم" style="width:200px">' +
+    h += '<p style="text-align:center;color:#666;font-size:13px;margin-bottom:10px;">الشهر والفترة يتبعان الخطة العامة تلقائيا (' + esc(autoMonth()) + ')، وعدد الزيارات يُحسب من الخطة العامة. المكافأة = عدد الزيارات × قيمة الزيارة، ويمكن تعديل أي رقم يدويا.</p>';
+
+    h += '<div class="controls hz-controls" style="justify-content:center">' +
+      '<button class="btn btn-print" data-hz="print">طباعة الصفحتين</button>' +
+      '<button class="btn btn-warning" data-hz="export">تصدير Excel</button>' +
+      '<button class="btn btn-primary" data-hz="auto">رجوع للتواريخ التلقائية</button>' +
+      '<button class="btn btn-secondary" data-hz="restore">استعادة الافتراضي</button>' +
+      '</div>';
+
+    h += '<div class="hz-add"><label>إضافة موجه:</label><select id="hzAddSel"><option value="">— اختر موجها —</option>' +
+      avail.map(function (s) { return '<option value="' + esc(s.id) + '">' + esc(s.name) + ' — ' + esc(s.specialty) + ' (سجل ' + esc(s.recordNumber) + ')</option>'; }).join('') +
+      '</select><button class="btn btn-success" data-hz="add">إضافة</button>' +
+      '<span class="hz-or">أو موجه جديد:</span>' +
+      '<input type="text" id="hzNName" placeholder="الاسم" style="min-width:170px">' +
       '<input type="text" id="hzNRec" placeholder="رقم السجل" style="width:110px">' +
       '<input type="text" id="hzNSpec" placeholder="التخصص" style="width:110px">' +
-      '<button class="btn btn-success" data-hz="addnew">إضافة يدوية</button></div>' +
-      '</div>';
+      '<button class="btn btn-success" data-hz="addnew">إضافة يدوية</button></div>';
 
     h += '<div class="hz-page"><div class="hz-org">الأزهر الشريف<br>الإدارة المركزية لمنطقة مطروح الأزهرية<br>إدارة الضبعة التعليمية</div>' +
       '<div class="hz-center hz-bold">السيد صاحب الفضيلة / رئيس الإدارة المركزية لمنطقة مطروح الأزهرية<br>السلام عليكم و رحمة الله و بركاته</div>' +
       letter('screen') +
-      '<table><tr><th style="width:50px">م</th><th>رقم السجل</th><th>الاسم</th><th>التخصص</th><th style="width:40px"></th></tr>' +
+      '<table><tr><th style="width:50px">م</th><th>رقم السجل</th><th>الاسم</th><th>التخصص</th></tr>' +
       (L.length ? L.map(function (s, i) {
-        return '<tr><td>' + (i + 1) + '</td><td>' + esc(s.recordNumber) + '</td><td>' + esc(s.name) + '</td><td>' + esc(s.specialty) + '</td><td><button class="hz-x" data-hz="del" data-id="' + esc(s.id) + '" title="حذف من الجدول">×</button></td></tr>';
-      }).join('') : '<tr><td colspan="5">لا يوجد موجهون في الجدول</td></tr>') +
+        return '<tr><td>' + (i + 1) + '</td><td data-hz-p1="' + esc(s.id) + '|recordNumber">' + esc(s.recordNumber) + '</td><td data-hz-p1="' + esc(s.id) + '|name">' + esc(s.name) + '</td><td data-hz-p1="' + esc(s.id) + '|specialty">' + esc(s.specialty) + '</td></tr>';
+      }).join('') : '<tr><td colspan="4">لا يوجد موجهون في الجدول</td></tr>') +
       '</table><div class="hz-sign"><span>المختص</span><span>مدير الإدارة</span></div></div>';
 
     h += '<div class="hz-page">' + formHead('screen') +
-      '<table><tr><th>رقم السجل</th><th>اسم الموجه</th><th>التخصص</th><th style="width:110px">عدد الزيارات</th><th style="width:130px">المكافأة (× ' + RATE + ')</th><th style="width:40px"></th></tr>' +
+      '<table><tr><th style="width:120px">رقم السجل</th><th>اسم الموجه</th><th style="width:130px">التخصص</th><th style="width:100px">عدد الزيارات</th><th style="width:130px">المكافأة (× <span id="hzRateLbl">' + rate() + '</span>)</th><th style="width:80px"></th></tr>' +
       (L.length ? L.map(function (s) {
-        return '<tr><td>' + esc(s.recordNumber) + '</td><td>' + esc(s.name) + '</td><td>' + esc(s.specialty) + '</td>' +
-          '<td><input type="number" min="0" data-hz-visits="' + esc(s.id) + '" value="' + visitsOf(s.id) + '"></td>' +
-          '<td data-hz-rw="' + esc(s.id) + '">' + rewardOf(s.id) + '</td>' +
-          '<td><button class="hz-x" data-hz="del" data-id="' + esc(s.id) + '" title="حذف من الجدول">×</button></td></tr>';
+        var id = esc(s.id);
+        return '<tr><td><input type="text" data-hz-f="recordNumber" data-id="' + id + '" value="' + esc(s.recordNumber) + '"></td>' +
+          '<td><input type="text" data-hz-f="name" data-id="' + id + '" value="' + esc(s.name) + '"></td>' +
+          '<td><input type="text" data-hz-f="specialty" data-id="' + id + '" value="' + esc(s.specialty) + '"></td>' +
+          '<td><input type="number" min="0" data-hz-visits="' + id + '" value="' + visitsOf(s.id) + '"></td>' +
+          '<td><input type="number" min="0" data-hz-amt="' + id + '" value="' + rewardOf(s.id) + '"></td>' +
+          '<td><button class="hz-rs" data-hz="resetamt" data-id="' + id + '" title="رجوع للحساب التلقائي">↺</button><button class="hz-x" data-hz="del" data-id="' + id + '" title="حذف من الجدول">×</button></td></tr>';
       }).join('') : '<tr><td colspan="6">لا يوجد موجهون في الجدول</td></tr>') +
       '<tr><th colspan="3">المجموع</th><th id="hzSumV">' + sm.v + '</th><th id="hzSumR">' + sm.r + '</th><th></th></tr></table>' +
       '<div class="hz-sign"><span>المراجع</span><span>رئيس القسم</span><span>مدير شئون العاملين</span><span>يعتمد رئيس الإدارة المركزية</span></div></div>';
     box.innerHTML = h;
   }
 
+  function setText(id, txt) { var el = document.getElementById(id); if (el) el.textContent = txt; }
   function refreshTotals() {
     var sm = sums();
-    var a = document.getElementById('hzSumV'), b = document.getElementById('hzSumR');
-    if (a) a.textContent = sm.v;
-    if (b) b.textContent = sm.r;
+    setText('hzSumV', sm.v); setText('hzSumR', sm.r);
+    setText('hzInfoV', sm.v); setText('hzInfoR', sm.r + ' ج.م');
   }
   function syncSpans(cls, txt) {
     document.querySelectorAll('#hafezTab .' + cls).forEach(function (el) { el.textContent = txt; });
+  }
+  function syncAmounts() {
+    document.querySelectorAll('#hafezTab [data-hz-amt]').forEach(function (inp) {
+      var id = inp.getAttribute('data-hz-amt');
+      if (!hasAmtOv(id)) inp.value = rewardOf(id);
+    });
   }
 
   function buildPrint(L) {
@@ -3462,13 +3527,55 @@ if (_plBadge) { _plBadge.addEventListener('click', function() { runPrintTest(); 
     openPrintWindow(buildPrint(L));
   }
 
+  function exportHafez() {
+    try {
+      var L = list();
+      if (!L.length) { alert('لا يوجد موجهون في الجدول'); return; }
+      var m = monthTxt(), sm = sums();
+      var s1 = [['الأزهر الشريف'], ['الإدارة المركزية لمنطقة مطروح الأزهرية'], ['إدارة الضبعة التعليمية'], [],
+        ['السيد صاحب الفضيلة / رئيس الإدارة المركزية لمنطقة مطروح الأزهرية'], ['السلام عليكم و رحمة الله و بركاته']];
+      letterParas(m, eduTxt()).forEach(function (p) { s1.push([p]); });
+      s1.push([]);
+      s1.push(['م', 'رقم السجل', 'الاسم', 'التخصص']);
+      L.forEach(function (s, i) { s1.push([i + 1, s.recordNumber || '', s.name, s.specialty || '']); });
+      s1.push([]);
+      s1.push(['المختص', '', '', 'مدير الإدارة']);
+      var s2 = [['قسم الاستحقاقات'], ['نموذج إدخال مكافأة قيمة'],
+        ['اسم المراجع/ ........................  جهة الصرف المراجع/ ........................'],
+        ['اسم المكافأة/ ' + st.rname + ' عن شهر ' + m + 'م'],
+        ['جهة الصرف/ ' + st.issuer],
+        ['فترة الحافز: من ' + fmtD(fromD()) + ' إلى ' + fmtD(toD())], [],
+        ['رقم السجل', 'اسم الموجه', 'التخصص', 'عدد الزيارات', 'المكافأة']];
+      L.forEach(function (s) { s2.push([s.recordNumber || '', s.name, s.specialty || '', visitsOf(s.id), rewardOf(s.id)]); });
+      s2.push(['المجموع', '', '', sm.v, sm.r]);
+      s2.push([]);
+      s2.push(['المراجع', 'رئيس القسم', 'مدير شئون العاملين', 'يعتمد رئيس الإدارة المركزية']);
+      var H = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+      var R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+      var ws = 'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml';
+      var files = [
+        { name: '[Content_Types].xml', data: H + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="' + ws + '"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="' + ws + '"/></Types>' },
+        { name: '_rels/.rels', data: H + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="' + R + '/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
+        { name: 'xl/workbook.xml', data: H + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="' + R + '"><sheets><sheet name="الخطاب" sheetId="1" r:id="rId1"/><sheet name="نموذج المكافأة" sheetId="2" r:id="rId2"/></sheets></workbook>' },
+        { name: 'xl/_rels/workbook.xml.rels', data: H + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="' + R + '/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="' + R + '/worksheet" Target="worksheets/sheet2.xml"/></Relationships>' },
+        { name: 'xl/worksheets/sheet1.xml', data: _buildSheet(s1) },
+        { name: 'xl/worksheets/sheet2.xml', data: _buildSheet(s2) }
+      ];
+      var blob = new Blob([_zipStore(files)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      var url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = 'الحافز_' + m + '.xlsx';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    } catch (e) { console.error(e); alert('تعذر إنشاء ملف Excel: ' + (e.message || e)); }
+  }
+
   document.addEventListener('click', function (ev) {
     var b = ev.target.closest ? ev.target.closest('[data-hz]') : null;
     var tab = document.getElementById('hafezTab');
     if (!b || !tab || !tab.contains(b)) return;
-    var a = b.getAttribute('data-hz');
+    var a = b.getAttribute('data-hz'), id = b.getAttribute('data-id');
     if (a === 'del') {
-      var id = b.getAttribute('data-id'), s = find(id);
+      var s = find(id);
       if (confirm('حذف ' + (s ? s.name : '') + ' من جدول الحافز؟')) {
         st.ids = st.ids.filter(function (x) { return x !== id; });
         if (String(id).indexOf('h_') === 0) st.custom = st.custom.filter(function (x) { return x.id !== id; });
@@ -3484,31 +3591,68 @@ if (_plBadge) { _plBadge.addEventListener('click', function() { runPrintTest(); 
       var id2 = 'h_' + Date.now();
       st.custom.push({ id: id2, name: nm, recordNumber: document.getElementById('hzNRec').value.trim(), specialty: document.getElementById('hzNSpec').value.trim() });
       st.ids.push(id2); save(); render();
+    } else if (a === 'resetamt') {
+      if (st.amountOv[mk()]) delete st.amountOv[mk()][id];
+      save();
+      var inp = document.querySelector('[data-hz-amt="' + id + '"]');
+      if (inp) inp.value = rewardOf(id);
+      refreshTotals();
     } else if (a === 'auto') {
-      delete st.monthOv[mk()]; st.eduOv = ''; save(); render();
+      delete st.monthOv[mk()]; delete st.periodOv[mk()]; st.eduOv = ''; save(); render();
+    } else if (a === 'restore') {
+      if (!confirm('استعادة القائمة الافتراضية (كل الموجهين عدا رجب ومحمود) ومسح كل التعديلات؟')) return;
+      st = blank(); st.ids = defaultIds(); save(); render();
     } else if (a === 'print') {
       printHafez();
+    } else if (a === 'export') {
+      exportHafez();
     }
   });
 
   document.addEventListener('input', function (ev) {
     var t = ev.target;
     if (!t.closest || !t.closest('#hafezTab')) return;
+    var k = mk();
     if (t.id === 'hzMonth') {
       var v = t.value.trim();
-      if (v && v !== autoMonth()) st.monthOv[mk()] = v; else delete st.monthOv[mk()];
-      save(); syncSpans('hz-month', monthTxt());
+      if (v && v !== autoMonth()) st.monthOv[k] = v; else delete st.monthOv[k];
+      save(); syncSpans('hz-month', monthTxt()); setText('hzInfoMonth', monthTxt());
     } else if (t.id === 'hzEdu') {
       var e = t.value.trim();
       st.eduOv = (e && e !== EDU_DEFAULT) ? e : '';
       save(); syncSpans('hz-edu', eduTxt());
-    } else if (t.hasAttribute('data-hz-visits')) {
-      var k = mk(); st.visits[k] = st.visits[k] || {};
-      if (t.value === '') delete st.visits[k][t.getAttribute('data-hz-visits')]; else st.visits[k][t.getAttribute('data-hz-visits')] = t.value;
+    } else if (t.id === 'hzRate') {
+      st.rate = Math.max(0, parseFloat(t.value) || 0);
+      save(); setText('hzRateLbl', rate()); syncAmounts(); refreshTotals();
+    } else if (t.id === 'hzRName') {
+      st.rname = t.value; save(); syncSpans('hz-rname', st.rname);
+    } else if (t.id === 'hzIssuer') {
+      st.issuer = t.value; save(); syncSpans('hz-issuer', st.issuer);
+    } else if (t.id === 'hzFrom' || t.id === 'hzTo') {
+      var po = st.periodOv[k] = st.periodOv[k] || {};
+      var key = t.id === 'hzFrom' ? 'from' : 'to';
+      if (t.value && t.value !== (key === 'from' ? autoFrom() : autoTo())) po[key] = t.value; else delete po[key];
+      save(); syncSpans(key === 'from' ? 'hz-from' : 'hz-to', fmtD(key === 'from' ? fromD() : toD()));
+    } else if (t.hasAttribute('data-hz-f')) {
+      var fid = t.getAttribute('data-id'), f = t.getAttribute('data-hz-f');
+      st.edits[fid] = st.edits[fid] || {};
+      st.edits[fid][f] = t.value;
       save();
-      var vid = t.getAttribute('data-hz-visits'), cell = document.querySelector('[data-hz-rw="' + vid + '"]');
-      if (cell) cell.textContent = rewardOf(vid);
+      var cell = document.querySelector('[data-hz-p1="' + fid + '|' + f + '"]');
+      if (cell) cell.textContent = t.value;
+    } else if (t.hasAttribute('data-hz-visits')) {
+      var vid = t.getAttribute('data-hz-visits');
+      st.visits[k] = st.visits[k] || {};
+      if (t.value === '') delete st.visits[k][vid]; else st.visits[k][vid] = t.value;
+      save();
+      var ai = document.querySelector('[data-hz-amt="' + vid + '"]');
+      if (ai && !hasAmtOv(vid)) ai.value = rewardOf(vid);
       refreshTotals();
+    } else if (t.hasAttribute('data-hz-amt')) {
+      var aid = t.getAttribute('data-hz-amt');
+      st.amountOv[k] = st.amountOv[k] || {};
+      if (t.value === '') delete st.amountOv[k][aid]; else st.amountOv[k][aid] = t.value;
+      save(); refreshTotals();
     }
   });
 
